@@ -1,2 +1,2 @@
-# Inky-Mini
+# Memosaic
  A tiny ASCII fantasy console
