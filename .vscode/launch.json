@@ -9,7 +9,7 @@
           "command": "love"
         },
         "args": [
-          ".",
+          "project",
           "debug"
         ],
       },
@@ -21,7 +21,7 @@
           "command": "love"
         },
         "args": [
-          ".",
+          "project",
         ],
       },
     ]

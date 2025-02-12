@@ -4,10 +4,12 @@ if arg[2] == "debug" then
 end
 
 
+local window = require("graphics.window")
+
+
 -- Called once at the start of the game
 function love.load()
     print("Hello! Memosaic is booting.")
-    local window = require("graphics.window")
     local success = window.init(4)
     if not success then
         error("Love2D window failed to initialize.")

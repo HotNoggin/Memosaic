@@ -25,5 +25,13 @@ function window.init(scale, use_vsync)
 end
 
 
+function window.get_integer_scale()
+    local int_width, int_height = love.graphics.getDimensions()
+    int_width = math.floor(int_width / window.WIDTH)
+    int_height = math.floor(int_height / window.HEIGHT)
+    return math.max(1, math.min(int_width, int_height))
+end
+
+
 -- Export the module as a table
 return window
