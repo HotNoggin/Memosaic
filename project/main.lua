@@ -5,6 +5,10 @@ end
 
 
 local window = require("graphics.window")
+local memapi, memory = require("data.memory")
+local tick = require("engine.tick")
+
+local elapsed = 0
 
 
 -- Called once at the start of the game
@@ -21,7 +25,10 @@ end
 
 -- Called each frame, continuously
 function love.update(dt)
-    
+    if tick.update(dt) then
+        elapsed = elapsed + 1
+        print(elapsed)
+    end
 end
 
 
