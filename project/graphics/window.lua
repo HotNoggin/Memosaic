@@ -33,5 +33,18 @@ function window.get_integer_scale()
 end
 
 
+function window.display_canvas(canvas)
+    love.graphics.clear(0, 0, 0, 1)
+    local screen_width, screen_height = love.graphics.getDimensions()
+    local scale = window.get_integer_scale()
+    local scaled_width = window.WIDTH * scale
+    local scaled_height = window.HEIGHT * scale
+    love.graphics.draw(canvas.image,
+        (screen_width / 2) - (scaled_width / 2),
+        (screen_height / 2) - (scaled_height / 2),
+        0, scale, scale)
+end
+
+
 -- Export the module as a table
 return window

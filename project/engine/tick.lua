@@ -1,8 +1,9 @@
 -- Prepare a table for the module
 local tick = {}
 
+tick.FPS = 60
 tick.time = 0
-tick.tick_duration = 0.333
+tick.tick_duration = 1/tick.FPS
 
 
 -- Return true if enough time has passed since the last tick

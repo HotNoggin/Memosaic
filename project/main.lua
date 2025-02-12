@@ -4,37 +4,39 @@ if arg[2] == "debug" then
 end
 
 
-local window = require("graphics.window")
-local memapi, memory = require("data.memory")
-local tick = require("engine.tick")
 
-local elapsed = 0
+local window = require("graphics.window")
+local memapi = require("data.memory")
+local tick = require("engine.tick")
+local canvas = require("graphics.canvas")
+local memory = {}
 
 
 -- Called once at the start of the game
 function love.load()
     print("Hello! Memosaic is booting.")
-    local success = window.init(4)
+    local success = window.init(4, 0)
     if not success then
         error("Love2D window failed to initialize.")
     else
         print("Love2D window successfully initialized.")
     end
+    memory = memapi.create_memory()
+    canvas.init(window.WIDTH, window.HEIGHT)
 end
 
 
 -- Called each frame, continuously
 function love.update(dt)
     if tick.update(dt) then
-        elapsed = elapsed + 1
-        print(elapsed)
+        
     end
 end
 
 
 -- Called each screen refresh, continuously
 function love.draw()
-
+    window.display_canvas(canvas)
 end
 
 
