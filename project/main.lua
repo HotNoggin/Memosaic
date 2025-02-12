@@ -9,6 +9,7 @@ local window = require("graphics.window")
 local memapi = require("data.memory")
 local tick = require("engine.tick")
 local canvas = require("graphics.canvas")
+local drawing = require("graphics.drawing")
 local memory = {}
 
 
@@ -22,14 +23,15 @@ function love.load()
         print("Love2D window successfully initialized.")
     end
     memory = memapi.create_memory()
-    canvas.init(window.WIDTH, window.HEIGHT)
+    drawing.init(canvas)
+    canvas.init(window.WIDTH, window.HEIGHT, drawing)
 end
 
 
 -- Called each frame, continuously
 function love.update(dt)
     if tick.update(dt) then
-        
+        canvas.update()
     end
 end
 
