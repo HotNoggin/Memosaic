@@ -25,11 +25,13 @@ end
 -- Called each frame, continuously
 function love.update(dt)
     if tick.update(dt) then
-        -- Draw a random char at a random position with random color
+        -- Draw a random char at a random position with random colors
         drawing.char(string.char(math.random(0x00, 0xff)), -- Random char
             math.random(0, 15), math.random(0, 15), -- Random position
             math.random(0, 15), math.random(0, 15)) -- Random colors
+        -- Draw the ASCII + color buffers to the screen
         drawing.draw_buffer()
+        -- Refresh the canvas image with the new image 5data
         canvas.update()
     end
 end
