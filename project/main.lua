@@ -25,6 +25,7 @@ function love.load()
     memory = memapi.create_memory()
     drawing.init(canvas)
     canvas.init(window.WIDTH, window.HEIGHT, drawing)
+    print("Memosaic is ready!")
 end
 
 

@@ -30,15 +30,13 @@ end
 
 function drawing.pixel(x, y, color)
     local col = drawing.palette[(color % 16) + 1]
-    print(col.r .. " " .. col.b .. " " .. col.g)
-    print(type(col.b))
-    drawing.canvas.data.setPixel(x, y, col.r, col.g, col.b)
+    drawing.canvas.data:setPixel(x, y, col.r, col.g, col.b)
 end
 
 
 function drawing.clear(color)
-    for x = 0, drawing.canvas.width do
-        for y = 0, drawing.canvas.height do
+    for x = 0, drawing.canvas.width - 1 do
+        for y = 0, drawing.canvas.height - 1 do
             drawing.pixel(x, y, color)
         end
     end
