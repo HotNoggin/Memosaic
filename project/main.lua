@@ -31,7 +31,7 @@ function love.update(dt)
             math.random(0, 15), math.random(0, 15)) -- Random colors
         -- Draw the ASCII + color buffers to the screen
         drawing.draw_buffer()
-        -- Refresh the canvas image with the new image 5data
+        -- Refresh the canvas image with the new image data
         canvas.update()
     end
 end
