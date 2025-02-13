@@ -1,6 +1,11 @@
 -- Prepare a table for the module
 local drawing = {}
 
+local b = require("bit")
+
+drawing.TILE_WIDTH = 16
+drawing.TILE_HEIGHT = 16
+
 drawing.palette = {
     -- KIBI 16 (by me, made for KIBIBOY)
     {r = 0.035, g = 0.008, b = 0.133}, -- black
@@ -22,9 +27,55 @@ drawing.palette = {
 }
 
 
-function drawing.init(p_canvas)
-    print("Initializing drawing api")
-    drawing.canvas = p_canvas
+function drawing.init(canvas, memapi, width, height)
+    print("Connecting drawing api")
+    drawing.canvas = canvas
+    drawing.memapi = memapi
+end
+
+
+function drawing.char(c, x, y, c_color, t_color)
+    if x < 0 or x >= drawing.TILE_WIDTH then return end
+    if y < 0 or y >= drawing.TILE_HEIGHT then return end
+    -- Convert char to byte and poke the ascii buffer byte
+    local idx = y * drawing.TILE_WIDTH + x
+    drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, string.byte(c))
+    -- Poke the color buffer byte as well
+    local color_byte = drawing.memapi.peek(idx + drawing.memapi.map.color_start)
+    if c_color > 0 then
+        color_byte = b.band(color_byte, 0x0f) -- Erase char color
+        color_byte = b.bor(color_byte, b.lshift(c_color, 4)) -- Set char color
+        drawing.memapi.poke(idx + drawing.memapi.map.color_start, color_byte)
+    end
+    if t_color > 0 then
+       color_byte = b.band(color_byte, 0xf0) -- Erase tile color
+       color_byte = b.bor(color_byte, t_color) -- Set tile color
+       drawing.memapi.poke(idx + drawing.memapi.map.color_start, color_byte)
+    end
+end
+
+
+function drawing.draw_buffer()
+    for tx = 0, drawing.TILE_WIDTH - 1 do
+        for ty = 0, drawing.TILE_HEIGHT - 1 do
+            local idx = ty * drawing.TILE_WIDTH + tx 
+            local char = drawing.memapi.peek(idx + drawing.memapi.map.ascii_start)
+            local color = drawing.memapi.peek(idx + drawing.memapi.map.color_start)
+            local c_color = b.rshift(b.band(color, 0xf0), 4) -- Get left color
+            local t_color = b.band(color, 0x0f) -- Get right color
+            -- Draw the character
+            for px = 0, 7 do
+                for py = 0, 7 do
+                    -- ! Using color only currently, ignoring char
+                    if px % 2 == 0 and py % 2 == 0 then
+                        drawing.pixel(tx * 8 + px, ty * 8 + py, c_color)
+                    else
+                        drawing.pixel(tx * 8 + px, ty * 8 + py, t_color)
+                    end
+                end
+            end
+        end
+    end
 end
 
 

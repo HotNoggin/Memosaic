@@ -1,9 +1,10 @@
 -- Prepare a table for the module
 local canvas = {}
 
-function canvas.init(width, height, drawing)
+function canvas.init(width, height, drawing, memapi)
     print("Preparing virtual display")
     canvas.drawing = drawing
+    canvas.memapi = memapi
     canvas.width = width
     canvas.height = height
     canvas.data = love.image.newImageData(width, height)

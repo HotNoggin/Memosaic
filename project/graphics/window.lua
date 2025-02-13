@@ -6,11 +6,13 @@ window.HEIGHT = 128
 
 -- Set the screen size, title, and icon
 function window.init(scale, use_vsync)
+    print("Setting up window")
     local success = love.window.setMode(128 * scale, 128 * scale,
         {resizable = true, vsync = use_vsync,
         minwidth = window.WIDTH, minheight = window.HEIGHT} )
     if not success then return false end
 
+    love.graphics.setDefaultFilter("nearest")
     love.window.setTitle("Memosaic - New Project")
 
     local small_logo = love.image.newImageData("images/logo.png")

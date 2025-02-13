@@ -4,27 +4,20 @@ if arg[2] == "debug" then
 end
 
 
-
 local window = require("graphics.window")
 local memapi = require("data.memory")
 local tick = require("engine.tick")
 local canvas = require("graphics.canvas")
 local drawing = require("graphics.drawing")
-local memory = {}
 
 
 -- Called once at the start of the game
 function love.load()
     print("Hello! Memosaic is booting.")
-    local success = window.init(4, 0)
-    if not success then
-        error("Love2D window failed to initialize.")
-    else
-        print("Love2D window successfully initialized.")
-    end
-    memory = memapi.create_memory()
-    drawing.init(canvas)
-    canvas.init(window.WIDTH, window.HEIGHT, drawing)
+    window.init(4, 0)
+    memapi.init()
+    drawing.init(canvas, memapi)
+    canvas.init(window.WIDTH, window.HEIGHT, drawing, memapi)
     print("Memosaic is ready!")
 end
 
@@ -32,6 +25,11 @@ end
 -- Called each frame, continuously
 function love.update(dt)
     if tick.update(dt) then
+        -- Draw a random char at a random position with random color
+        drawing.char(string.char(math.random(0x00, 0xff)), -- Random char
+            math.random(0, 15), math.random(0, 15), -- Random position
+            math.random(0, 15), math.random(0, 15)) -- Random colors
+        drawing.draw_buffer()
         canvas.update()
     end
 end
