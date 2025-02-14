@@ -5,7 +5,7 @@ local font_tab = {}
 local b = require("bit")
 
 
-font_tab.char = 0
+font_tab.char = 0x21
 font_tab.pen = false
 
 
