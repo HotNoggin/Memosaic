@@ -12,6 +12,8 @@ local canvas = require("graphics.canvas")
 local drawing = require("graphics.drawing")
 local editor = require("editor.editor")
 
+local esc_old = false
+
 
 -- Called once at the start of the game
 function love.load()
@@ -38,12 +40,22 @@ function love.update(dt)
         
         -- Check all inputs and store the result
         input.update()
+
+        -- Run game (temporary hard path used)
+        if love.keyboard.isDown("escape") and not esc_old then
+            editor.active = false
+        end
+
         -- Editor processing tick
-        editor.update()
+        if editor.active then editor.update() end
+
         -- Draw the ASCII + color buffers to the screen
         drawing.draw_buffer()
         -- Refresh the canvas image with the new image data
         canvas.update()
+
+        -- Historic input
+        esc_old = love.keyboard.isDown("escape")
     end
 end
 
