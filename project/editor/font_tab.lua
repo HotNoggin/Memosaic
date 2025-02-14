@@ -5,6 +5,7 @@ local font_tab = {}
 local b = require("bit")
 
 font_tab.char = 0
+font_tab.pen = false
 
 
 function font_tab.update(e)
@@ -12,17 +13,29 @@ function font_tab.update(e)
 
     draw.clrs()
 
-    if e.input.lclick_in(0, 0, 8, 8) and not e.input.lheld then
-        local x = e.input.mouse.x
-        local y = e.input.mouse.y
-        local ptr = font_tab.char + x + e.memapi.map.font_start
+    local m_x = e.input.mouse.x
+    local m_y = e.input.mouse.y
+
+    -- Sprite editing
+    if e.input.lclick_in(0, 0, 8, 8) then
+        if not e.input.lheld then
+            font_tab.pen = e.drawing.font_pixel(m_x, m_y, font_tab.char)
+        end
+
+        local ptr = (font_tab.char * 8) + m_x + e.memapi.map.font_start
         local byte = e.memapi.peek(ptr)
-        if e.drawing.font_pixel(x, y, font_tab.char) then
-            byte = b.band(byte, b.bnot(b.lshift(1, y)))
+        if font_tab.pen then
+            byte = b.band(byte, b.bnot(b.lshift(1, m_y)))
         else
-            byte = b.bor(byte, b.lshift(1, y))
+            byte = b.bor(byte, b.lshift(1, m_y))
         end
         e.memapi.poke(ptr, byte)
+    end
+
+    -- Sprite select
+    if e.input.lclick_in(8, 0, 8, 16) and not e.input.lheld then
+        local idx = m_y * 8 + m_x - 8
+        font_tab.char = idx
     end
 
     -- Sprite drawing

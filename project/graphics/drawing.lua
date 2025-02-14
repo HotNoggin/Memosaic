@@ -121,15 +121,15 @@ end
 function drawing.draw_buffer()
     for tx = 0, drawing.TILE_WIDTH - 1 do
         for ty = 0, drawing.TILE_HEIGHT - 1 do
-            local idx = ty * drawing.TILE_WIDTH + tx 
-            local char = drawing.memapi.peek(idx + drawing.memapi.map.ascii_start)
-            local color = drawing.memapi.peek(idx + drawing.memapi.map.color_start)
+            local tile = ty * drawing.TILE_WIDTH + tx -- which tile this is
+            local char = drawing.memapi.peek(tile + drawing.memapi.map.ascii_start)
+            local color = drawing.memapi.peek(tile + drawing.memapi.map.color_start)
             local fg = b.rshift(b.band(color, 0xf0), 4) -- Get left color
             local bg = b.band(color, 0x0f) -- Get right color
             -- Draw the character
             for px = 0, 7 do
                 for py = 0, 7 do
-                    if drawing.font_pixel(px, py, idx) then
+                    if drawing.font_pixel(px, py, char) then
                         drawing.pixel(tx * 8 + px, ty * 8 + py, fg)
                     else
                         drawing.pixel(tx * 8 + px, ty * 8 + py, bg)
@@ -142,7 +142,7 @@ end
 
 
 function drawing.font_pixel(px, py, idx)
-    local byte = drawing.memapi.peek(idx + px + drawing.memapi.map.font_start)
+    local byte = drawing.memapi.peek(idx * 8 + px + drawing.memapi.map.font_start)
     local pixel = bit.rshift(bit.band(byte, bit.lshift(1, py)), py)
     return pixel == 1
 end
