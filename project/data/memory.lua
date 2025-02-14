@@ -7,12 +7,13 @@ local ffi = require("ffi")
 memapi.map = {
     memory_start = 0x000, memory_end = 0xfff, -- The entirety of the memory
     write_start  = 0x000, write_end  = 0xfff, -- The writable memory block
-    font_start   = 0x000, font_end   = 0x7ff, -- 2048 bytes for 256 8-byte chars
+    font_start   = 0x000, font_end   = 0x7ff, -- 2048 bytes for 128 to 256 chars
+    save_start   = 0x400, save_end   = 0x7ff, -- 1024 bytes of font for save data
     sounds_start = 0x800, sounds_end = 0x9ff, -- 512 bytes for 32-byte sounds
     audio_start  = 0xa00, audio_end  = 0xbff, -- 512 bytes for audio buffer
     ascii_start  = 0xc00, ascii_end  = 0xcff, -- 256 bytes for ascii char grid
-    color_start  = 0xd00, color_end  = 0xdff, -- 256 bytes for 4-bit color gridd
-    bonus_start  = 0xe00, bonus_end  = 0xfff, -- 512 byets for multiple uses
+    color_start  = 0xd00, color_end  = 0xdff, -- 256 bytes for 4-bit color grid
+    bonus_start  = 0xe00, bonus_end  = 0xfff, -- 512 bytes for multiple uses
 }
 
 
