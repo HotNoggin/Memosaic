@@ -4,6 +4,7 @@ local font_tab = {}
 
 local b = require("bit")
 
+
 font_tab.char = 0
 font_tab.pen = false
 
@@ -42,19 +43,34 @@ function font_tab.update(e)
     for x = 0, 7 do
         for y = 0, 7 do
             if e.drawing.font_pixel(x, y, font_tab.char) then
-                draw.ink(x, y, 0, 0)
+                draw.ink(x, y, 13, 13)
             else
-                draw.ink(x, y, 10, 10)
+                draw.ink(x, y, 0, 0)
             end
         end
     end
 
-    -- Draw chars TOTALLY BROKEN
+    -- Draw chars
     for x = 0, 7 do
         for y = 0, 16 do
             local idx = (y * 8) + x
             draw.tile(x + 8, y, idx, 13, 0)
+            if idx == font_tab.char then
+                draw.ink(x + 8, y, 7, 10)
+            end
         end
+    end
+
+    -- Font saving (primitive)
+    if e.input.btn(2) and not e.input.old(2) then
+        local font = ""
+        for i = e.memapi.map.font_start, e.memapi.map.font_end do
+            local byte = e.memapi.peek(i)
+            local left = b.rshift(b.band(byte, 0xf0), 4)
+            local right = b.band(byte, 0x0f)
+            font = font .. e.memapi.hexchar(left) .. e.memapi.hexchar(right)
+        end
+        print(font)
     end
 end
 

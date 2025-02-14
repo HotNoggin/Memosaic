@@ -16,7 +16,7 @@ local editor = require("editor.editor")
 -- Called once at the start of the game
 function love.load()
     print("Memosaic is booting")
-    window.init(4, 0)
+    window.init(4, true)
     input.init(window)
     memapi.init()
     drawing.init(canvas, memapi)

@@ -7,6 +7,7 @@ function input.init(window)
     input.window = window
     -- 0:up 1:left 2:down 3:right 4:x/j 5:c/k
     input.buttons = {false, false, false, false, false, false}
+    input.old_buttons =  {false, false, false, false, false, false}
 
     -- Ranges from 0 to 15 on the x and y axis (corresponding to the grid)
     input.mouse = {x = 0, y = 0}
@@ -18,6 +19,10 @@ end
 
 
 function input.update()
+    input.old_buttons = {
+        input.buttons[1], input.buttons[2], input.buttons[3],
+        input.buttons[4], input.buttons[5], input.buttons[6]
+    }
     input.buttons[1] = love.keyboard.isScancodeDown("w") or love.keyboard.isScancodeDown("up")
     input.buttons[2] = love.keyboard.isScancodeDown("a") or love.keyboard.isScancodeDown("left")
     input.buttons[3] = love.keyboard.isScancodeDown("s") or love.keyboard.isScancodeDown("down")
@@ -71,6 +76,11 @@ function input.btn(num)
     return input.buttons[num + 1]
 end
 
+
+function input.old(num)
+    if num < 0 or num > 5 then return false end
+    return input.old_buttons[num + 1]
+end
 
 function input.num(b)
     if b then return 1 else return 0 end
