@@ -12,6 +12,8 @@ function input.init(window)
     input.mouse = {x = 0, y = 0}
     input.lclick = false
     input.rclick = false
+    input.lheld = false
+    input.rheld = false
 end
 
 
@@ -22,6 +24,8 @@ function input.update()
     input.buttons[4] = love.keyboard.isScancodeDown("d") or love.keyboard.isScancodeDown("right")
     input.buttons[5] = love.keyboard.isScancodeDown("x") or love.keyboard.isScancodeDown("j")
     input.buttons[6] = love.keyboard.isScancodeDown("c") or love.keyboard.isScancodeDown("k")
+    input.lheld = input.lclick
+    input.rheld = input.rheld
     input.lclick = love.mouse.isDown(1)
     input.rclick = love.mouse.isDown(2)
 
@@ -48,6 +52,17 @@ function input.update()
 
     input.mouse.x = math.max(0, math.min(math.floor(mouse_x / 8), 15))
     input.mouse.y = math.max(0, math.min(math.floor(mouse_y / 8), 15))
+end
+
+
+function input.lclick_in(x, y, w, h)
+    if input.lclick then
+        if input.mouse.x >= x and input.mouse.x < x + w and
+            input.mouse.y >= y and input.mouse.y < y + h then
+            return true
+        end
+    end
+    return false
 end
 
 

@@ -3,6 +3,8 @@ local drawing = {}
 
 local b = require("bit")
 
+-- The width and height of THE CANVAS in tiles
+-- NOT the width and height of a tile!
 drawing.TILE_WIDTH = 16
 drawing.TILE_HEIGHT = 16
 
@@ -126,10 +128,8 @@ function drawing.draw_buffer()
             local bg = b.band(color, 0x0f) -- Get right color
             -- Draw the character
             for px = 0, 7 do
-                local byte = drawing.memapi.peek(char + px + drawing.memapi.map.font_start)
                 for py = 0, 7 do
-                    local pixel = bit.rshift(bit.band(byte, bit.lshift(1, py)), py)
-                    if pixel == 1 then
+                    if drawing.font_pixel(px, py, idx) then
                         drawing.pixel(tx * 8 + px, ty * 8 + py, fg)
                     else
                         drawing.pixel(tx * 8 + px, ty * 8 + py, bg)
@@ -138,6 +138,13 @@ function drawing.draw_buffer()
             end
         end
     end
+end
+
+
+function drawing.font_pixel(px, py, idx)
+    local byte = drawing.memapi.peek(idx + px + drawing.memapi.map.font_start)
+    local pixel = bit.rshift(bit.band(byte, bit.lshift(1, py)), py)
+    return pixel == 1
 end
 
 
