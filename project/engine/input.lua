@@ -5,9 +5,19 @@ local input = {}
 function input.init(window)
     print("Initializing input")
     input.window = window
+
+    input.alpha_keys = {
+        "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h",
+        "j", "k", "l", "z", "x", "c", "v", "b", "n", "m", "0", "1", "2", "3", "4", "5",
+        "6", "7", "8", "9",
+    }
+
     -- 0:up 1:left 2:down 3:right 4:x/j 5:c/k
     input.buttons = {false, false, false, false, false, false}
     input.old_buttons =  {false, false, false, false, false, false}
+
+    input.alpha = {}
+    input.old_alpha = {}
 
     -- Ranges from 0 to 15 on the x and y axis (corresponding to the grid)
     input.mouse = {x = 0, y = 0}
@@ -15,6 +25,7 @@ function input.init(window)
     input.rclick = false
     input.lheld = false
     input.rheld = false
+    input.ctrl = false
 end
 
 
@@ -33,18 +44,16 @@ function input.update()
     input.rheld = input.rheld
     input.lclick = love.mouse.isDown(1)
     input.rclick = love.mouse.isDown(2)
+    input.ctrl = love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")
 
-    -- C++ implementation
-    -- int windowWidth = 0;
-    -- int windowHeight = 0;
-    -- SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-    -- int scale = Canvas::getScale(windowWidth, windowHeight);
-
-    -- int offsetX = (windowWidth - (Canvas::WIDTH * scale)) / 2;
-    -- int offsetY = (windowHeight - (Canvas::HEIGHT * scale)) / 2;
-    
-    -- mouseX = (event.motion.x - offsetX) / scale;
-    -- mouseY = (event.motion.y - offsetY) / scale;
+    input.old_alpha = {}
+    for i = 1, #input.alpha_keys do
+       input.old_alpha[input.alpha_keys[i]] = input.alpha[input.alpha_keys[i]]
+    end
+    input.alpha = {}
+    for i = 1, #input.alpha_keys do
+        input.alpha[input.alpha_keys[i]] = love.keyboard.isDown(input.alpha_keys[i])
+    end
 
     local win_width, win_height = love.graphics.getDimensions()
     local scale = input.window.get_integer_scale()
@@ -74,6 +83,16 @@ end
 function input.btn(num)
     if num < 0 or num > 5 then return false end
     return input.buttons[num + 1]
+end
+
+
+function input.key(key)
+    if input.alpha[key] then return true else return false end
+end
+
+
+function input.oldkey(key)
+    if input.old_alpha[key] then return true else return false end
 end
 
 

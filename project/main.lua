@@ -26,8 +26,7 @@ function love.load()
     drawing.init(canvas, memapi)
     canvas.init(window.WIDTH, window.HEIGHT, drawing, memapi)
     cart.init(input, memapi, drawing, console)
-    cart.load("C:/Users/space/Visual Studio/Memosaic/project/carts/hello_world.memo")
-    editor.init(window, input, memapi, drawing, canvas)
+    editor.init(window, input, memapi, drawing, canvas, cart)
     print("Memosaic is ready!\n")
 end
 
@@ -42,6 +41,7 @@ function love.update(dt)
             if cart.running then
                 cart.stop()
             else
+                cart.load("C:/Users/space/Visual Studio/Memosaic/project/carts/hello_world.memo")
                 cart.run()
             end
         end

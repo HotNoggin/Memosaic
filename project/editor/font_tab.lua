@@ -11,15 +11,16 @@ font_tab.pen = false
 
 function font_tab.update(e)
     local draw = e.drawing
+    local ipt = e.input
 
     draw.clrs()
 
-    local m_x = e.input.mouse.x
-    local m_y = e.input.mouse.y
+    local m_x = ipt.mouse.x
+    local m_y = ipt.mouse.y
 
     -- Sprite editing
-    if e.input.lclick_in(0, 0, 8, 8) then
-        if not e.input.lheld then
+    if ipt.lclick_in(0, 0, 8, 8) then
+        if not ipt.lheld then
             font_tab.pen = e.drawing.font_pixel(m_x, m_y, font_tab.char)
         end
 
@@ -34,7 +35,7 @@ function font_tab.update(e)
     end
 
     -- Sprite select
-    if e.input.lclick_in(8, 0, 8, 16) and not e.input.lheld then
+    if ipt.lclick_in(8, 0, 8, 16) and not ipt.lheld then
         local idx = m_y * 8 + m_x - 8
         font_tab.char = idx
     end
@@ -60,18 +61,18 @@ function font_tab.update(e)
             end
         end
     end
+end
 
-    -- Font saving (primitive)
-    if e.input.btn(2) and not e.input.old(2) then
-        local font = ""
-        for i = e.memapi.map.font_start, e.memapi.map.font_end do
-            local byte = e.memapi.peek(i)
-            local left = b.rshift(b.band(byte, 0xf0), 4)
-            local right = b.band(byte, 0x0f)
-            font = font .. e.memapi.hexchar(left) .. e.memapi.hexchar(right)
-        end
-        print(font)
+
+function font_tab.get_font(e)
+    local font = ""
+    for i = e.memapi.map.font_start, e.memapi.map.font_end do
+        local byte = e.memapi.peek(i)
+        local left = b.rshift(b.band(byte, 0xf0), 4)
+        local right = b.band(byte, 0x0f)
+        font = font .. e.memapi.hexchar(left) .. e.memapi.hexchar(right)
     end
+    return font
 end
 
 
