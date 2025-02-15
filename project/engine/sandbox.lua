@@ -41,6 +41,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         -- Console
         echo = console.print,
         print = console.print,
+        say = console.print,
         err = console.err,
 
         -- Math
