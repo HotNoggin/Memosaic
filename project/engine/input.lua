@@ -82,6 +82,7 @@ function input.old(num)
     return input.old_buttons[num + 1]
 end
 
+
 function input.num(b)
     if b then return 1 else return 0 end
 end

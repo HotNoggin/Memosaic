@@ -10,6 +10,8 @@ local memapi = require("data.memory")
 local tick = require("engine.tick")
 local canvas = require("graphics.canvas")
 local drawing = require("graphics.drawing")
+local cart = require("engine.cart")
+local console = require("editor.console")
 local editor = require("editor.editor")
 
 local esc_old = false
@@ -23,31 +25,29 @@ function love.load()
     memapi.init()
     drawing.init(canvas, memapi)
     canvas.init(window.WIDTH, window.HEIGHT, drawing, memapi)
+    cart.init(input, memapi, drawing, console)
+    cart.load("C:/Users/space/Visual Studio/Memosaic/project/carts/hello_world.memo")
     editor.init(window, input, memapi, drawing, canvas)
-    print("Memosaic is ready!")
+    print("Memosaic is ready!\n")
 end
 
 
 -- Called each frame, continuously
 function love.update(dt)
     if tick.update(dt) then
-
-        -- Draw a random char at a random position with random colors
-        --drawing.cell(
-        --    math.random(0, 15), math.random(0, 15), -- Random position
-        --    string.char(math.random(0x00, 0xff)),   -- Random char
-        --    math.random(0, 15), math.random(0, 15)) -- Random colors
-        
-        -- Check all inputs and store the result
         input.update()
 
         -- Run game (temporary hard path used)
         if love.keyboard.isDown("escape") and not esc_old then
-            editor.active = false
+            if cart.running then
+                cart.stop()
+            else
+                cart.run()
+            end
         end
 
-        -- Editor processing tick
-        if editor.active then editor.update() end
+        -- Processing ticks
+        if cart.running then cart.tick() else editor.update() end
 
         -- Draw the ASCII + color buffers to the screen
         drawing.draw_buffer()

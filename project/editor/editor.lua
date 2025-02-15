@@ -11,7 +11,6 @@ function editor.init(window, input, memapi, drawing, canvas)
     editor.drawing = drawing
     editor.canvas = canvas
     editor.tab = 0
-    editor.active = true
 end
 
 
