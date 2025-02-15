@@ -1,6 +1,8 @@
 -- Prepare a table for the module
 local console = {}
 
+local editor = {}
+
 console.entries = {
     -----------------"
     "\1 \1 Memosaic \1 \1",
@@ -8,9 +10,10 @@ console.entries = {
     "command list, or",
     "EDIT to switch  ",
     "to edit mode.   ",
+    "",
 }
-console.fgc = {11, 13, 13, 13, 13}
-console.bgc = {0, 0, 0, 0, 0}
+console.fgc = {11, 13, 13, 13, 13, 8}
+console.bgc = {0, 0, 0, 0, 0, 0}
 console.wrap = true
 
 -- Scroll y
@@ -20,25 +23,50 @@ local sf = 0
 -- Last scroll direction
 local sd = 0
 
+-- Input
+local enter_down = false
+local bspace_time = 0
+local bspac_lemit = 15
+
 
 function console.update(e)
+    local editor = e
     local draw = e.drawing
     local c = console
 
-    local to_write = {}
-    local to_fgc = {}
-    local to_bgc = {}
-
+    local text = e.input.poptext()
+    if text ~= "" then
+        c.entries[#c.entries] = c.entries[#c.entries] .. text
+    end
+    
+    local enter = love.keyboard.isDown("return")
+        
+    if enter and not enter_down then
+        c.command(c.entries[#c.entries])
+        c.fgc[#c.entries] = 7 + #c.entries%2
+        c.take_input()
+    end
+    enter_down = enter
+    
 
     -- Don't let the amount of entries exceed the maximum limit
     while #c.entries > 128 do
         table.remove(c.entries, 1)
     end
 
+    -- Prepare to write and color the text to the console
+    local to_write = {}
+    local to_fgc = {}
+    local to_bgc = {}
+
     -- If wrapping is enabled, generate the formatted text
     if c.wrap then
         for entry = 1, #c.entries do
-            local split = c.splitstr(c.entries[entry], 16)
+            local txt = c.entries[entry]
+            if entry == #c.entries then
+                txt = ">" .. txt
+            end
+            local split = c.splitstr(txt, 16)
             if split then
                 for stri = 1, #split do
                     table.insert(to_write, split[stri])
@@ -47,6 +75,7 @@ function console.update(e)
                 end
             end
         end
+
     -- If it's not enabled, just send the text over as-is
     else
         to_write = c.entries
@@ -55,11 +84,14 @@ function console.update(e)
     end
 
     -- Scroll with the mousewheel
-    if e.input.wheel ~= sd then
+    if e.input.wheel ~= 0 and e.input.wheel ~= sd then
         c.sy = c.sy - e.input.wheel
-    else
-        sf = 0
+    elseif love.keyboard.isDown("down") then
+        c.sy = c.sy - 1
+    elseif love.keyboard.isDown("down") then
+        c.sy = c.sy + 1
     end
+
     sd = e.input.wheel
     c.sy = math.max(0, math.min(c.sy, #to_write - 1))
 
@@ -75,15 +107,31 @@ function console.update(e)
 end
 
 
+function console.command(cmd)
+    
+end
+
+
+function console.take_input()
+    table.insert(console.entries, "")
+    table.insert(console.fgc, 7 + #console.entries%2)
+    table.insert(console.bgc, 0)
+end
+
+
 function console.print(text, fg, bg)
     print(text)
-    table.insert(console.entries, text)
+    console.entries[#console.entries] = text
+    console.fgc[#console.fgc] = fg
+    console.bgc[#console.bgc] = bg
+    console.take_input()
 end
 
 
 function console.error(text, fg, bg)
     print("ERR: " .. text)
-    table.insert(console.entries, "ERROR: " .. text)
+    console.print("ERR: " .. text, fg, bg)
+    editor.cart.stop()
 end
 
 
