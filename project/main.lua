@@ -50,7 +50,7 @@ function love.update(dt)
         drawing.draw_buffer()
         -- Refresh the canvas image with the new image data
         canvas.update()
-
+        
         -- Historic input
         esc_old = love.keyboard.isDown("escape")
     end
@@ -60,6 +60,16 @@ end
 -- Called each screen refresh, continuously
 function love.draw()
     window.display_canvas(canvas)
+end
+
+
+function love.wheelmoved(x, y)
+    input.wheel = y
+end
+
+
+function love.textinput(txt)
+    input.text = input.text .. txt
 end
 
 

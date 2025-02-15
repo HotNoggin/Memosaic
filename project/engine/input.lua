@@ -21,11 +21,15 @@ function input.init(window)
 
     -- Ranges from 0 to 15 on the x and y axis (corresponding to the grid)
     input.mouse = {x = 0, y = 0}
+    input.wheel = 0
     input.lclick = false
     input.rclick = false
     input.lheld = false
     input.rheld = false
+
+    input.text = ""
     input.ctrl = false
+    input.shift = false
 end
 
 
@@ -45,6 +49,7 @@ function input.update()
     input.lclick = love.mouse.isDown(1)
     input.rclick = love.mouse.isDown(2)
     input.ctrl = love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")
+    input.shift = love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")
 
     input.old_alpha = {}
     for i = 1, #input.alpha_keys do
@@ -95,6 +100,12 @@ function input.oldkey(key)
     if input.old_alpha[key] then return true else return false end
 end
 
+
+function input.poptext()
+    local txt = input.text
+    input.text = ""
+    return txt
+end
 
 function input.old(num)
     if num < 0 or num > 5 then return false end

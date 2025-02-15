@@ -38,6 +38,10 @@ function sandbox.init(cart, input, memapi, drawing, console)
         clrs = drawing.clrs,
         tile = drawing.tile,
         ink = drawing.ink,
+        rect = drawing.rect,
+        crect = drawing.crect,
+        irect = drawing.irect,
+        text = drawing.text,
 
         -- Console
         echo = console.print,
@@ -84,6 +88,10 @@ function sandbox.init(cart, input, memapi, drawing, console)
         rlen = rawlen,
         slct = select,
     }
+
+    function sandbox.env.istr(str, i)
+        return string.sub(str, i, i)
+    end
 end
 
 -- print - SAFE (assuming output to stdout is ok)

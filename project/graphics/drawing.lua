@@ -78,6 +78,14 @@ function drawing.irect(x, y, w, h, fg, bg)
 end
 
 
+-- Draw a line of text onto the screen
+function drawing.text(x, y, str, fg, bg)
+    for i = 1, string.len(str) do
+        drawing.tile(x + i - 1, y, string.sub(str, i, i), fg, bg)
+    end
+end
+
+
 function drawing.tile(x, y, c, fg, bg)
     drawing.char(x, y, c)
     drawing.ink(x, y, fg, bg)
