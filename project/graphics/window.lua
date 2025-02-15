@@ -27,6 +27,11 @@ function window.init(scale, use_vsync)
 end
 
 
+function window.set_icon(str)
+    
+end
+
+
 function window.get_integer_scale()
     local int_width, int_height = love.graphics.getDimensions()
     int_width = math.floor(int_width / window.WIDTH)

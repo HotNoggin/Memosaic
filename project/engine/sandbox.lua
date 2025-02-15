@@ -14,6 +14,7 @@ end
 
 
 function sandbox.init(cart, input, memapi, drawing, console)
+    print("Populating sandbox API")
     -- The Memosaic API (safe lua default functions and custom functions)
     sandbox.env = {
         -- Standard

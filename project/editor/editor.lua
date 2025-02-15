@@ -2,6 +2,7 @@
 local editor = {}
 
 editor.font_tab = require("project.editor.font_tab")
+editor.console = require("project.editor.console")
 
 
 function editor.init(window, input, memapi, drawing, canvas, cart)
@@ -16,7 +17,8 @@ end
 
 
 function editor.update()
-    if editor.tab == 0 then editor.font_tab.update(editor) end
+    if editor.tab == 0 then editor.console.update(editor) end
+    if editor.tab == 1 then editor.font_tab.update(editor) end
 
     local ipt = editor.input
 

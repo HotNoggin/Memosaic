@@ -6,6 +6,7 @@ cart.sandbox = require("engine.sandbox")
 
 function cart.init(input, memapi, drawing, console)
     print("Creating cart sandbox")
+    cart.name = "New Cart"
     cart.code = {}
     cart.font = ""
     cart.sfx = ""
@@ -17,6 +18,7 @@ end
 
 function cart.load(path)
     print("Loading " .. path)
+    cart.name = path
     cart.code = {}
     cart.font = ""
     cart.sfx = ""
@@ -38,6 +40,10 @@ function cart.load(path)
             -- Load font to memory
             if flag == "--!:font" then
                 cart.memapi.load_font(string.sub(line, 3, -1))
+            -- Set name
+            elseif flag == "--!:name" then
+                cart.name = string.sub(line, 3, -1)
+                love.window.setTitle("Memosaic - " .. cart.name)
             -- Add line to code (exclude font or sfx flags and data)
             elseif next_flag ~= "--!:font" and next_flag ~= "--!:sfx" then
                 table.insert(cart.code, line)
@@ -51,6 +57,7 @@ end
 
 function cart.run()
     print("Starting cart")
+    love.window.setTitle("Memosaic - " .. cart.name)
     cart.running = true
     local ok, err = cart.sandbox.run(cart.get_script())
     if not ok then

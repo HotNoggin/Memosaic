@@ -11,7 +11,6 @@ local tick = require("engine.tick")
 local canvas = require("graphics.canvas")
 local drawing = require("graphics.drawing")
 local cart = require("engine.cart")
-local console = require("editor.console")
 local editor = require("editor.editor")
 
 local esc_old = false
@@ -25,8 +24,8 @@ function love.load()
     memapi.init()
     drawing.init(canvas, memapi)
     canvas.init(window.WIDTH, window.HEIGHT, drawing, memapi)
-    cart.init(input, memapi, drawing, console)
     editor.init(window, input, memapi, drawing, canvas, cart)
+    cart.init(input, memapi, drawing, editor.console)
     print("Memosaic is ready!\n")
 end
 
@@ -40,9 +39,7 @@ function love.update(dt)
         if love.keyboard.isDown("escape") and not esc_old then
             if cart.running then
                 cart.stop()
-            else
-                cart.load("C:/Users/space/Visual Studio/Memosaic/project/carts/hello_world.memo")
-                cart.run()
+                editor.tab = 0
             end
         end
 

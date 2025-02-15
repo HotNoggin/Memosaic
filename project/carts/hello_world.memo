@@ -1,4 +1,6 @@
--- Memosaic cart; lua
+--!:name
+--Hello World!
+
 
 function boot()
     clrs()

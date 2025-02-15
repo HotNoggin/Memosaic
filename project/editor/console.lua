@@ -4,6 +4,11 @@ local console = {}
 console.entries = {}
 
 
+function console.update(e)
+    
+end
+
+
 function console.print(text, color)
     print(text)
     table.insert(console.entries, {c = color, t = text})
