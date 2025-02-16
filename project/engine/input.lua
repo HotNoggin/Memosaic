@@ -2,9 +2,9 @@
 local input = {}
 
 
-function input.init(window)
+function input.init(memo)
     print("Initializing input")
-    input.window = window
+    input.window = memo.window
 
     input.alpha_keys = {
         "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h",
@@ -12,7 +12,6 @@ function input.init(window)
         "6", "7", "8", "9",
     }
 
-    -- 0:up 1:left 2:down 3:right 4:x/j 5:c/k
     input.buttons = {false, false, false, false, false, false}
     input.old_buttons =  {false, false, false, false, false, false}
 
@@ -30,6 +29,9 @@ function input.init(window)
     input.text = ""
     input.ctrl = false
     input.shift = false
+    input.enter = false
+    input.back = false
+    input.del = false
 end
 
 
@@ -38,18 +40,23 @@ function input.update()
         input.buttons[1], input.buttons[2], input.buttons[3],
         input.buttons[4], input.buttons[5], input.buttons[6]
     }
-    input.buttons[1] = love.keyboard.isScancodeDown("w") or love.keyboard.isScancodeDown("up")
-    input.buttons[2] = love.keyboard.isScancodeDown("a") or love.keyboard.isScancodeDown("left")
-    input.buttons[3] = love.keyboard.isScancodeDown("s") or love.keyboard.isScancodeDown("down")
-    input.buttons[4] = love.keyboard.isScancodeDown("d") or love.keyboard.isScancodeDown("right")
+    input.buttons[1] = love.keyboard.isScancodeDown("a") or love.keyboard.isScancodeDown("left")
+    input.buttons[2] = love.keyboard.isScancodeDown("d") or love.keyboard.isScancodeDown("right")
+    input.buttons[3] = love.keyboard.isScancodeDown("w") or love.keyboard.isScancodeDown("up")
+    input.buttons[4] = love.keyboard.isScancodeDown("s") or love.keyboard.isScancodeDown("down")
     input.buttons[5] = love.keyboard.isScancodeDown("x") or love.keyboard.isScancodeDown("j")
     input.buttons[6] = love.keyboard.isScancodeDown("c") or love.keyboard.isScancodeDown("k")
+    
     input.lheld = input.lclick
     input.rheld = input.rheld
     input.lclick = love.mouse.isDown(1)
     input.rclick = love.mouse.isDown(2)
+
     input.ctrl = love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")
     input.shift = love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")
+    input.enter = love.keyboard.isDown("return")
+    input.back = love.keyboard.isDown("backspace")
+    input.dl = love.keyboard.isDown("delete")
 
     input.old_alpha = {}
     for i = 1, #input.alpha_keys do

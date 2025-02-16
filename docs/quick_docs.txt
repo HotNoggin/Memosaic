@@ -1,0 +1,210 @@
++------------------------------+
+|========== MEMOSAIC ==========|
++------------------------------+
+................................
+................................
+..####..####........########....
+##############....####....####..
+####..##..####....############..
+####......####....####..........
+####......####......########....
+................................
+................................
+................................
+..####..####........########....
+##############....####....####..
+####..##..####....####....####..
+####......####....####....####..
+####......####......########....
+................................
+
+
+Some methods are from lua and love2d.
+These are marked with * and not explained.
+See the respective documentation for explanations.
+Some methods are not yet fully implemented.
+These are marked with !.
+
+
+--------------
+-- Standard --
+--------------
+type()*
+
+pcall()*
+
+num(): tonumber()*
+
+str(): tostring()*
+
+!time(): (assume time is given in ms)
+
+
+---------------
+-- Callbacks --
+--------------- 
+boot(): Called once after the cart has loaded.
+
+tick(): Called once each frame, 30 times each second.
+
+-- Memory --
+peek(ptr): Reads a byte from memory.
+    ptr: The memory address to read from.
+poke(ptr, val): Writes a byte to memory.
+    ptr: The memory address to write to.
+    val: The byte to write at the address.
+
+
+-----------
+-- Input --
+-----------
+
+btn(n): Returns true if the button n is presed.
+    n: The button to check [0=left 1=right 2=up 3=down 4=x/j(physical) 5=c/k(physical)]
+
+
+--------------
+-- Graphics --
+--------------
+-- There are 16 colors from the defined in the color palette.
+-- All drawing methods which need color use these 16 colors.
+-- Each tile is an ASCII character in the foreground color on top of the background color.
+-- 0=black, 1=silver, 2=purple, 3=red, 4=brown, 5=orange, 6=peach, 7=yellow,
+-- 8=lime, 9=green, 10=blue, 11=teal, 12=gray, 13=white, 14=pink, 15=magenta
+
+clrs(char, fg, bg): Fills the entire ASCII+color grid with the same tile.
+    char: The ASCII char 
+    fg: The foreground color.
+    bg: The background color.
+
+tile(x, y, char, fg, bg): Sets a tile on the ASCII+color grid.
+    x, y: The tile coordinate of the tile. Ranges from 0 (top/left) to 15(bottom/right).
+    char: The ASCII character to set the tile to.
+    fg: The foreground color.
+    bg: The background color.
+
+etch(x, y, char): Sets the character of a tile on the ASCII grid.
+    x, y: The tile coordinate of the tile. Ranges from 0 (top/left) to 15(bottom/right).
+    char: The ASCII character to set the tile to.
+    fg: The foreground color.
+    bg: The background color.
+
+fill(str): Sets the entire ASCII buffer to the given string.
+    str: The string to fill the buffer with, such as a tile map.
+
+ink(x, y, fg, bg): Sets the colors of a tile on the color grid.
+    x, y: The tile coordinate of the tile. Ranges from 0 (top/left) to 15(bottom/right).
+    fg: The foreground color.
+    bg: The background color.
+
+rect(x, y, w, h, char, fg, bg): Sets a rectangle of tiles on the ASCII+color grid.
+    x, y: The tile coordinate of the rectangle. Ranges from 0 (top/left) to 15(bottom/right).
+    w: The width of the rectangle in tiles. The rectangle extends from x to x + w.
+    h: The height of the rectangle. The rectangle extends from y to y + h.
+    char: The ASCII character to set the tile to.
+    fg: The foreground color.
+    bg: The background color.
+
+crect(x, y, w, h, char): Sets a rectangle of characters on the ASCII grid.
+    x, y: The tile coordinate of the rectangle. Ranges from 0 (top/left) to 15(bottom/right).
+    w: The width of the rectangle in tiles. The rectangle extends from x to x + w.
+    h: The height of the rectangle. The rectangle extends from y to y + h.
+    char: The ASCII character to set the tile to.
+
+irect(x, y, w, h, fg, bg): Sets a rectangle of colors on the color grid.
+    x, y: The tile coordinate of the rectangle. Ranges from 0 (top/left) to 15(bottom/right).
+    w: The width of the rectangle in tiles. The rectangle extends from x to x + w.
+    h: The height of the rectangle. The rectangle extends from y to y + h.
+    fg: The foreground color.
+    bg: The background color.
+
+text(x, y, str, fg, bg): Copies a string of characters to the ASCII+color grid.
+    x, y: The tile coordinate of the rectangle. Ranges from 0 (top/left) to 15(bottom/right).
+    str: The string to write to the grid. ASCII control codes will be placed like any character.
+    fg: The foreground color.
+    bg: The background color.
+
+
+-------------
+-- Console --
+-------------
+
+echo(str, fg, bg): Logs a string to the editor console.
+AKA print(), AKA say()
+    str: The string to log to the console.
+    fg: The foreground color.
+    bg: The background color.
+
+err(str, fg, bg): Logs a string to the editor console and stops the cart.
+    str: The string to log to the console.
+    fg: The foreground color.
+    bg: The background color.
+
+
+----------
+-- Math --
+----------
+abs(): math.abs*
+
+ciel(): math.ceil*
+
+cos(): math.cos*
+
+deg(): math.deg*
+
+flr(): math.floor*
+
+fmod(): math.fmod*
+
+log(): math.log*
+
+max(): math.max*
+
+min(): math.min*
+
+rad(): math.rad*
+
+sin():  math.sin*
+
+sqrt(): math.sqrt*
+
+rnd(): love.math.random*
+
+
+
+------------
+-- String --
+------------
+sub():  string.sub*
+
+format():  string.format*
+
+char(): string.char*
+
+byte(): string.byte*
+
+len():  string.len*
+
+hex(): 
+
+
+-----------
+-- Table --
+-----------
+next: next*
+pairs: pairs*
+insert: table.insert*
+rmv: table.remove*
+sort: table.sort*
+
+
+---------------
+-- Metatable --
+---------------
+setmeta: setmetatable*
+getmeta: getmetatable*
+requal: rawequal*
+rget: rawget*
+rset: rawset*
+rlen: rawlen*
+slct: select*

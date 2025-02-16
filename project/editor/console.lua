@@ -1,53 +1,100 @@
 -- Prepare a table for the module
 local console = {}
 
-local editor = {}
 
-console.entries = {
-    -----------------"
-    "\1 \1 Memosaic \1 \1",
-    "Try HELP for the",
-    "command list, or",
-    "EDIT to switch  ",
-    "to edit mode.   ",
-    "",
-}
-console.fgc = {11, 13, 13, 13, 13, 8}
-console.bgc = {0, 0, 0, 0, 0, 0}
-console.wrap = true
+function console.init(memo)
+    print("\tConsole")
+    console.cart = memo.cart
+    console.draw = memo.drawing
+    console.input = memo.input
+    console.editor = memo.editor
 
--- Scroll y
-console.sy = 0
--- Scroll frames (elapsed scroll time)
-local sf = 0
--- Last scroll direction
-local sd = 0
+    console.entries = {}
+    console.fgc = {}
+    console.bgc = {}
+    console.wrap = true
 
--- Input
-local enter_down = false
-local bspace_time = 0
-local bspac_lemit = 15
+    -- Cursor x and y
+    console.cx = 0
+    console.cy = 0
+    -- Scroll y
+    console.sx = 0
+    console.sy = 0
+    -- Scroll frames (elapsed scroll time)
+    console.sf = 0
+    -- Last scroll direction
+    console.sd = 0
+    -- Input
+    console.enter_down = false
+    console.scroll_time = 0
+    console.back_time = 0
+    console.back_lim_a = 15
+    console.back_lim_b = 60
+end
+
+function console.reset()
+    console.clear()
+    console.print("\1 \1 Memosaic \1 \1", 11, 0)
+    console.print("Try HELP for the", 13, 0)
+    console.print("command list, or", 13, 0)
+    console.print("EDIT to switch  ", 13, 0)
+    console.print("to edit mode.   ", 13, 0)
+    for i = 1, #console.entries do
+        print(console.entries[i])
+    end
+end
 
 
-function console.update(e)
-    local editor = e
-    local draw = e.drawing
+function console.clear()
+    console.sx = 0
+    console.sy = 0
+    console.entries = {}
+    console.fgc = {}
+    console.bgc = {}
+    console.take_input()
+end
+
+
+function console.update()
     local c = console
+    local draw = c.draw
 
-    local text = e.input.poptext()
+    local autoscroll = false
+
+    -- Enter and backspace
+    local enter = c.input.enter
+    local back
+    if c.input.back then
+        if c.back_time == 0 then back = true
+        elseif c.back_time >= c.back_lim_b then back = true
+        elseif c.back_time >= c.back_lim_a then back = c.back_time % 2 == 0 end
+        c.back_time = c.back_time + 1
+    else
+        c.back_time = 0
+        back = false
+    end
+
+    -- Add typed input text
+    local text = c.input.poptext()
     if text ~= "" then
         c.entries[#c.entries] = c.entries[#c.entries] .. text
+        autoscroll = true
     end
-    
-    local enter = love.keyboard.isDown("return")
-        
-    if enter and not enter_down then
+
+    -- Remove char with backspace
+    if back then
+        c.entries[#c.entries] = c.entries[#c.entries]:sub(1, -2)
+    end
+
+    -- Take command and add new input line on enter
+    if enter and not c.enter_down then
         c.command(c.entries[#c.entries])
-        c.fgc[#c.entries] = 7 + #c.entries%2
+        c.fgc[#c.entries] = 9
         c.take_input()
+        autoscroll = true
     end
-    enter_down = enter
-    
+
+    c.enter_down = enter
 
     -- Don't let the amount of entries exceed the maximum limit
     while #c.entries > 128 do
@@ -59,13 +106,11 @@ function console.update(e)
     local to_fgc = {}
     local to_bgc = {}
 
-    -- If wrapping is enabled, generate the formatted text
+    -- Generate preformated text to use for writing
     if c.wrap then
         for entry = 1, #c.entries do
             local txt = c.entries[entry]
-            if entry == #c.entries then
-                txt = ">" .. txt
-            end
+            if entry == #c.entries then txt = ">" .. txt end
             local split = c.splitstr(txt, 16)
             if split then
                 for stri = 1, #split do
@@ -76,23 +121,36 @@ function console.update(e)
             end
         end
 
-    -- If it's not enabled, just send the text over as-is
+    -- Send unformatted text to use for writing
     else
         to_write = c.entries
         to_fgc = c.fgc
         to_bgc = c.bgc
     end
 
-    -- Scroll with the mousewheel
-    if e.input.wheel ~= 0 and e.input.wheel ~= sd then
-        c.sy = c.sy - e.input.wheel
-    elseif love.keyboard.isDown("down") then
-        c.sy = c.sy - 1
-    elseif love.keyboard.isDown("down") then
-        c.sy = c.sy + 1
+    -- Autoscrolling
+    c.cy = #to_write
+    if autoscroll and c.cy - 16 > c.sy then
+        console.sy = c.cy - 16
     end
 
-    sd = e.input.wheel
+    -- Scroll with the mousewheel
+    if c.input.wheel ~= 0 then
+        c.sy = c.sy - c.input.wheel
+        c.scroll_time = 0
+    elseif love.keyboard.isDown("up") then
+        if c.scroll_time % 2 == 0 then
+            c.sy = c.sy - 1
+        end
+        c.scroll_time = c.scroll_time + 1
+    elseif love.keyboard.isDown("down") then
+        if c.scroll_time % 2 == 0 then
+            c.sy = c.sy + 1
+        end
+        c.scroll_time = c.scroll_time + 1
+    end
+
+    
     c.sy = math.max(0, math.min(c.sy, #to_write - 1))
 
     -- Display the formatted text to the console
@@ -108,39 +166,97 @@ end
 
 
 function console.command(cmd)
-    
+    console.error(cmd)
 end
 
 
 function console.take_input()
     table.insert(console.entries, "")
-    table.insert(console.fgc, 7 + #console.entries%2)
+    table.insert(console.fgc, 8)
     table.insert(console.bgc, 0)
 end
 
 
 function console.print(text, fg, bg)
     print(text)
-    console.entries[#console.entries] = text
+    console.entries[#console.entries] = tostring(text)
     console.fgc[#console.fgc] = fg
     console.bgc[#console.bgc] = bg
     console.take_input()
 end
 
 
-function console.error(text, fg, bg)
-    print("ERR: " .. text)
-    console.print("ERR: " .. text, fg, bg)
-    editor.cart.stop()
+function console.error(text)
+    console.print("ERROR in cart:", 14)
+
+    local t = ""
+    if type(text) == "string" then
+        console.print(text, 14)
+    elseif type(text == "table") then
+        for line in ipairs(text) do
+            console.print(text[line], 14)
+        end
+    end
+
+    console.editor.cart.stop()
 end
 
 
 function console.splitstr(text, chunkSize)
-    local s = {}
-    for i = 1, #text, chunkSize do
-        s[#s + 1] = text:sub(i, i + chunkSize - 1)
+    local tbl = {}
+    local str = ""
+    for i = 1, #text do
+        str = str .. text:sub(i, i)
+        if #str >= chunkSize or i >= #text then
+            table.insert(tbl, str)
+            str = ""
+        end
     end
-    return s
+    return tbl
+end
+
+
+function console.bad_type(val, t, fname)
+    if not val then return true end
+    if type(t) == "string" then
+        if type(val) ~= t then
+            console.error({
+                fname,
+                "expected type:", t,
+                "but got type:", type(val)})
+            return true
+        end
+    elseif type(t) == "table" then
+        for i, v in ipairs(t) do
+            if type(val) ~= t[v] then
+                console.error({
+                    fname,
+                    "expected type:", t,
+                    "but got type:", type(val)})
+                return true
+            end
+        end
+    end
+    return false
+end
+
+
+-- Use for line in getlines(str)
+function console.getlines(str)
+    local pos = 1;
+    return function()
+        if pos < 0 then return nil end
+        local  p1, p2 = string.find( str, "\r?\n", pos )
+        local line
+        if p1 then
+            line = str:sub( pos, p1 - 1 )
+            pos = p2 + 1
+        else
+            line = str:sub( pos )
+            pos = -1
+        end
+        return line
+    end
 end
 
 

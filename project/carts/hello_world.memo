@@ -11,9 +11,9 @@ end
 function tick()
     -- Draw a random tile at a random position with random colors
     tile(
-        rand(0, 15), rand(0, 15), -- Random position
-        char(rand(0x00, 0x7f)),   -- Random char
-        rand(0, 15), rand(0, 15)) -- Random colors
+        rnd(0, 15), rnd(0, 15), -- Random position
+        char(rnd(0x00, 0x7f)),   -- Random char
+        rnd(0, 15), rnd(0, 15)) -- Random colors
 end
 
 

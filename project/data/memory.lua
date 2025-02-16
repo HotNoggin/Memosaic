@@ -32,8 +32,8 @@ function memapi.load_font(font)
     print("Loading font")
     local font_size = memapi.map.font_end - memapi.map.font_start
     for i = 0, font_size do
-        local lchar = string.sub(font, i * 2 + 1, i * 2 + 1)
-        local rchar = string.sub(font, i * 2 + 2, i * 2 + 2)
+        local lchar = font:sub(i * 2 + 1, i * 2 + 1)
+        local rchar = font:sub(i * 2 + 2, i * 2 + 2)
         local left = memapi.hex(lchar)
         local right = memapi.hex(rchar)
         local byte = bit.bor(bit.lshift(left, 4), right)

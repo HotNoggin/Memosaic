@@ -29,11 +29,11 @@ drawing.palette = {
 }
 
 
-function drawing.init(canvas, memapi)
+function drawing.init(memo)
     print("Connecting drawing api")
-    drawing.canvas = canvas
-    drawing.memapi = memapi
-    drawing.clrs()
+    drawing.canvas = memo.canvas
+    drawing.memapi = memo.memapi
+    drawing.console = memo.editor.console
 end
 
 
@@ -78,10 +78,33 @@ function drawing.irect(x, y, w, h, fg, bg)
 end
 
 
+-- Fill ASCII the buffer with the given string
+function drawing.fill(str)
+    if not str:len() > 0 then return end
+    for i = 1, drawing.memapi.ascii_end - drawing.memapi.map.ascii_start + 1 do
+        if str:len() >= i then
+            drawing.char(i % 16, math.floor(i / 16))
+        end
+    end
+end
+
+
 -- Draw a line of text onto the screen
-function drawing.text(x, y, str, fg, bg)
+-- If w > 1, this wraps to keep width w
+function drawing.text(x, y, str, fg, bg, w)
+    local dx = x
+    local dy = y
+    local width = 0
+    if w then width = w end
+    local dowrap = width > 0
     for i = 1, string.len(str) do
-        drawing.tile(x + i - 1, y, string.sub(str, i, i), fg, bg)
+        local char = str:sub(i, i)
+        if dowrap and dx > x + width then
+            dx = x
+            dy = dy + 1
+        end
+        drawing.tile(dx, dy, char, fg, bg)
+        dx = dx + 1
     end
 end
 
@@ -93,6 +116,10 @@ end
 
 
 function drawing.char(x, y, c)
+    local con = drawing.console
+    -- if con.bad_type(x, "number") or con.bad_type(y, "number") or
+    -- con.bad_type(c, {"number", "string"}) then return end
+
     if x < 0 or x >= drawing.TILE_WIDTH then return end
     if y < 0 or y >= drawing.TILE_HEIGHT then return end
 
@@ -105,20 +132,33 @@ end
 
 
 function drawing.ink(x, y, fg, bg)
+    local con = drawing.console
+    local fore = 0
+    local back = 0
+    if con.bad_type(x, "number") or con.bad_type(y, "number")
+    then return end
+    if fg then
+        if con.bad_type(fore, "number") then return end
+        fore = fg
+    end
+    if bg then
+        if con.bad_type(back, "number") then return end
+        back = bg
+    end
     if x < 0 or x >= drawing.TILE_WIDTH then return end
     if y < 0 or y >= drawing.TILE_HEIGHT then return end
 
     -- Poke the color buffer nibbles separately
     local idx = y * drawing.TILE_WIDTH + x
     local color_byte = drawing.memapi.peek(idx + drawing.memapi.map.color_start)
-    if fg >= 0 then
+    if fore >= 0 then
         color_byte = b.band(color_byte, 0x0f) -- Erase char color
-        color_byte = b.bor(color_byte, b.lshift(fg, 4)) -- Set char color
+        color_byte = b.bor(color_byte, b.lshift(fore, 4)) -- Set char color
         drawing.memapi.poke(idx + drawing.memapi.map.color_start, color_byte)
     end
-    if bg >= 0 then
+    if back >= 0 then
        color_byte = b.band(color_byte, 0xf0) -- Erase tile color
-       color_byte = b.bor(color_byte, bg) -- Set tile color
+       color_byte = b.bor(color_byte, back) -- Set tile color
        drawing.memapi.poke(idx + drawing.memapi.map.color_start, color_byte)
     end
 end

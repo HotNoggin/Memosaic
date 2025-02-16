@@ -4,21 +4,24 @@ local editor = {}
 editor.font_tab = require("project.editor.font_tab")
 editor.console = require("project.editor.console")
 
-
-function editor.init(window, input, memapi, drawing, canvas, cart)
-    editor.window = window
-    editor.input = input
-    editor.memapi = memapi
-    editor.drawing = drawing
-    editor.canvas = canvas
-    editor.cart = cart
+function editor.init(memo)
+    editor.window = memo.window
+    editor.input = memo.input
+    editor.memapi = memo.memapi
+    editor.drawing = memo.drawing
+    editor.canvas = memo.canvas
+    editor.cart = memo.cart
     editor.tab = 0
+    editor.console.editor = editor
+
+    editor.console.init(memo)
+    editor.font_tab.init(memo)
 end
 
 
 function editor.update()
-    if editor.tab == 0 then editor.console.update(editor) end
-    if editor.tab == 1 then editor.font_tab.update(editor) end
+    if editor.tab == 0 then editor.console.update() end
+    if editor.tab == 1 then editor.font_tab.update() end
 
     local ipt = editor.input
 

@@ -22,6 +22,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         pcall = pcall,
         num = tonumber,
         str = tostring,
+       -- time = os.clock()
 
         -- Callbacks
         boot = function() end,
@@ -37,6 +38,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         -- Graphics
         clrs = drawing.clrs,
         tile = drawing.tile,
+        etch = drawing.char,
         ink = drawing.ink,
         rect = drawing.rect,
         crect = drawing.crect,
@@ -62,7 +64,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         rad = math.rad,
         sin =  math.sin,
         sqrt = math.sqrt,
-        rand = love.math.random,
+        rnd = love.math.random,
 
         -- String
         sub = string.sub,
@@ -85,12 +87,19 @@ function sandbox.init(cart, input, memapi, drawing, console)
         requal = rawequal,
         rget = rawget,
         rset = rawset,
-        rlen = rawlen,
         slct = select,
     }
 
     function sandbox.env.istr(str, i)
         return string.sub(str, i, i)
+    end
+
+    function sandbox.btnp(i)
+        return input.btn(i) and not input.old(i)
+    end
+
+    function sandbox.btnup(i)
+        return input.old(i) and not input.btn(i)
     end
 end
 
