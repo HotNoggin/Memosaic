@@ -17,7 +17,6 @@ function cmd.command(str)
     local c = terms[1]
 
     -- help
-    -- info
     -- demos
     -- skim (ui for carts)
     -- copy
@@ -25,40 +24,44 @@ function cmd.command(str)
     -- folder
     -- load
     -- file (get name)
-    -- ls (aka dir)
     -- mkdir
     -- dirname
     -- save [filename]
-    -- run
 
     cmd.cli.print(str, 10) --blue
 
     if cmd.is(c, "info", terms, 1) then cmd.info()
-    elseif cmd.is(c, "ls", terms, 1) then cmd.listdir()
+    elseif cmd.is(c, "wrap", terms, 1) then cmd.wrap()
+    elseif cmd.is(c, "ls", terms, 1) then cmd.listdir() -- BROKEN (No contents)
     elseif cmd.is(c, "dir", terms, 1) then cmd.listdir()
     elseif cmd.is(c, "shutdown", terms, 1) then cmd.shutdown()
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
-    else cmd.cli.error("Not a command or a lua function") end
+    else cmd.cli.print("Not a command or a lua function", 14) end
 end
 
 
 function cmd.info()
-    print("info")
     local out = cmd.cli.print
-    local clra = 11 -- teal
-    local clrb = 12 -- gray
-    out("\1", clra)
-    out("Memosaic", clrb)
-    out(cmd.memo.info.version, clra)
-    out(cmd.memo.cart.name, clrb)
-    out(cmd.cli.working_dir .. "/", clra)
-    out(cmd.cli.cartfile, clrb)
+    local blue = 10 -- blue
+    local teal = 11 -- teal
+    local gray = 12 -- gray
+    out("\1", teal)
+    out("Memosaic", gray)
+    out(cmd.memo.info.version, blue)
+    out(cmd.memo.cart.name, teal)
+    out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ),blue)
+end
+
+
+function cmd.wrap()
+    cmd.cli.wrap = not cmd.cli.wrap
 end
 
 
 function cmd.listdir()
     local folder = cmd.cli.working_dir
+    local found_something = false
     cmd.cli.print(folder)
     cmd.cli.print("Contents: ")
     local files = love.filesystem.getDirectoryItems(cmd.cli.working_dir)
@@ -74,13 +77,16 @@ function cmd.listdir()
                 local extension = path:sub(1, -5)
                 if extension == ".memo" then
                     cmd.cli.print(name)
+                    found_something = true
                 end
             elseif info.type == "directory" then
                 print("is dir")
                 cmd.cli.print(name .. "/")
+                found_something = true
             end
         end
     end
+    if not found_something then cmd.cli.print("Nothing") end
 end
 
 
@@ -106,13 +112,24 @@ function cmd.load(file)
     if not success then
         success = cmd.memo.cart.load(file)
     end
-    if success then cmd.cli.print("Loaded " .. file) end
+    if success then cmd.cli.print("Loaded " .. file) else
+        cmd.cli.print("Couldn't load.", 14)
+    end
+end
+
+
+function cmd.run()
+    cmd.memo.cart.run()
 end
 
 
 function cmd.is(command, name, t, count)
-    if #t >= count then return name == command else
-        cmd.cli.error(name .. " needs " .. count .. " args but was given " .. #t)
+    if name ~= command then
+        return false
+    end 
+    if #t >= count then return true else
+        cmd.cli.print(name .. " needs " .. count .. " args but was given " .. #t, 14)
+        return false
     end
 end
 

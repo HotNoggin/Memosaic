@@ -28,13 +28,17 @@ function editor.update()
 
     -- Cart saving
     if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
-        local cdata = ""
-        cdata = cdata .. editor.cart.get_script() .. "\n"
-        cdata = cdata .. "--!:font\n--" .. editor.font_tab.get_font(editor)
-        print(cdata)
+        print(editor.get_save())
      end
 end
 
+
+function editor.get_save()
+    local cdata = ""
+    cdata = cdata .. editor.cart.get_script() .. "\n"
+    cdata = cdata .. "--!:font\n--" .. editor.font_tab.get_font(editor)
+    return cdata
+end
 
 -- Export the module as a table
 return editor
