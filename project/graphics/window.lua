@@ -7,6 +7,7 @@ window.HEIGHT = 128
 -- Set the screen size, title, and icon
 function window.init(scale, use_vsync)
     print("Setting up window")
+    love.filesystem.setIdentity("Memosaic")
     local success = love.window.setMode(128 * scale, 128 * scale,
         {resizable = true, vsync = use_vsync,
         minwidth = window.WIDTH, minheight = window.HEIGHT} )

@@ -51,7 +51,9 @@ function cart.load(path)
         end
 
         file:close()
+        return true
     end
+    return false
 end
 
 
