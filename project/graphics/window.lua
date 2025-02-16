@@ -15,8 +15,8 @@ function window.init(scale, use_vsync)
     love.graphics.setDefaultFilter("nearest")
     love.window.setTitle("Memosaic - New Project")
 
-    local small_logo = love.image.newImageData("images/logo.png")
-    local large_logo = love.image.newImageData("images/logo_big.png")
+    local small_logo = love.image.newImageData("img/logo.png")
+    local large_logo = love.image.newImageData("img/logo_big.png")
 
     success = love.window.setIcon(large_logo)
     if not success then

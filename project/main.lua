@@ -8,6 +8,14 @@ local memo = require("engine.memo")
 local esc_old = false
 
 
+-- Handling nil access in a good way
+setmetatable(_G, {
+    __index = function(table, key)
+        error(key .. " doesn't exist")
+    end
+})
+
+
 -- Called once at the start of the game
 function love.load()
     memo.init({win_scale = 4, vsync = true})

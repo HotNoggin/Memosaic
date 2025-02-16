@@ -1,5 +1,7 @@
 -- Prepare a table for the module
 local memo = {
+    info = {version = "0.0.1-alpha"},
+
     window = require("graphics.window"),
     input = require("engine.input"),
     memapi = require("data.memory"),

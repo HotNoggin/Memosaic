@@ -5,6 +5,7 @@ editor.font_tab = require("project.editor.font_tab")
 editor.console = require("project.editor.console")
 
 function editor.init(memo)
+    print("Initializing editor")
     editor.window = memo.window
     editor.input = memo.input
     editor.memapi = memo.memapi

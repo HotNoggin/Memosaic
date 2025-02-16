@@ -4,10 +4,15 @@ local console = {}
 
 function console.init(memo)
     print("\tConsole")
+    console.cmd = require("editor.commands")
+    console.cmd.init(memo)
     console.cart = memo.cart
     console.draw = memo.drawing
     console.input = memo.input
     console.editor = memo.editor
+
+    console.working_dir = love.filesystem.getWorkingDirectory()
+    console.cartfile = "hello_world"
 
     console.entries = {}
     console.fgc = {}
@@ -32,16 +37,14 @@ function console.init(memo)
     console.back_lim_b = 60
 end
 
+
 function console.reset()
     console.clear()
-    console.print("\1 \1 Memosaic \1 \1", 11, 0)
-    console.print("Try HELP for the", 13, 0)
-    console.print("command list, or", 13, 0)
-    console.print("EDIT to switch  ", 13, 0)
-    console.print("to edit mode.   ", 13, 0)
-    for i = 1, #console.entries do
-        print(console.entries[i])
-    end
+    console.print("\1 \1 Memosaic \1 \1", 11)
+    console.print("Try HELP for the")
+    console.print("command list, or")
+    console.print("EDIT to switch  ")
+    console.print("to edit mode.   ")
 end
 
 
@@ -51,6 +54,7 @@ function console.clear()
     console.entries = {}
     console.fgc = {}
     console.bgc = {}
+    console.working_dir = love.filesystem.getWorkingDirectory()
     console.take_input()
 end
 
@@ -88,7 +92,7 @@ function console.update()
 
     -- Take command and add new input line on enter
     if enter and not c.enter_down then
-        c.command(c.entries[#c.entries])
+        c.cmd.command(c.entries[#c.entries])
         c.fgc[#c.entries] = 9
         c.take_input()
         autoscroll = true
@@ -135,10 +139,7 @@ function console.update()
     end
 
     -- Scroll with the mousewheel
-    if c.input.wheel ~= 0 then
-        c.sy = c.sy - c.input.wheel
-        c.scroll_time = 0
-    elseif love.keyboard.isDown("up") then
+    if love.keyboard.isDown("up") then
         if c.scroll_time % 2 == 0 then
             c.sy = c.sy - 1
         end
@@ -178,16 +179,20 @@ end
 
 
 function console.print(text, fg, bg)
+    local fore = 13
+    local back = 0
+    if not console.bad_type(fg, "number", "print") and fg > 0 then fore = fg % 16 end
+    if not console.bad_type(bg, "number", "print") and fg > 0 then back = bg % 16 end
     print(text)
     console.entries[#console.entries] = tostring(text)
-    console.fgc[#console.fgc] = fg
-    console.bgc[#console.bgc] = bg
+    console.fgc[#console.fgc] = fore
+    console.bgc[#console.bgc] = back
     console.take_input()
 end
 
 
 function console.error(text)
-    console.print("ERROR in cart:", 14)
+    console.print("ERROR:", 14)
 
     local t = ""
     if type(text) == "string" then
