@@ -45,6 +45,7 @@ function love.update(dt)
         
         -- Historic input
         esc_old = love.keyboard.isDown("escape")
+        memo.input.poptext()
     end
 end
 

@@ -11,8 +11,15 @@ function console.init(memo)
     console.input = memo.input
     console.editor = memo.editor
 
-    console.working_dir = love.filesystem.getWorkingDirectory()
-    console.cartfile = "hello_world"
+    console.workdir = {}
+    console.lastdir = ""
+    if not love.filesystem.getInfo("memo", "directory") then
+        love.filesystem.createDirectory("memo")
+    end
+    if not love.filesystem.getInfo("memo/carts", "directory") then
+        love.filesystem.createDirectory("memo/carts")
+    end
+    console.cartfile = ""
 
     console.entries = {}
     console.fgc = {}
@@ -35,6 +42,8 @@ function console.init(memo)
     console.back_time = 0
     console.back_lim_a = 15
     console.back_lim_b = 60
+
+    console.autoscroll = false
 end
 
 
@@ -54,7 +63,6 @@ function console.clear()
     console.entries = {}
     console.fgc = {}
     console.bgc = {}
-    console.working_dir = love.filesystem.getWorkingDirectory()
     console.take_input()
 end
 
@@ -62,8 +70,6 @@ end
 function console.update()
     local c = console
     local draw = c.draw
-
-    local autoscroll = false
 
     -- Enter and backspace
     local enter = c.input.enter
@@ -82,7 +88,7 @@ function console.update()
     local text = c.input.poptext()
     if text ~= "" then
         c.entries[#c.entries] = c.entries[#c.entries] .. text
-        autoscroll = true
+        c.autoscroll = true
     end
 
     -- Remove char with backspace
@@ -92,10 +98,13 @@ function console.update()
 
     -- Take command and add new input line on enter
     if enter and not c.enter_down then
-        c.cmd.command(c.entries[#c.entries])
+        local txt = c.entries[#c.entries]
+        local commands = c.cmd.split(txt, ";")
+        for i, command in ipairs(commands) do
+            c.cmd.command(command)
+        end
         c.fgc[#c.entries] = 9
-        c.take_input()
-        autoscroll = true
+        c.autoscroll = true
     end
 
     c.enter_down = enter
@@ -112,29 +121,35 @@ function console.update()
 
     -- Generate preformated text to use for writing
     if c.wrap then
-        for entry = 1, #c.entries do
-            local txt = c.entries[entry]
-            if entry == #c.entries then txt = ">" .. txt end
+        for index, txt in ipairs(c.entries) do
+            if index == #c.entries then txt = ">" .. txt end
             local split = c.splitstr(txt, 16)
             if split then
                 for stri = 1, #split do
                     table.insert(to_write, split[stri])
-                    table.insert(to_fgc, c.fgc[entry])
-                    table.insert(to_bgc, c.bgc[entry])
+                    table.insert(to_fgc, c.fgc[index])
+                    table.insert(to_bgc, c.bgc[index])
                 end
+            else
+                table.insert(to_write, "")
+                table.insert(to_fgc, c.fgc[index])
+                table.insert(to_fgc, c.bgc[index])
             end
         end
 
     -- Send unformatted text to use for writing
     else
-        to_write = c.entries
+        for index, text in ipairs(c.entries) do
+            table.insert(to_write, text)
+        end
+        if #to_write > 0 then to_write[#to_write] = ">" .. to_write[#to_write] end
         to_fgc = c.fgc
         to_bgc = c.bgc
     end
 
     -- Autoscrolling
     c.cy = #to_write
-    if autoscroll and c.cy - 16 > c.sy then
+    if c.autoscroll and c.cy - 16 > c.sy then
         console.sy = c.cy - 16
     end
 
@@ -163,18 +178,70 @@ function console.update()
             draw.text(0, i, to_write[idx], to_fgc[idx], to_bgc[idx])
         end
     end
+
+    console.autoscroll = false
 end
 
 
-function console.command(cmd)
-    console.error(cmd)
+function console.changedir(path)
+    local folders = console.cmd.split(path, "/")
+    local newdir = {}
+
+    for i, v in ipairs(console.workdir) do
+        table.insert(newdir, v)
+    end
+
+    if #folders <= 0 then return end
+
+    -- to last
+    if folders[1] == "-" then
+        newdir = console.cmd.split(console.lastdir, "/")
+    -- to root
+    elseif folders[1] == "~" then
+        newdir = {}
+        table.remove(folders, 1)
+    else
+        for i, folder in ipairs(folders) do
+            print(folder)
+            if folder == ".." then
+                if #newdir > 0 then table.remove(newdir, #newdir) end
+            else
+                table.insert(newdir, folder)
+            end
+        end
+    end
+
+    local dirpath = console.getworkdir(newdir)
+    local formatted = "\1" .. string.sub(dirpath, 5, -1)
+    if love.filesystem.getInfo(dirpath) == nil then
+        console.print(formatted , console.cmd.pink)
+        console.print(" does not exist", console.cmd.pink)
+        return
+    end
+
+    console.lastdir = console.getworkdir():sub(6, -1) -- remove memo/
+    console.workdir = newdir
+    console.print(formatted, console.cmd.blue)
 end
+
+
+function console.getworkdir(t)
+    local dir = "memo/"
+    local workdir = console.workdir
+    if t then workdir = t end
+    for i, value in ipairs(workdir) do
+        dir = dir .. value .. "/"
+    end
+    return dir
+end
+
 
 
 function console.take_input()
     table.insert(console.entries, "")
     table.insert(console.fgc, 8)
     table.insert(console.bgc, 0)
+    console.autoscroll = true
 end
 
 
@@ -183,7 +250,7 @@ function console.print(text, fg, bg)
     local back = 0
     if not console.bad_type(fg, "number", "print") and fg > 0 then fore = fg % 16 end
     if not console.bad_type(bg, "number", "print") and fg > 0 then back = bg % 16 end
-    print(text)
+    if text then print("memo>" .. text) end
     console.entries[#console.entries] = tostring(text)
     console.fgc[#console.fgc] = fore
     console.bgc[#console.bgc] = back

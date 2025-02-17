@@ -1,6 +1,6 @@
 -- Prepare a table for the module
 local memo = {
-    info = {version = "0.0.1-alpha"},
+    info = {version = "0.0.1-alpha", is_win = package.config:sub(1, 1) == "\\"},
 
     window = require("graphics.window"),
     input = require("engine.input"),
@@ -9,7 +9,8 @@ local memo = {
     canvas = require("graphics.canvas"),
     drawing = require("graphics.drawing"),
     cart = require("engine.cart"),
-    editor = require("editor.editor")
+    editor = require("editor.editor"),
+    demos = require("carts.demos")
 }
 
 

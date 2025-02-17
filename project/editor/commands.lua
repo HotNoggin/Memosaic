@@ -1,20 +1,30 @@
 -- Prepare a table for the module
 local cmd = {}
 
+local lfs = require("love.filesystem")
 
 function cmd.init(memo)
     print("\tCLI")
     cmd.memo = memo
     cmd.cli = memo.editor.console
+    cmd.purple = 2
+    cmd.red = 3
+    cmd.lime = 8
+    cmd.green = 9
+    cmd.blue = 10
+    cmd.teal = 11
+    cmd.gray = 12
+    cmd.pink = 14
 end
 
 
 function cmd.command(str)
+    print("cmd: " .. str)
     local terms = cmd.words(str)
     -- Empty command means no command
     if not terms or terms == nil or #terms <= 0 then return end
 
-    local c = terms[1]
+    local c = string.lower(terms[1])
 
     -- help
     -- demos
@@ -27,30 +37,35 @@ function cmd.command(str)
     -- mkdir
     -- dirname
     -- save [filename]
+    cmd.cli.print(str, cmd.green)
 
-    cmd.cli.print(str, 10) --blue
+    cmd.found_command = false
 
     if cmd.is(c, "info", terms, 1) then cmd.info()
-    elseif cmd.is(c, "wrap", terms, 1) then cmd.wrap()
-    elseif cmd.is(c, "ls", terms, 1) then cmd.listdir() -- BROKEN (No contents)
+    elseif cmd.is(c, "cd", terms, 2) then cmd.changedir(terms[2])
+    elseif cmd.is(c, "ls", terms, 1) then cmd.listdir()
     elseif cmd.is(c, "dir", terms, 1) then cmd.listdir()
     elseif cmd.is(c, "shutdown", terms, 1) then cmd.shutdown()
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
-    else cmd.cli.print("Not a command or a lua function", 14) end
+    elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
+    elseif cmd.is(c, "wrap", terms, 1) then cmd.wrap()
+    end
+
+    if not cmd.found_command then
+        cmd.cli.print("Not a command or a lua function", cmd.pink)
+    end
 end
 
 
 function cmd.info()
     local out = cmd.cli.print
-    local blue = 10 -- blue
-    local teal = 11 -- teal
-    local gray = 12 -- gray
-    out("\1", teal)
-    out("Memosaic", gray)
-    out(cmd.memo.info.version, blue)
-    out(cmd.memo.cart.name, teal)
-    out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ),blue)
+    out("\1", cmd.teal)
+    out("Memosaic", cmd.gray)
+    out(cmd.memo.info.version, cmd.blue)
+    out(cmd.memo.cart.name, cmd.teal)
+    out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ), cmd.blue)
+    out("\1" .. cmd.cli.getworkdir():sub(5, -1), cmd.blue)
 end
 
 
@@ -59,34 +74,42 @@ function cmd.wrap()
 end
 
 
+function cmd.changedir(path)
+    cmd.cli.changedir(path)
+end
+
+
 function cmd.listdir()
-    local folder = cmd.cli.working_dir
+    local folder = cmd.cli.getworkdir()
     local found_something = false
-    cmd.cli.print(folder)
-    cmd.cli.print("Contents: ")
-    local files = love.filesystem.getDirectoryItems(cmd.cli.working_dir)
-    print("found " .. #files .. " files")
-    for i, name in ipairs(files) do
-        local path = folder .. "/ ".. name
+    cmd.cli.print("\1" .. folder:sub(5, #folder), cmd.teal)
+
+    local items = lfs.getDirectoryItems(folder)
+    for i, name in ipairs(items) do
+        local path = folder .. name
         local info = love.filesystem.getInfo(path)
-        print("checking " .. name)
+        if info == nil then return end
         if info then
-            print("file or dir exists")
             if info.type == "file" then
-                print("is file")
-                local extension = path:sub(1, -5)
+                local extension = path:sub(#path -4, #path)
+                print(extension)
                 if extension == ".memo" then
-                    cmd.cli.print(name)
+                    cmd.cli.print(" " .. name:sub(1, -5) .. "\1")
                     found_something = true
+                else extension = path:sub(#path -3, #path)
+                    if extension == ".lua" then
+                        cmd.cli.print(" " .. name)
+                        found_something = true
+                    end
                 end
             elseif info.type == "directory" then
-                print("is dir")
-                cmd.cli.print(name .. "/")
+                cmd.cli.print(" " .. name .. "/")
                 found_something = true
             end
         end
     end
-    if not found_something then cmd.cli.print("Nothing") end
+
+    if not found_something then cmd.cli.print(" nothing", cmd.purple) end
 end
 
 
@@ -96,29 +119,56 @@ end
 
 
 function cmd.load(file)
-    local success = cmd.memo.cart.load(cmd.cli.working_dir .. "/" .. file .. ".memo")
-    if not success then
-        success = cmd.memo.cart.load(cmd.cli.working_dir .. "/" .. file .. ".lua")
+    local folder = cmd.cli.getworkdir()
+
+    local testpaths = {
+        -- Check local paths before global paths, 
+        -- No extension before with extension
+        folder .. file .. ".memo",
+        folder .. file .. ".lua",
+        folder .. file,
+        "memo/" .. file .. ".memo",
+        "memo/" .. file .. ".lua",
+        "memo/" .. file,
+    }
+
+    for i, path in ipairs(testpaths) do
+        local success = cmd.memo.cart.load(path)
+        if success then
+            cmd.cli.print("Loaded " .. path)
+            cmd.cli.cartfile = path
+            return
+        end
     end
-    if not success then
-        success = cmd.memo.cart.load(cmd.cli.working_dir .. "/" .. file)
+
+    cmd.cli.print("Couldn't load", 14)
+end
+
+
+function cmd.demos()
+    if lfs.getInfo("memo/carts/demos", "directory") == nil then
+        local success = lfs.createDirectory("memo/carts/demos")
+        if not success then
+            cmd.cli.print("Couldn't install demos", cmd.pink)
+            cmd.cli.print("Couldn't create folder", cmd.red)
+            return
+        end
     end
-    if not success then
-        success = cmd.memo.cart.load(file .. ".memo")
+    for name, cart in pairs(cmd.memo.demos) do
+        local success, msg = lfs.write("memo/carts/demos/" .. name, cart)
+        if not success then
+            cmd.cli.print("Couldn't install demos", cmd.pink)
+            cmd.cli.print(msg, cmd.red)
+            return
+        end
     end
-    if not success then
-        success = cmd.memo.cart.load(file .. ".lua")
-    end
-    if not success then
-        success = cmd.memo.cart.load(file)
-    end
-    if success then cmd.cli.print("Loaded " .. file) else
-        cmd.cli.print("Couldn't load.", 14)
-    end
+    cmd.cli.print("Saved demos to")
+    cmd.cli.print("\1/carts/demos/")
 end
 
 
 function cmd.run()
+    cmd.cli.print("Running " .. cmd.cli.cartfile)
     cmd.memo.cart.run()
 end
 
@@ -126,21 +176,28 @@ end
 function cmd.is(command, name, t, count)
     if name ~= command then
         return false
-    end 
-    if #t >= count then return true else
-        cmd.cli.print(name .. " needs " .. count .. " args but was given " .. #t, 14)
+    end
+    cmd.found_command = true
+    if #t == count then return true else
+        if count - 1 == 1 then
+            cmd.cli.print(name .. " needs 1 arg b but was given " .. #t - 1, 14)
+        else
+            cmd.cli.print(name .. " needs " .. count - 1 .. " args but was given " .. #t - 1, 14)
+        end
         return false
     end
 end
 
 
-function cmd.words(str)
+function cmd.split(str, c, s)
+    local space = false
+    if s then space = true end
     local words = {}
     local word = ""
     for i = 1, #str do
         local char = str:sub(i, i)
-        if cmd.isspace(char) then
-            table.insert(words, word)
+        if char == c or (cmd.isspace(char) and space) then
+            if word ~= "" then table.insert(words, word) end
             word = ""
         elseif i == #str then
             word = word .. char
@@ -155,9 +212,15 @@ function cmd.words(str)
 end
 
 
-function cmd.isspace(str)
-	return str:match("%s") ~= nil
+function cmd.words(str)
+    return cmd.split(str, "", true)
 end
+
+
+function cmd.isspace(str)
+	return (str:match("%s") ~= nil)
+end
+
 
 -- Export the module as a table
 return cmd

@@ -12,6 +12,7 @@ function cart.init(memo)
     cart.sfx = ""
     cart.memapi = memo.memapi
     cart.running = false
+    cart.cli = memo.editor.console
     cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
 end
 
@@ -23,11 +24,14 @@ function cart.load(path)
     cart.font = ""
     cart.sfx = ""
 
-    local file = io.open(path, "r")
-    if file then
+    local fileinfo =  love.filesystem.getInfo(path, "file")
+    if fileinfo ~= nil then
+        local globalpath = love.filesystem.getSaveDirectory() .. "/" .. path
+        local file = io.open(globalpath, "r")
         local next_flag = ""
         local flag = ""
 
+        if not file then return end
         for line in file:lines() do
             -- Keep track of special flags
             flag = next_flag
@@ -40,6 +44,7 @@ function cart.load(path)
             -- Load font to memory
             if flag == "--!:font" then
                 cart.memapi.load_font(line:sub(3, -1))
+                table.insert(cart.code, line)
             -- Set name
             elseif flag == "--!:name" then
                 cart.name = line:sub(3, -1)
@@ -63,7 +68,7 @@ function cart.run()
     cart.running = true
     local ok, err = cart.sandbox.run(cart.get_script())
     if not ok then
-        print(err)
+        cart.cli.error(err)
         cart.stop()
     else
         print("Cart is booting \n")
@@ -81,7 +86,7 @@ end
 function cart.boot()
     local ok, err = pcall(cart.sandbox.env.boot)
     if not ok then
-        print(err)
+        cart.cli.error(err)
         cart.stop()
     end
 end
@@ -90,7 +95,7 @@ end
 function cart.tick()
     local ok, err = pcall(cart.sandbox.env.tick)
     if not ok then
-        print(err)
+        cart.cli.error(err)
         cart.stop()
     end
 end

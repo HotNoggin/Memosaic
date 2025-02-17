@@ -3,9 +3,12 @@ local sandbox = {}
 
 
 function sandbox.run(code)
-    local result, error = load( code, "Cart", "t", sandbox.env)
+    print("load lua function")
+    local result, error = load(code, "Cart", "t", sandbox.env)
     if result then
+        print("run result. the type is " .. type(result))
         local ok, err = pcall(result)
+        sandbox.func = result
         return ok, err
     else
         return false, error
@@ -15,6 +18,9 @@ end
 
 function sandbox.init(cart, input, memapi, drawing, console)
     print("Populating sandbox API")
+    
+    sandbox.func = function () end
+
     -- The Memosaic API (safe lua default functions and custom functions)
     sandbox.env = {
         -- Standard
@@ -101,13 +107,13 @@ function sandbox.init(cart, input, memapi, drawing, console)
     function sandbox.btnup(i)
         return input.old(i) and not input.btn(i)
     end
+
+    setfenv(sandbox.env.boot, sandbox.env)
+    setfenv(sandbox.env.tick, sandbox.env)
 end
 
--- print - SAFE (assuming output to stdout is ok)
 -- select - SAFE
--- type - SAFE
 -- unpack - SAFE
--- _VERSION - SAFE
 -- xpcall - SAFE
 
 -- Export the module as a table
