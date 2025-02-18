@@ -9,7 +9,7 @@ memapi.default_font = "007e464a52627e007733770077577500003c7e7e7e7e3c00007e7e7e7
 memapi.map = {
     memory_start = 0x000, memory_end = 0xfff, -- The entirety of the memory
     write_start  = 0x000, write_end  = 0xfff, -- The writable memory block
-    font_start   = 0x000, font_end   = 0x7ff, -- 2048 (2.0 kibi) bytes for 128 to 256 8-byte chars
+    font_start   = 0x000, font_end   = 0x3ff, -- 2048 (2.0 kibi) bytes for 128 to 256 8-byte chars
     sounds_start = 0x400, sounds_end = 0x9ff, -- 1536 (1.5 kibi) bytes for 32 to 48 32-byte sounds
     audio_start  = 0xa00, audio_end  = 0xbff, -- 512 bytes for audio buffer of 256 instructions
     ascii_start  = 0xc00, ascii_end  = 0xcff, -- 256 bytes for ascii char grid of 256 chars
@@ -32,9 +32,11 @@ function memapi.load_font(font)
     print("Loading font")
     local font_size = memapi.map.font_end - memapi.map.font_start
     for i = 0, font_size do
+        if #font < 2*i then return false end
         local byte = tonumber(string.sub(font, 2*i + 1, 2*i + 2), 16)
         memapi.poke(i + memapi.map.font_start, byte)
     end
+    return true
 end
 
 

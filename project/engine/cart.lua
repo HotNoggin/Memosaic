@@ -44,12 +44,18 @@ function cart.load(path)
 
             -- Load font to memory
             if flag == "--!:font" then
-                cart.memapi.load_font(line:sub(3, -1))
-                table.insert(cart.code, line)
+                local success = cart.memapi.load_font(line:sub(3, -1))
+                if not success then
+                    cart.cli.error("Bad font")
+                    return false
+                end
+            
             -- Set name
             elseif flag == "--!:name" then
                 cart.name = line:sub(3, -1)
                 love.window.setTitle("Memosaic - " .. cart.name)
+                table.insert(cart.code, line)
+            
             -- Add line to code (exclude font or sfx flags and data)
             elseif next_flag ~= "--!:font" and next_flag ~= "--!:sfx" then
                 table.insert(cart.code, line)

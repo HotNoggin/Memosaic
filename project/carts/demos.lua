@@ -1,10 +1,5 @@
 local demos = {}
 
-demos["global.memo"] =
-[[
-test = "testing"
-]]
-
 
 demos["hello_world.memo"] =
 [[
