@@ -19,7 +19,6 @@ end
 
 
 function cmd.command(str)
-    print("cmd: " .. str)
     local terms = cmd.words(str)
     -- Empty command means no command
     if not terms or terms == nil or #terms <= 0 then return end

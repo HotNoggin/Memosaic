@@ -5,8 +5,6 @@ end
 
 local memo = require("engine.memo")
 
-local esc_old = false
-
 
 -- Handling nil access in a good way
 setmetatable(_G, {
@@ -15,6 +13,7 @@ setmetatable(_G, {
     end
 })
 
+io.stdout:setvbuf("no")
 
 -- Called once at the start of the game
 function love.load()

@@ -3,7 +3,6 @@ local console = {}
 
 
 function console.init(memo)
-    print("\tConsole")
     console.cmd = require("editor.commands")
     console.cmd.init(memo)
     console.cart = memo.cart
@@ -202,7 +201,6 @@ function console.changedir(path)
         table.remove(folders, 1)
     else
         for i, folder in ipairs(folders) do
-            print(folder)
             if folder == ".." then
                 if #newdir > 0 then table.remove(newdir, #newdir) end
             else

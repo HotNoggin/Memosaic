@@ -6,9 +6,8 @@ function sandbox.run(code)
     print("load lua function")
     local result, error = load(code, "Cart", "t", sandbox.env)
     if result then
-        print("run result. the type is " .. type(result))
-        local ok, err = pcall(result)
         sandbox.func = result
+        local ok, err = pcall(result)
         return ok, err
     else
         return false, error
@@ -107,6 +106,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
     function sandbox.btnup(i)
         return input.old(i) and not input.btn(i)
     end
+    
 
     setfenv(sandbox.env.boot, sandbox.env)
     setfenv(sandbox.env.tick, sandbox.env)

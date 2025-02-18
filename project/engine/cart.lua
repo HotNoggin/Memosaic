@@ -32,6 +32,7 @@ function cart.load(path)
         local flag = ""
 
         if not file then return end
+        print("Loading script")
         for line in file:lines() do
             -- Keep track of special flags
             flag = next_flag
@@ -64,6 +65,10 @@ end
 
 function cart.run()
     print("Starting cart")
+    print("Env before running (from cart.run): ")
+    for index, v in ipairs(cart.sandbox.env) do
+        print(v)
+    end
     love.window.setTitle("Memosaic - " .. cart.name)
     cart.running = true
     local ok, err = cart.sandbox.run(cart.get_script())
@@ -71,6 +76,10 @@ function cart.run()
         cart.cli.error(err)
         cart.stop()
     else
+        print("Env after running (from cart.run): ")
+        for index, v in ipairs(cart.sandbox.env) do
+            print(v)
+        end
         print("Cart is booting \n")
         cart.boot()
     end

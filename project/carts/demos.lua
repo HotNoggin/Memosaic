@@ -1,5 +1,11 @@
 local demos = {}
 
+demos["global.memo"] =
+[[
+test = "testing"
+]]
+
+
 demos["hello_world.memo"] =
 [[
 --!:name
@@ -28,19 +34,16 @@ demos["splash.memo"] =
 --Splash
 
 frame = 0
-print("frame: " .. frame)
 
 function boot()
     clrs()
     print("Memo memo memo!")
     frame = 0
-    print("frame: " .. frame)
 end
 
 function tick()
     clrs()
     frame = (frame + 1) % 0x100
-    print(frame)
 
     for i = 0, 15 do
         val = i + frame
