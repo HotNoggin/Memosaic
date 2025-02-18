@@ -41,15 +41,17 @@ function cmd.command(str)
     cmd.found_command = false
 
     if cmd.is(c, "info", terms, 1) then cmd.info()
-    elseif cmd.is(c, "cd", terms, 2) then cmd.changedir(terms[2])
+    elseif cmd.is(c, "cd", terms, 2) then cmd.cli.changedir(terms[2])
     elseif cmd.is(c, "ls", terms, 1) then cmd.listdir()
     elseif cmd.is(c, "dir", terms, 1) then cmd.listdir()
-    elseif cmd.is(c, "shutdown", terms, 1) then cmd.shutdown()
+    elseif cmd.is(c, "shutdown", terms, 1) then love.event.quit()
     elseif cmd.is(c, "save", terms, 1) then cmd.save(terms)
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
-    elseif cmd.is(c, "wrap", terms, 1) then cmd.wrap()
+    elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
+    elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
+    elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
     end
 
     if not cmd.found_command then
@@ -74,16 +76,6 @@ function cmd.info()
     out(cmd.memo.cart.name, cmd.teal)
     out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ), cmd.blue)
     out("\1" .. cmd.cli.getworkdir():sub(5, -1), cmd.blue)
-end
-
-
-function cmd.wrap()
-    cmd.cli.wrap = not cmd.cli.wrap
-end
-
-
-function cmd.changedir(path)
-    cmd.cli.changedir(path)
 end
 
 
@@ -117,11 +109,6 @@ function cmd.listdir()
     end
 
     if not found_something then cmd.cli.print(" nothing", cmd.purple) end
-end
-
-
-function cmd.shutdown()
-    love.event.quit()
 end
 
 
