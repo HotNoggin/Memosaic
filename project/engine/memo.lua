@@ -1,6 +1,6 @@
 -- Prepare a table for the module
 local memo = {
-    info = {version = "0.0.1-alpha", is_win = package.config:sub(1, 1) == "\\"},
+    info = {version = "0.0.2-alpha", is_win = package.config:sub(1, 1) == "\\"},
 
     window = require("graphics.window"),
     input = require("engine.input"),
