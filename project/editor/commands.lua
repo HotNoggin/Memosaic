@@ -25,17 +25,14 @@ function cmd.command(str)
 
     local c = string.lower(terms[1])
 
+    -- Still need:
     -- help
-    -- demos
     -- skim (ui for carts)
     -- copy
-    -- cd [dirpath]
     -- folder
     -- load
-    -- file (get name)
     -- mkdir
-    -- dirname
-    -- save [filename]
+
     cmd.cli.print(str, cmd.green)
 
     cmd.found_command = false
@@ -51,6 +48,7 @@ function cmd.command(str)
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
+    elseif cmd.is(c, "splash", terms, 1) then cmd.splash()
     elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
     end
 
@@ -198,7 +196,7 @@ function cmd.load(file)
 end
 
 
-function cmd.demos()
+function cmd.demos(specific)
     if lfs.getInfo("memo/carts/demos", "directory") == nil then
         local success = lfs.createDirectory("memo/carts/demos")
         if not success then
@@ -208,7 +206,12 @@ function cmd.demos()
         end
     end
     for name, cart in pairs(cmd.memo.demos) do
-        local success, msg = lfs.write("memo/carts/demos/" .. name, cart)
+        local success, msg
+        if specific == nil then
+            success, msg = lfs.write("memo/carts/demos/" .. name, cart)
+        elseif name == specific then
+            success, msg = lfs.write("memo/carts/demos/" .. name, cart)
+        end
         if not success then
             cmd.cli.print("Couldn't install demos", cmd.pink)
             cmd.cli.print(msg, cmd.red)
@@ -217,6 +220,13 @@ function cmd.demos()
     end
     cmd.cli.print("Saved demos to")
     cmd.cli.print("\1/carts/demos/")
+end
+
+
+function cmd.splash()
+    cmd.demos("splash.memo")
+    cmd.load("carts/demos/splash.memo")
+    cmd.memo.cart.run()
 end
 
 

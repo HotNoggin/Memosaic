@@ -32,23 +32,26 @@ frame = 0
 
 function boot()
     clrs()
-    print("Memo memo memo!")
-    frame = 0
+    fframe = 0
+    bframe = 0
+    text = "  \1 MEMOSAIC \1  " -- Must be 16+ chars
 end
 
 function tick()
     clrs()
-    frame = (frame + 1) % 0x100
+    fframe = (fframe + 1)
+    bframe = (bframe + 1)
 
-    for i = 0, 15 do
-        val = i + frame
-        tile(
-            flr(val / 16), -- x pos
-            val % 16, -- y pos
-            val % 0x80 ,-- ASCII char
-            val % 8, -- fg
-            val + 3 % 8 -- bg
-        )
+    fcolor = flr((fframe / 16) % 16)
+    bcolor = flr(((bframe / 16) + 10) % 16)
+    if fcolor > 15 then return end
+
+    for x = 0, 15 do
+        for y = 0, 15 do
+            if y >= frame then
+                tile(x, y, text:sub(x + 1, x + 1), fcolor, bcolor)
+            end
+        end
     end
 end
 

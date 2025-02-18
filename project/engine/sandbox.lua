@@ -4,7 +4,6 @@ local sandbox = {}
 
 function sandbox.run(code, name)
     local env = sandbox.env
-    print("Code from sandbox.run():\n" .. code)
     local result, error = load(code, name, "t", env)
     if result then
         setfenv(sandbox.env.boot, env)
