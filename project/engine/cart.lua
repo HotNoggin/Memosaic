@@ -10,6 +10,7 @@ function cart.init(memo)
     cart.code = {}
     cart.font = ""
     cart.sfx = ""
+    cart.memo = memo
     cart.memapi = memo.memapi
     cart.running = false
     cart.cli = memo.editor.console
@@ -70,22 +71,18 @@ end
 
 
 function cart.run()
+    local memo = cart.memo
     print("Starting cart")
-    print("Env before running (from cart.run): ")
-    for index, v in ipairs(cart.sandbox.env) do
-        print(v)
-    end
     love.window.setTitle("Memosaic - " .. cart.name)
     cart.running = true
-    local ok, err = cart.sandbox.run(cart.get_script())
+
+    cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
+    local ok, err = cart.sandbox.run(cart.get_script(), cart.name)
+
     if not ok then
         cart.cli.error(err)
         cart.stop()
     else
-        print("Env after running (from cart.run): ")
-        for index, v in ipairs(cart.sandbox.env) do
-            print(v)
-        end
         print("Cart is booting \n")
         cart.boot()
     end

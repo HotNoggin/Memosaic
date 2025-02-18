@@ -53,7 +53,15 @@ function cmd.command(str)
     end
 
     if not cmd.found_command then
-        cmd.cli.print("Not a command or a lua function", cmd.pink)
+        local result, error = load(str, "CMD", "t", cmd.memo.cart.sandbox.env)
+        if result == nil then
+            cmd.cli.print("Not a command or valid lua", cmd.pink)
+        else
+            local ok, err = pcall(result)
+            if not ok then
+                cmd.cli.print(err)
+            end
+        end
     end
 end
 
@@ -142,7 +150,7 @@ function cmd.save(terms)
             end
             if #tpath >= 5 and string.sub(tpath, -5) ~= ".memo" then
                 success, message = love.filesystem.write(tpath .. ".memo", savefile)
-                minifolder = minifolder .. ".memo"
+                minifolder = minifolder .. ".\1"
             else
                 success, message = love.filesystem.write(tpath, savefile)
             end

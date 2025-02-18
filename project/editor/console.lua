@@ -232,7 +232,6 @@ end
 -- The workdir formatted with the memo mini logo
 function console.getminidir(str)
     local rstr = "\1" .. string.sub(str, 5)
-    print("from console.getminidir: " .. str)
     if #rstr >= 5 then
         local extension = str:sub(#str -4, #str)
         if extension == ".memo" then

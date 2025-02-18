@@ -2,10 +2,13 @@
 local sandbox = {}
 
 
-function sandbox.run(code)
-    print("load lua function")
-    local result, error = load(code, "Cart", "t", sandbox.env)
+function sandbox.run(code, name)
+    local env = sandbox.env
+    print("Code from sandbox.run():\n" .. code)
+    local result, error = load(code, name, "t", env)
     if result then
+        setfenv(sandbox.env.boot, env)
+        setfenv(sandbox.env.tick, env)
         sandbox.func = result
         local ok, err = pcall(result)
         return ok, err
@@ -106,11 +109,11 @@ function sandbox.init(cart, input, memapi, drawing, console)
     function sandbox.btnup(i)
         return input.old(i) and not input.btn(i)
     end
-    
 
     setfenv(sandbox.env.boot, sandbox.env)
     setfenv(sandbox.env.tick, sandbox.env)
 end
+
 
 -- select - SAFE
 -- unpack - SAFE
