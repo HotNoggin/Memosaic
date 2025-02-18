@@ -48,8 +48,8 @@ function tick()
     for i = 0, 15 do
         val = i + frame
         tile(
-            flr(val / 8), -- x pos
-            val % 8, -- y pos
+            flr(val / 16), -- x pos
+            val % 16, -- y pos
             val % 0x80 ,-- ASCII char
             val % 8, -- fg
             val + 3 % 8 -- bg
