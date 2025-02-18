@@ -6,6 +6,9 @@ end
 local memo = require("engine.memo")
 
 
+local esc_old = false
+
+
 -- Handling nil access in a good way
 setmetatable(_G, {
     __index = function(table, key)

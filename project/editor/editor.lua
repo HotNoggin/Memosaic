@@ -28,7 +28,7 @@ function editor.update()
 
     -- Cart saving
     if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
-        print(editor.get_save())
+        editor.console.cmd.command("save")
      end
 end
 

@@ -102,7 +102,7 @@ function console.update()
         for i, command in ipairs(commands) do
             c.cmd.command(command)
         end
-        c.fgc[#c.entries] = 9
+        c.fgc[#c.entries] = 8
         c.autoscroll = true
     end
 
@@ -111,6 +111,8 @@ function console.update()
     -- Don't let the amount of entries exceed the maximum limit
     while #c.entries > 128 do
         table.remove(c.entries, 1)
+        table.remove(c.fgc, 1)
+        table.remove(c.bgc, 1)
     end
 
     -- Prepare to write and color the text to the console
@@ -121,7 +123,9 @@ function console.update()
     -- Generate preformated text to use for writing
     if c.wrap then
         for index, txt in ipairs(c.entries) do
-            if index == #c.entries then txt = ">" .. txt end
+            if index == #c.entries then
+                txt = ">" .. txt
+            end
             local split = c.splitstr(txt, 16)
             if split then
                 for stri = 1, #split do
@@ -141,7 +145,9 @@ function console.update()
         for index, text in ipairs(c.entries) do
             table.insert(to_write, text)
         end
-        if #to_write > 0 then to_write[#to_write] = ">" .. to_write[#to_write] end
+        if #to_write > 0 then
+            to_write[#to_write] = ">" .. to_write[#to_write]
+        end
         to_fgc = c.fgc
         to_bgc = c.bgc
     end
@@ -220,6 +226,20 @@ function console.changedir(path)
     console.lastdir = console.getworkdir():sub(6, -1) -- remove memo/
     console.workdir = newdir
     console.print(formatted, console.cmd.blue)
+end
+
+
+-- The workdir formatted with the memo mini logo
+function console.getminidir(str)
+    local rstr = "\1" .. string.sub(str, 5)
+    print("from console.getminidir: " .. str)
+    if #rstr >= 5 then
+        local extension = str:sub(#str -4, #str)
+        if extension == ".memo" then
+            rstr = string.sub(rstr, 1, #rstr - 4) .. "\1"
+        end
+    end
+    return rstr
 end
 
 
