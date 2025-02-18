@@ -234,7 +234,7 @@ end
 
 
 function cmd.run()
-    cmd.cli.print("Running " .. cmd.cli.cartfile)
+    cmd.cli.print("Running " .. cmd.cli.getminidir(cmd.cli.cartfile))
     cmd.memo.cart.run()
 end
 
