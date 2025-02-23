@@ -59,7 +59,7 @@ function cmd.command(str)
         else
             local ok, err = pcall(result)
             if not ok then
-                cmd.cli.print(err)
+                cmd.cli.print(err, cmd.pink)
             end
         end
     end

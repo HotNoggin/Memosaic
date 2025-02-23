@@ -276,8 +276,6 @@ end
 
 
 function console.error(text)
-    console.print("ERROR:", 14)
-
     local t = ""
     if type(text) == "string" then
         console.print(text, 14)
