@@ -13,9 +13,10 @@ function parser.maketree(tokens)
 end
 
 
-function parser.resolvebody(start, parent)
+function parser.resolvebody(start)
+    print("resolving body at " .. start)
     local p = parser
-    local branch = p.branch("body", p.tokens[start].line, p.tree)
+    local branch = p.branch("body", p.tokens[start].line)
     branch.expressions = {}
     local i = start
     local expression = {}
@@ -24,7 +25,7 @@ function parser.resolvebody(start, parent)
         if t.type == "}" then
             return branch, i + 1
         end
-        expression, i = p.resolveexpression(i, branch)
+        expression, i = p.resolveexpression(i)
         table.insert(branch.expressions, expression)
     end
     return branch, i + 1
@@ -32,42 +33,40 @@ end
 
 
 -- Returns the expression branch and the end token idx of it
-function parser.resolveexpression(start, parent)
+function parser.resolveexpression(start)
     local p = parser
-    local expression = {type = "UNRESOLVED", parent = parent}
+    local expression = {type = "UNRESOLVED"}
     local t = p.tokens[start]
+    print("resolving expression (" .. t.type .. ") at " .. start)
     local i = start
     while i <= #p.tokens do
         t = p.tokens[i]
 
         if t.type == "(" then
-            return p.resolveexpression(start + 1, expression)
-        end
-        if t.type == ")" then
+            print("+-subexpression-+")
+            expression, i = p.resolveexpression(start + 1)
+        elseif t.type == ")" then
+            print("+_______________+")
             return expression, i + 1
 
         elseif p.isliteral(t) then
             expression, i = p.resolveliteral(i)
         elseif t.type == "identifier" then
             expression, i = p.resolveidentifier(i)
-
         elseif t.type == "." then
             expression, i = p.resolvecall(i + 1)
+
         elseif p.isbinop(t) then
-            print("encountered possible binop: " .. t.type)
             if p.canbeunary(t) and expression.type == "UNRESOLVED" then
-                print("is unary")
                 expression, i = p.resolveunary(i)
             elseif expression.type == "UNRESOLVED" then
                 p.err(t.line, " expr", "missing left operand for " .. t.type)
                 return expression, i + 1
             else
-                print("is binary")
                 expression, i = p.resolvebinop(i, expression)
             end
 
         elseif p.isunary(t) then
-            print("encountered standalone unary")
             if expression.type == "UNRESOLVED" then
                 expression, i = p.resolveunary(i)
             else
@@ -80,17 +79,20 @@ function parser.resolveexpression(start, parent)
             return expression, i + 1
         end
     end
+
     return expression, i + 1
 end
 
 
 function parser.resolveidentifier(start)
     local t = parser.tokens[start]
+    print("terminal identifier " .. t.value)
     return {type = "identifier", name = t.value, line = t.line}, start + 1
 end
 
 
 function parser.resolvecall(start)
+    print("resolving call at " .. start)
     local t = parser.tokens[start]
     local call = {type="call", line = t.line, value = {}}
     if t.type == "identifier" then -- Function call
@@ -107,6 +109,7 @@ end
 
 function parser.resolveliteral(start)
     local t = parser.tokens[start]
+    print("terminal literal " .. t.value)
     local val
     local littype = "int"
     if t.type == "hex" then
@@ -129,8 +132,9 @@ end
 
 function parser.resolvebinop(start, parsedhalf)
     local t = parser.tokens[start]
+    print("resolving binop: " .. t.type)
     local binop = {type = t.type, line = t.line, left = parsedhalf, right = {}}
-    local r, stop = parser.resolveexpression(start + 1, binop)
+    local r, stop = parser.resolveexpression(start + 1)
     -- Combine neighboring pairs of binary operations
     if parser.isbinop(r) and not parser.associatesright(binop) then
         if parser.istighter(r.type, binop.type) then
@@ -152,12 +156,12 @@ end
 
 function parser.resolveunary(start)
     local t = parser.tokens[start]
-    print(t.type)
+    print("resolving unary: " .. t.type)
     local unary = {type = t.type, line = t.line, value = {}}
     if unary.type == "-" then
         unary.type = "negate"
     end
-    local v, stop = parser.resolveexpression(start + 1, unary)
+    local v, stop = parser.resolveexpression(start + 1)
     if parser.isbinop(v) then
         if parser.istighter(v.type, unary.type) then
             unary.value = v
@@ -173,8 +177,8 @@ function parser.resolveunary(start)
 end
 
 
-function parser.branch(ptype, pline, pparent)
-    local branch = {type = "", line = 0, parent = pparent}
+function parser.branch(ptype, pline)
+    local branch = {type = "", line = 0}
     if ptype then branch.type = ptype end
     if pline then branch.line = pline end
     return branch

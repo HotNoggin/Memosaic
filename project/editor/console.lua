@@ -284,8 +284,9 @@ function console.error(text)
             console.print(text[line], 14)
         end
     end
-
-    console.editor.cart.stop()
+    if console.editor.cart.running then
+        console.editor.cart.stop()
+    end
 end
 
 

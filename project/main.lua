@@ -1,7 +1,8 @@
 -- LOVE2D DEBUGGER
-if arg[2] == "debug" then
-    require("lldebugger").start()
-end
+-- local lldebugger = require("lldebugger")
+-- if arg[2] == "debug" then
+--     lldebugger.start()
+-- end
 
 local memo = require("engine.memo")
 
@@ -18,10 +19,11 @@ setmetatable(_G, {
 
 io.stdout:setvbuf("no")
 
+
 -- Called once at the start of the game
 function love.load()
     memo.init({win_scale = 4, vsync = true})
-    memo.mimosa.run("(a + b)/c == 0")
+    memo.mimosa.run("=a1-2*-3==4\\5")
 -- [[
 -- ;---FizzBuzz---;
 -- {:iFF:.out{X\F==0? ;replace with O;
@@ -78,13 +80,13 @@ function love.textinput(txt)
 end
 
 
--- LOVE2D ERROR HANDLING --
-local love_errorhandler = love.errorhandler
+-- -- LOVE2D ERROR HANDLING --
+-- local love_errorhandler = love.errorhandler
 
-function love.errorhandler(msg)
-    if lldebugger then
-        error(msg, 2)
-    else
-        return love_errorhandler(msg)
-    end
-end
+-- function love.errorhandler(msg)
+--     if lldebugger then
+--         error(msg, 2)
+--     else
+--         return love_errorhandler(msg)
+--     end
+-- end
