@@ -44,21 +44,7 @@ function parser.resolveexpression(start, parent)
             elseif t.type == "identifier" then
                 expression, i = p.resolveidentifier(i)
             elseif p.isbinop(t) then
-                print("encountered binop")
-                if p.isbinop(expression.type) then -- both are binops! handle precedence
-                    print("both new and current are binops")
-                    if p.istighter(t, expression.type) then
-                        -- Only evaluate binops that are tighter than the current one
-                        print("new binop is tighter")
-                        expression, i = p.resolvebinop(i, parent, expression)
-                    else
-                        print("new binop is not tighter")
-                        return expression, i + 1
-                    end
-                else
-                    print("current is not a binop")
-                    expression, i = p.resolvebinop(i, parent, expression)
-                end
+                expression, i = p.resolvebinop(i, expression)
             else
                 p.err(t.line, " expr", "unexpected " .. t.type)
                 return expression, i + 1
@@ -96,7 +82,7 @@ function parser.resolveliteral(start)
 end
 
 
-function parser.resolvebinop(start, parent, l)
+function parser.resolvebinop(start, l)
     local t = parser.tokens[start]
     local binop = {type = t.type, line = t.line, left = l, right = {}}
     local r, stop = parser.resolveexpression(start + 1, binop)
