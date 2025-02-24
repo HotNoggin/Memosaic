@@ -7,6 +7,7 @@ local parser = {
 function parser.maketree(tokens)
     parser.tokens = tokens
     parser.tree = {}
+    if not (#parser.tokens > 0) then return {} end
     local tree = parser.resolvebody(1)
     return tree
 end
@@ -33,30 +34,74 @@ end
 -- Returns the expression branch and the end token idx of it
 function parser.resolveexpression(start, parent)
     local p = parser
-    local expression = {}
+    local expression = {type = "UNRESOLVED", parent = parent}
+    local t = p.tokens[start]
     local i = start
-        while i <= #p.tokens do
-            local t = p.tokens[i]
-            if t.type == ")" then
+    while i <= #p.tokens do
+        t = p.tokens[i]
+
+        if t.type == "(" then
+            return p.resolveexpression(start + 1, expression)
+        end
+        if t.type == ")" then
+            return expression, i + 1
+
+        elseif p.isliteral(t) then
+            expression, i = p.resolveliteral(i)
+        elseif t.type == "identifier" then
+            expression, i = p.resolveidentifier(i)
+
+        elseif t.type == "." then
+            expression, i = p.resolvecall(i + 1)
+        elseif p.isbinop(t) then
+            print("encountered possible binop: " .. t.type)
+            if p.canbeunary(t) and expression.type == "UNRESOLVED" then
+                print("is unary")
+                expression, i = p.resolveunary(i)
+            elseif expression.type == "UNRESOLVED" then
+                p.err(t.line, " expr", "missing left operand for " .. t.type)
                 return expression, i + 1
-            elseif p.isliteral(t) then
-                expression, i = p.resolveliteral(i)
-            elseif t.type == "identifier" then
-                expression, i = p.resolveidentifier(i)
-            elseif p.isbinop(t) then
+            else
+                print("is binary")
                 expression, i = p.resolvebinop(i, expression)
+            end
+
+        elseif p.isunary(t) then
+            print("encountered standalone unary")
+            if expression.type == "UNRESOLVED" then
+                expression, i = p.resolveunary(i)
             else
                 p.err(t.line, " expr", "unexpected " .. t.type)
                 return expression, i + 1
             end
+
+        else
+            p.err(t.line, " expr", "unexpected " .. t.type)
+            return expression, i + 1
         end
+    end
     return expression, i + 1
 end
 
 
 function parser.resolveidentifier(start)
     local t = parser.tokens[start]
-    return {type = "identifier", value = t.value, line = t.line}, start + 1
+    return {type = "identifier", name = t.value, line = t.line}, start + 1
+end
+
+
+function parser.resolvecall(start)
+    local t = parser.tokens[start]
+    local call = {type="call", line = t.line, value = {}}
+    if t.type == "identifier" then -- Function call
+        call.name = t.name
+        call.parameters = {}
+        return call, start + 1
+    elseif t.type == "int" then -- Parameter reference
+        call.type = "parameter"
+        call.number = t.val
+        return call, start + 1
+    end
 end
 
 
@@ -84,29 +129,47 @@ end
 
 function parser.resolvebinop(start, parsedhalf)
     local t = parser.tokens[start]
-    local binop = {type = t.type, line = t.line, left = {}, right = {}}
+    local binop = {type = t.type, line = t.line, left = parsedhalf, right = {}}
     local r, stop = parser.resolveexpression(start + 1, binop)
     -- Combine neighboring pairs of binary operations
-    print("binop: " .. binop.type)
-    if parser.isbinop(binop) and parser.isbinop(r) then
+    if parser.isbinop(r) and not parser.associatesright(binop) then
         if parser.istighter(r.type, binop.type) then
-            -- Nest the new in the old
-            print("old is the outside")
-            binop.left = parsedhalf
+            -- Keep as-is, right-associative
             binop.right = r
         else
-            -- Nest the old in the new
-            print("new is the outside")
+            -- Perform a swap to become left-associative
+            binop.right = r.left
             r.left = binop
-            r.right = parsedhalf
             binop = r
         end
     else
-        print("not both binops")
-        binop.left = parsedhalf
+        -- Keep as-is, right-associative
         binop.right = r
     end
     return binop, stop
+end
+
+
+function parser.resolveunary(start)
+    local t = parser.tokens[start]
+    print(t.type)
+    local unary = {type = t.type, line = t.line, value = {}}
+    if unary.type == "-" then
+        unary.type = "negate"
+    end
+    local v, stop = parser.resolveexpression(start + 1, unary)
+    if parser.isbinop(v) then
+        if parser.istighter(v.type, unary.type) then
+            unary.value = v
+        else
+            unary.value = v.left
+            v.left = unary
+            unary = v
+        end
+    else
+        unary.value = v
+    end
+    return unary, stop
 end
 
 
@@ -126,16 +189,24 @@ end
 
 function parser.isbinop(t)
     local p = parser
-    return p.isadd(t) or p.ismult(t) or p.isbitop(t)
-    or p.iscomparison(t) and not p.isunary(t)
+    return p.isadd(t) or p.ismult(t) or t.type == "**"
+    or p.isbitop(t) or p.iscomparison(t)
+    and not p.isunary(t)
 end
 
 function parser.isbitop(t)
     return t.type == "^^" or t.type == "|" or t.type == "&"
 end
 
+-- IMPORTATNT: This uses "negate" for negation, not "-"
+-- To check if a token is negation, use canbeunary
 function parser.isunary(t)
-    return t.type == "!" or t.type == "~"
+    return t.type == "!" or t.type == "~" or t.type == "negate"
+end
+
+function parser.canbeunary(t)
+    return t.type == "!" or t.type == "~" or t.type == "-"
+    or t.type == "negate"
 end
 
 function parser.iscomparison(t)
@@ -152,17 +223,32 @@ function parser.isadd(t)
     return t.type == "+" or t.type == "-"
 end
 
+-- Only for binops, as ALL unaries associate right
+function parser.associatesright(t)
+    return t.type == "**"
+end
+
 -- Returns true if a groups tighter than b
 function parser.istighter(a, b)
     local strength = {
-        ["!"] = 9, ["negate"] = 9,
-        ["*"] = 8, ["/"] = 8, ["\\"] = 8,
-        ["+"] = 7, ["-"] = 7,
-        ["<<"] = 6, [">>"] = 6,
-        ["&"] = 5,
-        ["^^"] = 4,
-        ["|"] = 3,
-        ["!="] = 2, ["=="] = 2, ["<"] = 2, [">"] = 2, ["<="] = 2, [">="] = 2,
+        -- logical / bitwise negations
+        ["!"] = 11, ["~"] = 11,
+        -- exponent
+        ["**"] = 10,
+        -- multiplication
+        ["negate"] = 9, ["*"] = 9, ["/"] = 9, ["\\"] = 9,
+        -- addition
+        ["+"] = 8, ["-"] = 8,
+        -- bitwise operators
+        ["<<"] = 7, [">>"] = 7,
+        ["&"] = 6,
+        ["^^"] = 5,
+        ["|"] = 4,
+        -- relations
+        ["<"] = 3, [">"] = 3, ["<="] = 3, [">="] = 3,
+        -- equality
+        ["!="] = 2, ["=="] = 2,
+        -- logical
         ["&&"] = 1,
         ["||"] = 0,
     }

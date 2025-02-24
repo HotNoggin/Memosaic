@@ -21,14 +21,15 @@ io.stdout:setvbuf("no")
 -- Called once at the start of the game
 function love.load()
     memo.init({win_scale = 4, vsync = true})
-    memo.mimosa.run("a + b == 0")
+    memo.mimosa.run("(a + b)/c == 0")
 -- [[
 -- ;---FizzBuzz---;
--- {:iFF:O{X\F==0?
--- "fizzbuzz":X\3==0
+-- {:iFF:.out{X\F==0? ;replace with O;
+-- `fizzbuzz:X\3==0
 -- ?`fizz:X\5==0?
 -- `buzz:X}}
 -- ]]
+--     )
 end
 
 
@@ -52,7 +53,6 @@ function love.update(dt)
         memo.drawing.draw_buffer()
         -- Refresh the canvas image with the new image data
         memo.canvas.update()
-        
         -- Historic input
         esc_old = love.keyboard.isDown("escape")
         memo.input.poptext()
