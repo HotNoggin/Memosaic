@@ -87,7 +87,7 @@ function scanner.scantoken()
         if s.isbetween(next, "!", "~") then
             s.addtoken("char", next)
             s.advance()
-        else s.err(s.line, " in char", "invalid character")
+        else s.err(s.line, " char", "invalid character")
         end
     elseif c == "`" then
         local word = ""
@@ -126,6 +126,22 @@ function scanner.scantoken()
     elseif c == "=" then
         if s.match("=") then s.addtoken("==")
         else s.addtoken("=")
+        end
+    elseif c == "|" then
+        if s.match("|") then s.addtoken("||")
+        else s.addtoken("|")
+        end
+    elseif c == "&" then
+        if s.match("&") then s.addtoken("&&")
+        else s.addtoken("&")
+        end
+    elseif c == "!" then
+        if s.match("=") then s.addtoken("!=")
+        else s.addtoken("!")
+        end
+    elseif c == "^" then
+        if s.match("^") then s.addtoken("^^")
+        else s.addtoken("^")
         end
     elseif s.isin(c, {" ", "\t", "\r"}) then -- pass
     elseif c == "\n" then s.line = s.line + 1

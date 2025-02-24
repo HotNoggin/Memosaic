@@ -9,6 +9,7 @@ local mimosa = {
 function mimosa.init(memo)
     mimosa.cli = memo.editor.console
     mimosa.scanner.err = mimosa.error
+    mimosa.parser.err = mimosa.error
 end
 
 
@@ -26,8 +27,8 @@ function mimosa.branchtostring(tree)
     for k, branch in pairs(tree) do
         if type(branch) == "table" then
             str = str .. mimosa.branchtostring(branch)
-        else
-            str = str .. tostring(branch) .. ";"
+        elseif k ~= "line" then
+            str = str .. tostring(branch) .." "
         end
     end
     return str .. ")"

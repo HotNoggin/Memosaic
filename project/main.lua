@@ -21,14 +21,14 @@ io.stdout:setvbuf("no")
 -- Called once at the start of the game
 function love.load()
     memo.init({win_scale = 4, vsync = true})
-    memo.mimosa.run(
-[[
-;---FizzBuzz---;
-{:iFF:O{X\F==0?
-"fizzbuzz":X\3==0
-?`fizz:X\5==0?
-`buzz:X}}
-]])
+    memo.mimosa.run("a + b == 0")
+-- [[
+-- ;---FizzBuzz---;
+-- {:iFF:O{X\F==0?
+-- "fizzbuzz":X\3==0
+-- ?`fizz:X\5==0?
+-- `buzz:X}}
+-- ]]
 end
 
 
