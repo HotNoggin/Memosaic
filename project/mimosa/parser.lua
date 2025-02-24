@@ -82,27 +82,30 @@ function parser.resolveliteral(start)
 end
 
 
-function parser.resolvebinop(start, l)
+function parser.resolvebinop(start, parsedhalf)
     local t = parser.tokens[start]
-    local binop = {type = t.type, line = t.line, left = l, right = {}}
+    local binop = {type = t.type, line = t.line, left = {}, right = {}}
     local r, stop = parser.resolveexpression(start + 1, binop)
     -- Combine neighboring pairs of binary operations
-    if parser.isbinop(r.type) then
-        -- If the right binop is tighter, nest it inside of this one
+    print("binop: " .. binop.type)
+    if parser.isbinop(binop) and parser.isbinop(r) then
         if parser.istighter(r.type, binop.type) then
-            print("nesting r in binop")
+            -- Nest the new in the old
+            print("old is the outside")
+            binop.left = parsedhalf
             binop.right = r
-        -- Nest this binop in the right one otherwise
         else
-            print("nesting binop in r")
+            -- Nest the old in the new
+            print("new is the outside")
             r.left = binop
+            r.right = parsedhalf
             binop = r
         end
     else
-        print("right is not a binop")
+        print("not both binops")
+        binop.left = parsedhalf
         binop.right = r
     end
-    print("binary operator " .. t.type)
     return binop, stop
 end
 
