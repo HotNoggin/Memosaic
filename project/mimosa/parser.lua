@@ -22,12 +22,14 @@ function parser.resolvebody(start)
     local expression = {}
     while i <= #p.tokens do
         local t = p.tokens[i]
-        if t.type == "}" then
+        if t.type == "}" or t.type == "?" or t.type == ":" then
+            print("body resolved")
             return branch, i + 1
         end
         expression, i = p.resolveexpression(i)
         table.insert(branch.expressions, expression)
     end
+    print("body resolved")
     return branch, i + 1
 end
 
@@ -48,11 +50,19 @@ function parser.resolveexpression(start)
         elseif t.type == ")" then
             print("+_______________+")
             return expression, i + 1
+        elseif t.type == "{" then
+            return p.resolveblock(i + 1)
+        elseif t.type == "}" then
+            return expression, i
+        elseif t.type == ":" or t.type == "?" then
+            return expression, i + 1
 
         elseif p.isliteral(t) then
             expression, i = p.resolveliteral(i)
         elseif t.type == "identifier" then
             expression, i = p.resolveidentifier(i)
+        elseif t.type == "command" then
+            expression, i = p.resolvecommand(i)
         elseif t.type == "." then
             expression, i = p.resolvecall(i + 1)
 
@@ -78,9 +88,42 @@ function parser.resolveexpression(start)
             p.err(t.line, " expr", "unexpected " .. t.type)
             return expression, i + 1
         end
+
+        if expression.type ~= "UNRESOLVED" then
+            print("expression resolved")
+            local nxt = p.tokens[i]
+            if nxt ~= nil and not p.isbinop(nxt) then return expression, i end
+        end
     end
 
     return expression, i + 1
+end
+
+
+function parser.resolveblock(start)
+    print("Resolving block at " .. start)
+    local t = parser.tokens[start]
+    local block, i = parser.branch("UNRESOLVED", t.line), start
+    if t.type == ":" then
+        print("body is iteration")
+        block, i = parser.resolvefor(start + 1)
+    else
+        local firstexpr = {}
+        firstexpr, i = parser.resolveexpression(start)
+        local nxt = parser.tokens[i]
+        print("next token in block is " .. nxt.type)
+        if nxt.type == "?" then
+            print("body is conditional")
+            block, i = parser.resolveif(i + 1, firstexpr, start)
+        elseif nxt.type == ":" then
+            print("body is function")
+            block, i = parser.resolvefunc(i + 1, firstexpr)
+        else
+            print("body is expression")
+            block, i = firstexpr, i
+        end
+    end
+    return block, i
 end
 
 
@@ -91,17 +134,32 @@ function parser.resolveidentifier(start)
 end
 
 
+function parser.resolvecommand(start)
+    local t = parser.tokens[start]
+    local cmd = t.value
+    local nums = {X = 0, Y = 1, Z = 2, W = 3}
+    if string.byte(cmd) >= string.byte("W") then
+        print("terminal parameter " .. cmd)
+        return {type = "parameter", number = nums[cmd], line = t.line}, start + 1
+    else
+        print("terminal command " .. cmd)
+        return {type = "command", command = cmd, line = t.line}, start + 1
+    end
+end
+
+
 function parser.resolvecall(start)
-    print("resolving call at " .. start)
     local t = parser.tokens[start]
     local call = {type="call", line = t.line, value = {}}
     if t.type == "identifier" then -- Function call
-        call.name = t.name
+        print("terminal call " .. t.value .. " at " .. start)
+        call.name = t.value
         call.parameters = {}
         return call, start + 1
     elseif t.type == "int" then -- Parameter reference
+        print("terminal parameter " .. t.value .. " at " .. start)
         call.type = "parameter"
-        call.number = t.val
+        call.number = t.value
         return call, start + 1
     end
 end
@@ -137,7 +195,7 @@ function parser.resolvebinop(start, parsedhalf)
     local r, stop = parser.resolveexpression(start + 1)
     -- Combine neighboring pairs of binary operations
     if parser.isbinop(r) and not parser.associatesright(binop) then
-        if parser.istighter(r.type, binop.type) then
+        if r and parser.istighter(r.type, binop.type) then
             -- Keep as-is, right-associative
             binop.right = r
         else
@@ -150,6 +208,7 @@ function parser.resolvebinop(start, parsedhalf)
         -- Keep as-is, right-associative
         binop.right = r
     end
+
     return binop, stop
 end
 
@@ -173,7 +232,56 @@ function parser.resolveunary(start)
     else
         unary.value = v
     end
+
     return unary, stop
+end
+
+
+function parser.resolveif(start, condit, prestart)
+    print("Resolving conditional at " .. prestart)
+    local t = parser.tokens[start]
+    local i = start
+    local ifblock = {type = "if", condition = condit, line = prestart}
+    ifblock.subconditions = {}
+    ifblock.bodies = {}
+    while i <= #parser.tokens do
+        local body = {type = "UNRESOLVED"}
+        body, i = parser.resolvebody(i)
+        local nxt = parser.tokens[i - 1]
+        print("next token in if body is " .. nxt.type)
+        if nxt.type == "?" then
+            table.insert(ifblock.subconditions, body)
+        elseif nxt.type == ":" then
+            table.insert(ifblock.bodies, body)
+        elseif nxt.type == "}" then
+            return ifblock, i
+        end
+    end
+    return ifblock, i
+end
+
+
+function parser.resolvefor(start)
+    print("Resovling iteration at " .. start)
+    local t = parser.tokens[start]
+    local ident, i = {}, start
+    local forloop = {type = "for", line = t.line}
+    if t.type == "identifier" then
+        ident, i = parser.resolveidentifier(i)
+        forloop.iterator = ident
+    else
+        parser.err(t.line, " iteration", "missing identifier for iterator")
+        return forloop, start + 1
+    end
+    forloop.iterable, i = parser.resolveexpression(i)
+    t = parser.tokens[i]
+    if t.type == ":" then
+        forloop.body, i = parser.resolvebody(i + 1)
+    else
+        parser.err(t.line, " iteration", "missing colon (:)")
+        return forloop, i + 1
+    end
+    return forloop, i
 end
 
 
