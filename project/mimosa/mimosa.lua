@@ -2,14 +2,19 @@
 local mimosa = {
     scanner = require("mimosa.scanner"),
     parser = require("mimosa.parser"),
-    had_err = false
+    evaluator = require("mimosa.evaluator"),
+    had_err = false,
 }
 
+mimosa.mosalib = mimosa.evaluator.mosalib
 
 function mimosa.init(memo)
     mimosa.cli = memo.editor.console
     mimosa.scanner.err = mimosa.error
     mimosa.parser.err = mimosa.error
+    mimosa.evaluator.err = mimosa.error
+    mimosa.mosalib.callstack = mimosa.evaluator.callstack
+    mimosa.mosalib.init(memo)
 end
 
 
@@ -18,7 +23,8 @@ function mimosa.run(code)
     local tokens = mimosa.scanner.scan(code)
     if mimosa.had_err then return end
     local tree = mimosa.parser.maketree(tokens)
-    mimosa.cli.print(mimosa.branchtostring(tree), 12)
+    if mimosa.had_err then return end
+    mimosa.evaluator.evaluate(tree, {})
 end
 
 
@@ -27,13 +33,31 @@ function mimosa.branchtostring(tree)
     for k, branch in pairs(tree) do
         if type(branch) == "table" then
             if k ~= "parent" and k ~= "funcs" then
-                str = str .. mimosa.branchtostring(branch)
+                    str = str .. mimosa.branchtostring(branch)
             end
         elseif k ~= "line" then
-            str = str .. tostring(branch) .." "
+            str = str .. tostring(branch) .. ";"
         end
     end
     return str .. ")"
+end
+
+
+function mimosa.asttoindented(ast)
+    local text = ""
+    local tabbage = ""
+    local word = ""
+    for i = 1, #ast do        
+        local char = string.sub(ast, i, i)
+        if char == "(" then tabbage = tabbage .. " "
+        elseif char == ")" then tabbage = string.sub(tabbage, 1, -2)
+        elseif char == ";" then
+            text = text .. tabbage .. word .. "\n"
+            word = ""
+        else word = word .. char
+        end
+    end
+    return text
 end
 
 
