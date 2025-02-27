@@ -26,7 +26,9 @@ function mimosa.branchtostring(tree)
     local str = "("
     for k, branch in pairs(tree) do
         if type(branch) == "table" then
-            str = str .. mimosa.branchtostring(branch)
+            if k ~= "parent" and k ~= "funcs" then
+                str = str .. mimosa.branchtostring(branch)
+            end
         elseif k ~= "line" then
             str = str .. tostring(branch) .." "
         end
