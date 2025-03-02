@@ -23,6 +23,13 @@ io.stdout:setvbuf("no")
 -- Called once at the start of the game
 function love.load()
     memo.init({win_scale = 4, vsync = true})
+    memo.mimosa.run(
+[[
+"Hello " a =
+"World!" b =
+a b + out
+]]
+)
 end
 
 
