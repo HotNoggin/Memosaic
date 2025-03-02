@@ -8,7 +8,7 @@ local memo = {
     tick = require("engine.tick"),
     canvas = require("graphics.canvas"),
     drawing = require("graphics.drawing"),
-    mimosa = require("mimosa.mimosa"),
+    minimosa = require("minimosa.minimosa"),
     cart = require("engine.cart"),
     editor = require("editor.editor"),
     demos = require("carts.demos")
@@ -23,7 +23,6 @@ function memo.init(options)
     memo.input.init(memo)
     memo.drawing.init(memo)
     memo.canvas.init(memo.window.WIDTH, memo.window.HEIGHT, memo)
-    memo.mimosa.init(memo)
     memo.cart.init(memo)
     memo.editor.init(memo)
 
