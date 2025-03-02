@@ -22,21 +22,23 @@ function interpreter.interpret(instructions, stack, heap)
             return
         end
 
+        func(inst.value)
+
         if interpreter.errored then break end
         interpreter.idx = i + 1
     end
 end
 
 
+interpreter.operations = {
+    --["string"] = interpreter.dostring,
+}
+
+
 function interpreter.err(where, msg)
     interpreter.errored = true
     interpreter.baseerr(interpreter.line, where, msg)
 end
-
-
-interpreter.operations = {
-
-}
 
 
 return interpreter

@@ -1,5 +1,7 @@
 local parser = {}
 
+parser.reserved = {}
+
 
 function parser.get_instructions(tokens)
     local unclosedskips = {}
@@ -7,8 +9,16 @@ function parser.get_instructions(tokens)
     for i, token in ipairs(tokens) do
         local inst = token
 
+        -- KEYWORDS --
+        if inst.type == "identifier" then
+            for idx, reservedword in ipairs(parser.reserved) do
+                if inst.value == reservedword then
+                    inst.type = reservedword
+                end
+            end
+
         -- NUMBERS --
-        if inst.type == "int" then
+        elseif inst.type == "int" then
             local int = math.floor(tonumber(inst.value, 10))
             inst = {line = inst.line, type = "int", value = int}
         elseif inst.type == "hex" then
