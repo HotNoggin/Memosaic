@@ -1,6 +1,6 @@
 local parser = {}
 
-parser.reserved = {}
+parser.reserved = {"out"}
 
 
 function parser.get_instructions(tokens)

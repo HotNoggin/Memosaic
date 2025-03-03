@@ -9,6 +9,7 @@ function mimosa.init(memo)
     mimosa.lexer.err = mimosa.err
     mimosa.parser.err = mimosa.err
     mimosa.interpreter.baseerr = mimosa.err
+    mimosa.interpreter.memo = memo
     mimosa.memo = memo
 end
 

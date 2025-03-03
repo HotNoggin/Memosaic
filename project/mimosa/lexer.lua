@@ -24,7 +24,7 @@ function lexer.scantoken()
     local l = lexer
     local c = lexer.advance()
 
-    local symbols = {".", ",", "%", "/", "\\", "{", "}", "(", ")", "+", "-", ":", "?", "@"}
+    local symbols = {".", ",", "%", "/", "\\", "{", "}", "(", ")", "+", ":", "?", "@"}
 
     if l.isin(c, symbols) then
         l.addtoken(c)
@@ -103,6 +103,10 @@ function lexer.scantoken()
     elseif c == "*" then
         if l.match("*") then l.addtoken("**")
         else l.addtoken("*")
+        end
+    elseif c == "-" then
+        if l.match("-") then l.addtoken("--")
+        else l.addtoken("-")
         end
     elseif c == "<" then
         if l.match("=") then l.addtoken("<=")

@@ -27,7 +27,7 @@ function love.load()
 [[
 "Hello " a =
 "World!" b =
-a b + out
+a. b. + out
 ]]
 )
 end
