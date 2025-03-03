@@ -1,34 +1,20 @@
 -- LOVE2D DEBUGGER
-if arg[2] == "debug" then
-    require("lldebugger").start()
-end
+-- local lldebugger = require("lldebugger")
+-- if arg[2] == "debug" then
+--     lldebugger.start()
+-- end
 
 local memo = require("engine.memo")
 
 
 local esc_old = false
 
-
--- Handling nil access in a good way
-setmetatable(_G, {
-    __index = function(table, key)
-        error(key .. " doesn't exist")
-    end
-})
-
 io.stdout:setvbuf("no")
+
 
 -- Called once at the start of the game
 function love.load()
     memo.init({win_scale = 4, vsync = true})
-    memo.mimosa.run(
-[[
-;---FizzBuzz---;
-{:iFF:O{X\F==0?
-"fizzbuzz":X\3==0
-?`fizz:X\5==0?
-`buzz:X}}
-]])
 end
 
 
@@ -52,7 +38,6 @@ function love.update(dt)
         memo.drawing.draw_buffer()
         -- Refresh the canvas image with the new image data
         memo.canvas.update()
-        
         -- Historic input
         esc_old = love.keyboard.isDown("escape")
         memo.input.poptext()
@@ -78,13 +63,13 @@ function love.textinput(txt)
 end
 
 
--- LOVE2D ERROR HANDLING --
-local love_errorhandler = love.errorhandler
+-- -- LOVE2D ERROR HANDLING --
+-- local love_errorhandler = love.errorhandler
 
-function love.errorhandler(msg)
-    if lldebugger then
-        error(msg, 2)
-    else
-        return love_errorhandler(msg)
-    end
-end
+-- function love.errorhandler(msg)
+--     if lldebugger then
+--         error(msg, 2)
+--     else
+--         return love_errorhandler(msg)
+--     end
+-- end

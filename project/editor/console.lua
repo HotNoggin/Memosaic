@@ -24,6 +24,7 @@ function console.init(memo)
     console.fgc = {}
     console.bgc = {}
     console.wrap = true
+    console.usemimosa = false
 
     -- Cursor x and y
     console.cx = 0
@@ -267,7 +268,7 @@ function console.print(text, fg, bg)
     local back = 0
     if not console.bad_type(fg, "number", "print") and fg > 0 then fore = fg % 16 end
     if not console.bad_type(bg, "number", "print") and fg > 0 then back = bg % 16 end
-    if text then print("memo>" .. text) end
+    if text then print("memo>" .. tostring(text)) end
     console.entries[#console.entries] = tostring(text)
     console.fgc[#console.fgc] = fore
     console.bgc[#console.bgc] = back
@@ -284,8 +285,9 @@ function console.error(text)
             console.print(text[line], 14)
         end
     end
-
-    console.editor.cart.stop()
+    if console.editor.cart.running then
+        console.editor.cart.stop()
+    end
 end
 
 

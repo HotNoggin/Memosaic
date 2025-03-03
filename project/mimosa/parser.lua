@@ -1,44 +1,52 @@
-local parser = {
-    tokens = {},
-    tree = {}
-}
--- Has err(line, where txt, message txt)
--- Tokens have type, value line
+local parser = {}
 
--- TERMINOLOGY --
--- Tree: the whole tree
--- Branch: a segment of the tree that is being added on to
--- Twig: a segment of the tree that is being made to add to a branch
--- t: the token index
--- idx: the twig's place in the branch
+parser.reserved = {"out", "O", "pop", "true", "false"}
 
 
-function parser.maketree(tokens)
-    parser.tokens = tokens
-    parser.tree = {}
-    return parser.resolvebody(1, parser.tree)
-end
+function parser.get_instructions(tokens)
+    local unclosedskips = {}
+    local instructions = {}
+    for i, token in ipairs(tokens) do
+        local inst = token
 
+        -- KEYWORDS --
+        if inst.type == "identifier" then
+            for idx, reservedword in ipairs(parser.reserved) do
+                if inst.value == reservedword then
+                    inst.type = reservedword
+                end
+            end
 
-function parser.resolvebody(t, branch)
-    local p = parser
-    local twig = p.twig()
-    local i, stop = t, t
-    while i >= #parser.tokens do
-        local token = parser.tokens[i]
-        i = i + 1
-        if token.type == "string" then
-            table.insert(twig, {type="literal"})
-        elseif token.type == "{" then
-            table.insert(twig, parser.resolveblock(i + 1), twig)
+        -- NUMBERS --
+        elseif inst.type == "int" then
+            local int = math.floor(tonumber(inst.value, 10))
+            inst = {line = inst.line, type = "int", value = int}
+        elseif inst.type == "hex" then
+            local int = math.floor(tonumber(inst.value, 16))
+            inst = {line = inst.line, type = "int", value = int}
+
+        -- BLOCKS --
+        elseif inst.type == "{" then
+            table.insert(unclosedskips, i)
+        elseif inst.type == "}" then
+            if #unclosedskips <= 0 then
+                parser.err(token.line, "", "unmatched '}'")
+            else
+                local idx = unclosedskips[#unclosedskips]
+                instructions[idx] = {line = instructions[idx].line, type = "{", value = i}
+                table.remove(unclosedskips, #unclosedskips)
+            end
         end
+
+        table.insert(instructions, inst)
     end
-    return twig, stop
-end
 
+    for i, idx in ipairs(unclosedskips) do
+        local inst = instructions[idx]
+        parser.err(inst.line, "", "unclosed '{'")
+    end
 
-function parser.twig(ptype, pline)
-    return {type = ptype, line = pline}
+    return instructions
 end
 
 

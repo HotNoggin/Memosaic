@@ -1,44 +1,32 @@
---Mimosa interpreter
 local mimosa = {
-    scanner = require("mimosa.scanner"),
+    lexer = require("mimosa.lexer"),
     parser = require("mimosa.parser"),
-    had_err = false
+    interpreter = require("mimosa.interpreter"),
+    had_err = false,
 }
 
-
 function mimosa.init(memo)
-    mimosa.cli = memo.editor.console
-    mimosa.scanner.err = mimosa.error
+    mimosa.lexer.err = mimosa.err
+    mimosa.parser.err = mimosa.err
+    mimosa.interpreter.baseerr = mimosa.err
+    mimosa.interpreter.memo = memo
+    mimosa.memo = memo
 end
 
 
-function mimosa.run(code)
+function mimosa.run(script, stack, pile)
     mimosa.had_err = false
-    local tokens = mimosa.scanner.scan(code)
+    local tokens = mimosa.lexer.scan(script)
     if mimosa.had_err then return end
-    local tree = mimosa.parser.maketree(tokens)
-    mimosa.cli.print(mimosa.branchtostring(tree), 12)
+    local instructions = mimosa.parser.get_instructions(tokens)
+    if mimosa.had_err then return end
+    mimosa.interpreter.interpret(instructions, stack, pile)
 end
 
 
-function mimosa.branchtostring(tree)
-    local str = "("
-    for k, branch in pairs(tree) do
-        if type(branch) == "table" then
-            str = str .. mimosa.branchtostring(branch)
-        else
-            str = str .. tostring(branch) .. ";"
-        end
-    end
-    return str .. ")"
-end
-
-
-function mimosa.error(line, where, message)
-    mimosa.cli.error("[line " .. line .. "]" .. where .. ":")
-    mimosa.cli.error(message)
+function mimosa.err(line, where, msg)
     mimosa.had_err = true
+    mimosa.memo.editor.console.error("[line " .. line .. "]" .. where .. ": " .. msg)
 end
-
 
 return mimosa

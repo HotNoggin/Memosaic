@@ -45,22 +45,42 @@ function cmd.command(str)
     elseif cmd.is(c, "save", terms, 1) then cmd.save(terms)
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
+    elseif cmd.is(c, "edit", terms, 1) then cmd.edit()
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
     elseif cmd.is(c, "splash", terms, 1) then cmd.splash()
     elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
+    elseif cmd.is(c, "mimosa", terms, 1) then cmd.setmimosa(true)
+    elseif cmd.is(c, "lua", terms, 1) then cmd.setmimosa(false)
     end
 
-    if not cmd.found_command then
-        local result, error = load(str, "CMD", "t", cmd.memo.cart.sandbox.env)
-        if result == nil then
-            cmd.cli.print("Not a command or valid lua", cmd.pink)
-        else
-            local ok, err = pcall(result)
-            if not ok then
-                cmd.cli.print(err, cmd.pink)
-            end
+    if cmd.found_command then return end
+
+    if cmd.cli.usemimosa then
+        local mimosa = cmd.memo.mimosa
+        mimosa.had_err = false
+        local tokens = mimosa.lexer.scan(str)
+        if mimosa.had_err then
+            cmd.cli.print("Not a command or valid mimosa", cmd.pink)
+            return
+        end
+        mimosa.parser.get_instructions(tokens)
+        if mimosa.had_err then
+            cmd.cli.print("Not a command or valid mimosa", cmd.pink)
+            return
+        end
+        mimosa.run(str)
+        return
+    end
+
+    local result, error = load(str, "CMD", "t", cmd.memo.cart.sandbox.env)
+    if result == nil then
+        cmd.cli.print("Not a command or valid lua", cmd.pink)
+    else
+        local ok, err = pcall(result)
+        if not ok then
+            cmd.cli.print(err, cmd.pink)
         end
     end
 end
@@ -74,6 +94,19 @@ function cmd.info()
     out(cmd.memo.cart.name, cmd.teal)
     out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ), cmd.blue)
     out("\1" .. cmd.cli.getworkdir():sub(5, -1), cmd.blue)
+end
+
+
+function cmd.edit()
+    cmd.cli.editor.tab = cmd.cli.editor.lasttab
+end
+
+
+function cmd.setmimosa(ison)
+    cmd.cli.usemimosa = ison
+    local mode = "lua"
+    if ison then mode = "mimosa" end
+    cmd.cli.print("CLI language set to " .. mode)
 end
 
 
