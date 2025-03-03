@@ -10,6 +10,7 @@ local lexer = {
 -- Scans a string of code and returns a table of tokens
 function lexer.scan(code)
     lexer.code = code
+    lexer.tokens = {}
     lexer.current = 1
     lexer.line = 1
     while not lexer.atend() do
@@ -24,7 +25,7 @@ function lexer.scantoken()
     local l = lexer
     local c = lexer.advance()
 
-    local symbols = {".", ",", "%", "/", "\\", "{", "}", "(", ")", "+", ":", "?", "@"}
+    local symbols = {".", ",", "%", "/", "\\", "{", "}", "(", ")", "+", ":", "?", "@", "~"}
 
     if l.isin(c, symbols) then
         l.addtoken(c)

@@ -5,6 +5,7 @@ local b = require("bit")
 
 function font_tab.init(memo)
     font_tab.draw = memo.drawing
+    font_tab.memapi = memo.memapi
     font_tab.input = memo.input
 
     font_tab.char = string.byte("!")
@@ -24,7 +25,7 @@ function font_tab.update()
     -- Sprite editing
     if ipt.lclick_in(0, 0, 8, 8) then
         if not ipt.lheld then
-            font_tab.pen = font_tab.drawing.font_pixel(m_x, m_y, font_tab.char)
+            font_tab.pen = font_tab.draw.font_pixel(m_x, m_y, font_tab.char)
         end
 
         local ptr = (font_tab.char * 8) + m_x + font_tab.memapi.map.font_start
@@ -46,7 +47,7 @@ function font_tab.update()
     -- Sprite drawing
     for x = 0, 7 do
         for y = 0, 7 do
-            if font_tab.drawing.font_pixel(x, y, font_tab.char) then
+            if font_tab.draw.font_pixel(x, y, font_tab.char) then
                 draw.ink(x, y, 13, 13)
             else
                 draw.ink(x, y, 0, 0)

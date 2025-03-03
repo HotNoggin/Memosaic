@@ -14,12 +14,13 @@ function mimosa.init(memo)
 end
 
 
-function mimosa.run(script)
+function mimosa.run(script, stack, pile)
+    mimosa.had_err = false
     local tokens = mimosa.lexer.scan(script)
     if mimosa.had_err then return end
     local instructions = mimosa.parser.get_instructions(tokens)
     if mimosa.had_err then return end
-    mimosa.interpreter.interpret(instructions)
+    mimosa.interpreter.interpret(instructions, stack, pile)
 end
 
 

@@ -24,6 +24,7 @@ function console.init(memo)
     console.fgc = {}
     console.bgc = {}
     console.wrap = true
+    console.usemimosa = false
 
     -- Cursor x and y
     console.cx = 0

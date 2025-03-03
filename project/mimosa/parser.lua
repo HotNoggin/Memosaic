@@ -1,6 +1,6 @@
 local parser = {}
 
-parser.reserved = {"out"}
+parser.reserved = {"out", "O", "pop", "true", "false"}
 
 
 function parser.get_instructions(tokens)
@@ -31,11 +31,11 @@ function parser.get_instructions(tokens)
         elseif inst.type == "}" then
             if #unclosedskips <= 0 then
                 parser.err(token.line, "", "unmatched '}'")
+            else
+                local idx = unclosedskips[#unclosedskips]
+                instructions[idx] = {line = instructions[idx].line, type = "{", value = i}
+                table.remove(unclosedskips, #unclosedskips)
             end
-            local idx = unclosedskips[-1]
-            local toclose = instructions[idx]
-            toclose.stop = i
-            table.remove(unclosedskips, -1)
         end
 
         table.insert(instructions, inst)
