@@ -10,9 +10,10 @@ memapi.default_font = "007e464a52627e007733770077577500005e42425e505000004c42424
 memapi.map = {
     memory_start = 0x000, memory_end = 0xfff, -- The entirety of the memory
     write_start  = 0x000, write_end  = 0xfff, -- The writable memory block
-    font_start   = 0x000, font_end   = 0x3ff, -- 2048 (2.0 kibi) bytes for 128 to 256 8-byte chars
+    font_start   = 0x000, font_end   = 0x3ff, -- 1024 (1.0 kibi) bytes for 128 8-byte chars
     sounds_start = 0x400, sounds_end = 0x9ff, -- 1536 (1.5 kibi) bytes for 32 to 48 32-byte sounds
-    audio_start  = 0xa00, audio_end  = 0xbff, -- 512 bytes for audio buffer of 256 instructions
+    audio_start  = 0xa00, audio_stop = 0xaff, -- 256 bytes for audio buffer of 128 instructions
+    audio_middle = 0xb00, audio_end  = 0xbff, -- 256 bytes for second audio buffer
     ascii_start  = 0xc00, ascii_end  = 0xcff, -- 256 bytes for ascii char grid of 256 chars
     color_start  = 0xd00, color_end  = 0xdff, -- 256 bytes for 4-bit color grid of 512 colors
     bonus_start  = 0xe00, bonus_end  = 0xfff, -- 512 bytes for multiple uses, including saving
