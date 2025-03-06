@@ -10,6 +10,8 @@ function font_tab.init(memo)
 
     font_tab.char = string.byte("!")
     font_tab.pen = false
+    font_tab.bg = 10
+    font_tab.fg = 12
 end
 
 
@@ -25,22 +27,22 @@ function font_tab.update()
     -- Sprite editing
     if ipt.lclick_in(0, 0, 8, 8) then
         if not ipt.lheld then
-            font_tab.pen = font_tab.draw.font_pixel(m_x, m_y, font_tab.char)
+            font_tab.pen = font_tab.draw.font_pixel(m_x, m_y - 1, font_tab.char)
         end
 
         local ptr = (font_tab.char * 8) + m_x + font_tab.memapi.map.font_start
         local byte = font_tab.memapi.peek(ptr)
         if font_tab.pen then
-            byte = b.band(byte, b.bnot(b.lshift(1, m_y)))
+            byte = b.band(byte, b.bnot(b.lshift(1, m_y - 1)))
         else
-            byte = b.bor(byte, b.lshift(1, m_y))
+            byte = b.bor(byte, b.lshift(1, m_y - 1))
         end
         font_tab.memapi.poke(ptr, byte)
     end
 
     -- Sprite select
-    if ipt.lclick_in(8, 0, 8, 16) and not ipt.lheld then
-        local idx = m_y * 8 + m_x - 8
+    if ipt.lclick_in(8, 1, 8, 14) and not ipt.lheld then
+        local idx = (m_y + 1) * 8 + m_x - 8
         font_tab.char = idx
     end
 
@@ -48,20 +50,20 @@ function font_tab.update()
     for x = 0, 7 do
         for y = 0, 7 do
             if font_tab.draw.font_pixel(x, y, font_tab.char) then
-                draw.ink(x, y, 13, 13)
+                draw.ink(x, y + 1, font_tab.bg, font_tab.fg)
             else
-                draw.ink(x, y, 0, 0)
+                draw.ink(x, y + 1, font_tab.bg, font_tab.bg)
             end
         end
     end
 
     -- Draw chars
     for x = 0, 7 do
-        for y = 0, 16 do
+        for y = 2, 16 do
             local idx = (y * 8) + x
-            draw.tile(x + 8, y, idx, 13, 0)
+            draw.tile(x + 8, y - 1, idx, 13, 0)
             if idx == font_tab.char then
-                draw.ink(x + 8, y, 7, 10)
+                draw.ink(x + 8, y - 1, 12, 10) -- Gray and blue
             end
         end
     end

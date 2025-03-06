@@ -45,14 +45,14 @@ function drawing.clrs(c, fg, bg)
     if c then char = c end
     if fg then fore = fg end
     if bg then back = bg end
-    drawing.rect(0, 0, 15, 15, char, fore, back)
+    drawing.rect(0, 0, 16, 16, char, fore, back)
 end
 
 
 -- Set the char, fg color, and bg color of a rectangle of tiles.
 function drawing.rect(x, y, w, h, c, fg, bg)
-    for tx = x, x + w do
-        for ty = y, y + h do
+    for tx = x, x + (w - 1) do
+        for ty = y, y + (h - 1) do
             drawing.tile(tx, ty, c, fg, bg)
         end
     end
@@ -61,8 +61,8 @@ end
 
 -- Set the 
 function drawing.crect(x, y, w, h, c)
-    for tx = x, x + w do
-        for ty = y, y + h do
+    for tx = x, x + (w - 1) do
+        for ty = y, y + (h - 1) do
             drawing.char(tx, ty, c)
         end
     end
@@ -70,8 +70,8 @@ end
 
 
 function drawing.irect(x, y, w, h, fg, bg)
-    for tx = x, x + w do
-        for ty = y, y + h do
+    for tx = x, x + (w - 1) do
+        for ty = y, y + (h - 1) do
             drawing.ink(tx, ty, fg, bg)
         end
     end
@@ -133,8 +133,8 @@ end
 
 function drawing.ink(x, y, fg, bg)
     local con = drawing.console
-    local fore = 0
-    local back = 0
+    local fore = -1
+    local back = -1
     if con.bad_type(x, "number") or con.bad_type(y, "number")
     then return end
     if fg then

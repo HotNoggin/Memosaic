@@ -47,6 +47,51 @@ function editor.update()
         end
     end
     editor.escdown = isesc
+
+    if editor.tab > 0 then
+       editor.update_bar()
+    end
+end
+
+
+function editor.update_bar()
+    local draw = editor.drawing
+    local tooltip = ""
+    local mx = editor.input.mouse.x
+    local my = editor.input.mouse.y
+    local click = editor.input.lclick
+    local held = editor.input.lheld
+
+    local tabicons = {">", 7,}
+    local tabnames = {"command", "font"}
+
+    if my == 0 and mx < #tabicons - 1 and click and not held then
+        editor.tab = mx
+        if editor.tab > 0 then
+            editor.lasttab = editor.tab
+        end
+    end
+
+    -- Draw top bar and bottom bar
+    for x = 0, 15 do
+        draw.tile(x, 0, "_", 12, 0) -- x y c blue black
+        if editor.tab == x then
+            draw.ink(x, 0, 11, 0) -- x y teal black
+        end
+        draw.tile(x, 15, " ", 12, 10) -- x y c gray blue
+    end
+
+    -- Draw tabs
+    for i, c in ipairs(tabicons) do
+        local x = i - 1
+        draw.char(x, 0, c)
+        if mx == x and my == 0 then
+            draw.ink(x, 0, 0, 11) -- x y black teal
+            tooltip = tabnames[i]
+        end
+    end
+
+    draw.text(0, 15, tooltip) -- x y string
 end
 
 

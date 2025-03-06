@@ -144,61 +144,46 @@ end
 
 
 function cmd.save(terms)
+    local path = ""
     if #terms > 1 then
-        local folder = cmd.cli.getworkdir()
-        local file = terms[2]
-        local testpaths = {
-            -- Check local paths before global paths, 
-            -- No extension before with extension
-            folder .. file,
-            "memo/" .. file,
-        }
-
-        local success, message
-        local savefile = cmd.memo.editor.get_save()
-        for i, tpath in ipairs(testpaths) do
-            local minifolder = cmd.cli.getminidir(tpath)
-            if tpath == "" then
-                cmd.cli.print("No path provided", cmd.pink)
-                return
-            end
-            if string.sub(tpath, -1) == "/" then
-                cmd.cli.print("No filename", cmd.pink)
-                return
-            end
-            if #tpath >= 5 and string.sub(tpath, -5) ~= ".memo" then
-                success, message = love.filesystem.write(tpath .. ".memo", savefile)
-                minifolder = minifolder .. ".\1"
-            else
-                success, message = love.filesystem.write(tpath, savefile)
-            end
-            if success then
-                cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " .. minifolder)
-                return
-            end
-        end
-
-        if not success then
-            cmd.cli.print("Couldn't save.", cmd.pink)
-            cmd.cli.print(message, cmd.pink)
-            return
-        end
+        path = terms[2]
+    else
+        path = cmd.cli.cartfile
     end
 
-    local path = cmd.cli.cartfile
+    if #path >= 5 and string.sub(path, 1, 5) ~= "memo/" then
+        path = cmd.cli.getworkdir() .. path
+    end
+
+    local success, message
+    local savefile = cmd.memo.editor.get_save()
+    local minipath = cmd.cli.getminidir(path)
     if path == "" then
         cmd.cli.print("No path provided", cmd.pink)
         return
     end
+    if string.sub(path, -1) == "/" then
+        cmd.cli.print("No filename", cmd.pink)
+        return
+    end
 
-    local success, message = love.filesystem.write(path, cmd.memo.editor.get_save())
-    if not success then
+    cmd.cli.cartfile = path
+
+    if #path >= 5 and string.sub(path, -5) ~= ".memo" then
+        success, message = love.filesystem.write(path .. ".memo", savefile)
+        minipath = minipath .. ".\1"
+    else
+        success, message = love.filesystem.write(path, savefile)
+    end
+
+    if success then
+        cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " .. minipath)
+        return
+    else
         cmd.cli.print("Couldn't save.", cmd.pink)
         cmd.cli.print(message, cmd.pink)
         return
     end
-
-    cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " ..  cmd.cli.getminidir(path))
 end
 
 
