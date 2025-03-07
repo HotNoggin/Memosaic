@@ -290,7 +290,7 @@ function mint.truth(value)
 end
 
 
--- Todo: list ([]), char, ink, tile, fill, txt, buff
+-- Todo: list ([]), char, ink, tile, fill, txt, buff, comparison
 mint.operations = {
     string = mint.push,
     int = mint.push,

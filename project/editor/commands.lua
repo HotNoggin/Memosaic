@@ -42,6 +42,9 @@ function cmd.command(str)
     elseif cmd.is(c, "ls", terms, 1) then cmd.listdir()
     elseif cmd.is(c, "dir", terms, 1) then cmd.listdir()
     elseif cmd.is(c, "shutdown", terms, 1) then love.event.quit()
+    elseif cmd.is(c, "quit", terms, 1) then love.event.quit()
+    elseif cmd.is(c, "reboot", terms, 1) then love.event.quit("restart")
+    elseif cmd.is(c, "new", terms, 1) then cmd.new()
     elseif cmd.is(c, "save", terms, 1) then cmd.save(terms)
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
@@ -49,7 +52,7 @@ function cmd.command(str)
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
-    elseif cmd.is(c, "splash", terms, 1) then cmd.splash()
+    elseif cmd.is(c, "font", terms, 1) then cmd.font()
     elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
     elseif cmd.is(c, "mimosa", terms, 1) then cmd.setmimosa(true)
     elseif cmd.is(c, "lua", terms, 1) then cmd.setmimosa(false)
@@ -143,62 +146,56 @@ function cmd.listdir()
 end
 
 
+function cmd.font()
+    local txt = ""
+    for i = 0, 0x7F do
+        txt = txt .. string.char(i)
+    end
+    cmd.cli.print(txt, cmd.gray)
+end
+
+
 function cmd.save(terms)
+    local path = ""
     if #terms > 1 then
-        local folder = cmd.cli.getworkdir()
-        local file = terms[2]
-        local testpaths = {
-            -- Check local paths before global paths, 
-            -- No extension before with extension
-            folder .. file,
-            "memo/" .. file,
-        }
-
-        local success, message
-        local savefile = cmd.memo.editor.get_save()
-        for i, tpath in ipairs(testpaths) do
-            local minifolder = cmd.cli.getminidir(tpath)
-            if tpath == "" then
-                cmd.cli.print("No path provided", cmd.pink)
-                return
-            end
-            if string.sub(tpath, -1) == "/" then
-                cmd.cli.print("No filename", cmd.pink)
-                return
-            end
-            if #tpath >= 5 and string.sub(tpath, -5) ~= ".memo" then
-                success, message = love.filesystem.write(tpath .. ".memo", savefile)
-                minifolder = minifolder .. ".\1"
-            else
-                success, message = love.filesystem.write(tpath, savefile)
-            end
-            if success then
-                cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " .. minifolder)
-                return
-            end
-        end
-
-        if not success then
-            cmd.cli.print("Couldn't save.", cmd.pink)
-            cmd.cli.print(message, cmd.pink)
-            return
-        end
+        path = terms[2]
+    else
+        path = cmd.cli.cartfile
     end
 
-    local path = cmd.cli.cartfile
+    if #path >= 5 and string.sub(path, 1, 5) ~= "memo/" then
+        path = cmd.cli.getworkdir() .. path
+    end
+
+    local success, message
+    local savefile = cmd.memo.editor.get_save()
+    local minipath = cmd.cli.getminidir(path)
     if path == "" then
         cmd.cli.print("No path provided", cmd.pink)
         return
     end
+    if string.sub(path, -1) == "/" then
+        cmd.cli.print("No filename", cmd.pink)
+        return
+    end
 
-    local success, message = love.filesystem.write(path, cmd.memo.editor.get_save())
-    if not success then
+    cmd.cli.cartfile = path
+
+    if #path >= 5 and string.sub(path, -5) ~= ".memo" then
+        success, message = love.filesystem.write(path .. ".memo", savefile)
+        minipath = minipath .. ".\1"
+    else
+        success, message = love.filesystem.write(path, savefile)
+    end
+
+    if success then
+        cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " .. minipath)
+        return
+    else
         cmd.cli.print("Couldn't save.", cmd.pink)
         cmd.cli.print(message, cmd.pink)
         return
     end
-
-    cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " ..  cmd.cli.getminidir(path))
 end
 
 
@@ -256,14 +253,18 @@ function cmd.demos(specific)
 end
 
 
-function cmd.splash()
-    cmd.demos("splash.memo")
-    cmd.load("carts/demos/splash.memo")
-    cmd.memo.cart.run()
+function cmd.new()
+    cmd.memo.cart.load("", cmd.memo.demos["new_cart.memo"])
+    cmd.cli.cartfile = ""
+    cmd.cli.print("New cart loaded")
 end
 
 
 function cmd.run()
+    if cmd.cli.cartfile == "" then
+        cmd.cli.print("Save once first!", cmd.pink)
+        return
+    end
     cmd.cli.print("Running " .. cmd.cli.getminidir(cmd.cli.cartfile))
     cmd.memo.cart.run()
 end
@@ -276,7 +277,7 @@ function cmd.is(command, name, t, count)
     cmd.found_command = true
     if #t >= count then return true else
         if count - 1 == 1 then
-            cmd.cli.print(name .. " needs 1 arg b but was given " .. #t - 1, 14)
+            cmd.cli.print(name .. " needs 1 arg but was given " .. #t - 1, 14)
         else
             cmd.cli.print(name .. " needs " .. count - 1 .. " args but was given " .. #t - 1, 14)
         end

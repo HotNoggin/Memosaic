@@ -81,10 +81,10 @@ function input.update()
 end
 
 
-function input.lclick_in(x, y, w, h)
+function input.lclick_in(x, y, a, b)
     if input.lclick then
-        if input.mouse.x >= x and input.mouse.x < x + w and
-            input.mouse.y >= y and input.mouse.y < y + h then
+        if input.mouse.x >= x and input.mouse.x <= a and
+            input.mouse.y >= y and input.mouse.y <= b then
             return true
         end
     end

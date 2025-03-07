@@ -15,6 +15,7 @@ function editor.init(memo)
     editor.tab = 0
     editor.lasttab = 1
     editor.console.editor = editor
+    editor.tooltip = ""
 
     editor.console.init(memo)
     editor.font_tab.init(memo)
@@ -24,7 +25,7 @@ end
 
 function editor.update()
     if editor.tab == 0 then editor.console.update() end
-    if editor.tab == 1 then editor.font_tab.update() end
+    if editor.tab == 1 then editor.font_tab.update(editor) end
 
     local ipt = editor.input
     local isesc = love.keyboard.isDown("escape")
@@ -32,10 +33,14 @@ function editor.update()
     -- Cart saving
     if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
         editor.console.cmd.command("save")
+        if #editor.console.entries > 1 then
+            editor.tooltip = editor.console.entries[#editor.console.entries - 1]
+        end
     end
 
     -- CLI-Editor switching
     if isesc and not editor.escdown then
+        editor.tooltip = "\1"
         if editor.tab > 0 then
             editor.lasttab = editor.tab
             editor.tab = 0
@@ -47,6 +52,50 @@ function editor.update()
         end
     end
     editor.escdown = isesc
+
+    if editor.tab > 0 then
+       editor.update_bar()
+    end
+end
+
+
+function editor.update_bar()
+    local draw = editor.drawing
+    local mx = editor.input.mouse.x
+    local my = editor.input.mouse.y
+    local click = editor.input.lclick
+    local held = editor.input.lheld
+
+    local tabicons = {">", 7,}
+    local tabnames = {"command", "font"}
+
+    if my == 0 and mx < #tabicons - 1 and click and not held then
+        editor.tab = mx
+        if editor.tab > 0 then
+            editor.lasttab = editor.tab
+        end
+    end
+
+    -- Draw top bar and bottom bar
+    for x = 0, 15 do
+        draw.tile(x, 0, "_", 12, 0) -- x y c gray black
+        if editor.tab == x then
+            draw.ink(x, 0, 11, 0) -- x y teal black
+        end
+        draw.tile(x, 15, " ", 10, 0) -- x y c blue black
+    end
+
+    -- Draw tabs
+    for i, c in ipairs(tabicons) do
+        local x = i - 1
+        draw.char(x, 0, c)
+        if mx == x and my == 0 then
+            draw.ink(x, 0, 0, 11) -- x y black teal
+            editor.tooltip = "tab: " .. tabnames[i]
+        end
+    end
+
+    draw.text(0, 15, editor.tooltip) -- x y string
 end
 
 
