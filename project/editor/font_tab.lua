@@ -15,7 +15,7 @@ function font_tab.init(memo)
 end
 
 
-function font_tab.update()
+function font_tab.update(editor)
     local draw = font_tab.draw
     local ipt = font_tab.input
 
@@ -25,7 +25,7 @@ function font_tab.update()
     local m_y = ipt.mouse.y
 
     -- Sprite editing
-    if ipt.lclick_in(0, 0, 8, 8) then
+    if ipt.lclick_in(0, 1, 7, 8) then
         if not ipt.lheld then
             font_tab.pen = font_tab.draw.font_pixel(m_x, m_y - 1, font_tab.char)
         end
@@ -40,13 +40,28 @@ function font_tab.update()
         font_tab.memapi.poke(ptr, byte)
     end
 
-    -- Sprite select
-    if ipt.lclick_in(8, 1, 8, 14) and not ipt.lheld then
+    -- Char select
+    if ipt.lclick_in(8, 1, 15, 14) and not ipt.lheld then
         local idx = (m_y + 1) * 8 + m_x - 8
         font_tab.char = idx
+        editor.tooltip = "char: " .. string.char(idx)
     end
 
-    -- Sprite drawing
+    -- BG select
+    if ipt.lclick_in(0, 10, 7, 11) and not ipt.held then
+        local idx = (m_y - 10) * 8 + m_x
+        font_tab.bg = idx
+        editor.tooltip = "bg color: " .. tostring(idx)
+    end
+
+    -- FG select
+    if ipt.lclick_in(0, 13, 7, 14) and not ipt.held then
+        local idx = (m_y - 13) * 8 + m_x
+        font_tab.fg = idx
+        editor.tooltip = "fg color: " .. tostring(idx)
+    end
+
+    -- Char drawing
     for x = 0, 7 do
         for y = 0, 7 do
             if font_tab.draw.font_pixel(x, y, font_tab.char) then
@@ -55,6 +70,30 @@ function font_tab.update()
                 draw.ink(x, y + 1, font_tab.bg, font_tab.bg)
             end
         end
+    end
+
+    -- Color drawing
+    draw.text(0, 9, "BG Color", 10) -- blue
+    draw.text(0, 12, "FG Color", 10)
+    local isfg = false
+    for count = 0, 1 do
+        for x = 0, 7 do
+            for y = 0, 1 do
+                local idx = (y * 8 + x) % 16
+                local draw_y
+                if isfg then draw_y = y + 13 else draw_y = y + 10 end
+                draw.tile(x, draw_y, "\6", idx, 0) -- x y c fg bg
+
+                if idx == 0 then
+                    draw.ink(x, draw_y, 0, 10)
+                end
+
+                if (idx == font_tab.bg and not isfg) or (idx == font_tab.fg and isfg) then
+                    draw.char(x, draw_y, 7) -- smiley
+                end
+            end
+        end
+        isfg = true
     end
 
     -- Draw chars
@@ -67,6 +106,8 @@ function font_tab.update()
             end
         end
     end
+
+    return tooltip
 end
 
 

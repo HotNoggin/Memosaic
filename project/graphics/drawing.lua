@@ -116,7 +116,6 @@ end
 
 
 function drawing.char(x, y, c)
-    local con = drawing.console
     -- if con.bad_type(x, "number") or con.bad_type(y, "number") or
     -- con.bad_type(c, {"number", "string"}) then return end
 

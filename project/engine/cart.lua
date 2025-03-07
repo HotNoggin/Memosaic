@@ -6,7 +6,7 @@ cart.sandbox = require("engine.sandbox")
 
 function cart.init(memo)
     print("Creating cart sandbox")
-    cart.name = "New Cart"
+    cart.name = "New cart"
     cart.code = {}
     cart.font = ""
     cart.sfx = ""
@@ -18,55 +18,81 @@ function cart.init(memo)
 end
 
 
-function cart.load(path)
+function cart.load(path, hardtxt)
+    print("Loading built-in cart")
+    cart.name = "Built-in cart"
+    if hardtxt then
+        local lines = {}
+        local line = ""
+        for i = 1, #hardtxt do
+            local char = string.sub(hardtxt, i, i)
+            if char == "\n" then
+                table.insert(lines, line)
+                line = ""
+            elseif char ~= "\r" then
+                line = line .. char
+            end
+        end
+        cart.load_lines(lines)
+        return true
+    end
+
     print("Loading " .. path)
-    cart.name = path
+    cart.name = "Loaded cart"
+    local fileinfo = love.filesystem.getInfo(path, "file")
+    if fileinfo ~= nil then
+        local globalpath = love.filesystem.getSaveDirectory() .. "/" .. path
+        local file = io.open(globalpath, "r")
+
+        if not file then return end
+        local lines = {}
+        for line in file:lines() do
+            table.insert(lines, line)
+        end
+        file:close()
+        cart.load_lines(lines)
+        return true
+    end
+    return false
+end
+
+
+function cart.load_lines(lines)
     cart.code = {}
     cart.font = ""
     cart.sfx = ""
 
-    local fileinfo =  love.filesystem.getInfo(path, "file")
-    if fileinfo ~= nil then
-        local globalpath = love.filesystem.getSaveDirectory() .. "/" .. path
-        local file = io.open(globalpath, "r")
-        local next_flag = ""
-        local flag = ""
+    local next_flag = ""
+    local flag = ""
 
-        if not file then return end
-        print("Loading script")
-        for line in file:lines() do
-            -- Keep track of special flags
-            flag = next_flag
-            if line:sub(1, 4) == "--!:" then
-                next_flag = line
-            else
-                next_flag = ""
-            end
-
-            -- Load font to memory
-            if flag == "--!:font" then
-                local success = cart.memapi.load_font(line:sub(3, -1))
-                if not success then
-                    cart.cli.error("Bad font")
-                    return false
-                end
-            
-            -- Set name
-            elseif flag == "--!:name" then
-                cart.name = line:sub(3, -1)
-                love.window.setTitle("Memosaic - " .. cart.name)
-                table.insert(cart.code, line)
-            
-            -- Add line to code (exclude font or sfx flags and data)
-            elseif next_flag ~= "--!:font" and next_flag ~= "--!:sfx" then
-                table.insert(cart.code, line)
-            end
+    for k, line in ipairs(lines) do
+        -- Keep track of special flags
+        flag = next_flag
+        if line:sub(1, 4) == "--!:" then
+            next_flag = line
+        else
+            next_flag = ""
         end
 
-        file:close()
-        return true
+        -- Load font to memory
+        if flag == "--!:font" then
+            local success = cart.memapi.load_font(line:sub(3, -1))
+            if not success then
+                cart.cli.error("Bad font")
+                return false
+            end
+
+        -- Set name
+        elseif flag == "--!:name" then
+            cart.name = line:sub(3, -1)
+            love.window.setTitle("Memosaic - " .. cart.name)
+            table.insert(cart.code, line)
+
+        -- Add line to code (exclude font or sfx flags and data)
+        elseif next_flag ~= "--!:font" and next_flag ~= "--!:sfx" then
+            table.insert(cart.code, line)
+        end
     end
-    return false
 end
 
 

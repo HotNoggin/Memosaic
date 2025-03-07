@@ -71,9 +71,9 @@ end
 
 
 function memapi.hexchar(num)
-    return string.format("%x", num)
+    return string.upper(string.format("%x", num))
 end
 
 
--- Export the modele as a table
+-- Export the module as a table
 return memapi
