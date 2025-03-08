@@ -82,10 +82,10 @@ function font_tab.update(editor)
                 local idx = (y * 8 + x) % 16
                 local draw_y
                 if isfg then draw_y = y + 13 else draw_y = y + 10 end
-                draw.tile(x, draw_y, "\6", idx, 0) -- x y c fg bg
+                draw.tile(x, draw_y, 0b11001111, idx, 0) -- x y c(6) fg bg
 
                 if idx == 0 then
-                    draw.ink(x, draw_y, 0, 10)
+                    draw.tile(x, draw_y, 0b10111111, 13, 0)
                 end
 
                 if (idx == font_tab.bg and not isfg) or (idx == font_tab.fg and isfg) then
