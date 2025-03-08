@@ -72,7 +72,7 @@ function editor.update_bar()
     local held = editor.input.lheld
 
     local tabicons = {">", 7, 1}
-    local tabnames = {"command", "font", "code"}
+    local tabnames = {"cmd (ESC)", "font", "code"}
 
     if my == 0 and mx < #tabicons and click and not held then
         editor.tab = mx
