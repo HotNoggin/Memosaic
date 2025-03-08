@@ -48,14 +48,14 @@ function font_tab.update(editor)
     end
 
     -- BG select
-    if ipt.lclick_in(0, 10, 7, 11) and not ipt.held then
+    if ipt.lclick_in(0, 10, 7, 11) and not ipt.lheld then
         local idx = (m_y - 10) * 8 + m_x
         font_tab.bg = idx
         editor.tooltip = "bg color: " .. tostring(idx)
     end
 
     -- FG select
-    if ipt.lclick_in(0, 13, 7, 14) and not ipt.held then
+    if ipt.lclick_in(0, 13, 7, 14) and not ipt.lheld then
         local idx = (m_y - 13) * 8 + m_x
         font_tab.fg = idx
         editor.tooltip = "fg color: " .. tostring(idx)

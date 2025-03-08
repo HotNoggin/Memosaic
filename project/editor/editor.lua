@@ -1,8 +1,10 @@
 -- Prepare a table for the module
 local editor = {}
 
-editor.font_tab = require("project.editor.font_tab")
-editor.console = require("project.editor.console")
+editor.console = require("editor.console")
+editor.font_tab = require("editor.font_tab")
+editor.code_tab = require("editor.code_tab")
+
 
 function editor.init(memo)
     print("Initializing editor")
@@ -19,13 +21,16 @@ function editor.init(memo)
 
     editor.console.init(memo)
     editor.font_tab.init(memo)
+    editor.code_tab.init(memo)
     editor.escdown = false
 end
 
 
 function editor.update()
-    if editor.tab == 0 then editor.console.update() end
-    if editor.tab == 1 then editor.font_tab.update(editor) end
+    if editor.tab == 0 then editor.console.update()
+    elseif editor.tab == 1 then editor.font_tab.update(editor)
+    elseif editor.tab == 2 then editor.code_tab.update(editor)
+    end
 
     local ipt = editor.input
     local isesc = love.keyboard.isDown("escape")
@@ -66,10 +71,10 @@ function editor.update_bar()
     local click = editor.input.lclick
     local held = editor.input.lheld
 
-    local tabicons = {">", 7,}
-    local tabnames = {"command", "font"}
+    local tabicons = {">", 7, 1}
+    local tabnames = {"command", "font", "code"}
 
-    if my == 0 and mx < #tabicons - 1 and click and not held then
+    if my == 0 and mx < #tabicons and click and not held then
         editor.tab = mx
         if editor.tab > 0 then
             editor.lasttab = editor.tab
