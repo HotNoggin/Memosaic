@@ -148,7 +148,7 @@ end
 
 function cmd.font()
     local txt = ""
-    for i = 0, 0x7F do
+    for i = 0, 0xFF do
         txt = txt .. string.char(i)
     end
     cmd.cli.print(txt, cmd.gray)

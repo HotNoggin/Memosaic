@@ -48,14 +48,14 @@ function font_tab.update(editor)
     end
 
     -- BG select
-    if ipt.lclick_in(0, 10, 7, 11) and not ipt.held then
+    if ipt.lclick_in(0, 10, 7, 11) and not ipt.lheld then
         local idx = (m_y - 10) * 8 + m_x
         font_tab.bg = idx
         editor.tooltip = "bg color: " .. tostring(idx)
     end
 
     -- FG select
-    if ipt.lclick_in(0, 13, 7, 14) and not ipt.held then
+    if ipt.lclick_in(0, 13, 7, 14) and not ipt.lheld then
         local idx = (m_y - 13) * 8 + m_x
         font_tab.fg = idx
         editor.tooltip = "fg color: " .. tostring(idx)
@@ -82,10 +82,10 @@ function font_tab.update(editor)
                 local idx = (y * 8 + x) % 16
                 local draw_y
                 if isfg then draw_y = y + 13 else draw_y = y + 10 end
-                draw.tile(x, draw_y, "\6", idx, 0) -- x y c fg bg
+                draw.tile(x, draw_y, 0b11001111, idx, 0) -- x y c fg bg
 
                 if idx == 0 then
-                    draw.ink(x, draw_y, 0, 10)
+                    draw.tile(x, draw_y, 0b11011111, 13, 0)
                 end
 
                 if (idx == font_tab.bg and not isfg) or (idx == font_tab.fg and isfg) then
@@ -106,8 +106,6 @@ function font_tab.update(editor)
             end
         end
     end
-
-    return tooltip
 end
 
 

@@ -20,11 +20,12 @@ memapi.map = {
 
 
 -- Create a new, 4Kib memory buffer
-function memapi.init()
+function memapi.init(memo)
     print("Creating memory buffer")
     memapi.bytes = love.data.newByteData(0x1000) -- New 4Kib buffer
     memapi.ptr = ffi.cast('uint8_t*', memapi.bytes:getFFIPointer()) -- Byte pointer
     memapi.load_font(memapi.default_font)
+    memapi.memo = memo
 end
 
 
@@ -45,7 +46,8 @@ end
 function memapi.peek(address)
     if not type(address) == "number" then return end
     if address < memapi.map.memory_start or address > memapi.map.memory_end then
-        error("Attempted to access out of bounds memory at " .. address)
+        memapi.error("Attempted to access out of bounds memory at " .. address)
+        return
     end
 
     return memapi.ptr[address]
@@ -57,11 +59,16 @@ function memapi.poke(address, value)
     if not type(address) == "number" then return end
     if not type(value) == "number" then return end
 
-    if address < memapi.map.write_start and address > memapi.map.write_end then
-        error("Attempted to write to read only memory at " .. address)
+    if address < memapi.map.memory_start or address > memapi.map.memory_end then
+        memapi.error("Attempted to access out of bounds memory at " .. address)
+        return false
+    elseif address < memapi.map.write_start or address > memapi.map.write_end then
+        memapi.error("Attempted to write to read only memory at " .. address)
+        return false
     end
 
     memapi.ptr[address] = value
+    return true
 end
 
 
@@ -74,6 +81,10 @@ function memapi.hexchar(num)
     return string.upper(string.format("%x", num))
 end
 
+
+function memapi.error(txt)
+    memapi.memo.editor.console.error(txt)
+end
 
 -- Export the module as a table
 return memapi

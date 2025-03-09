@@ -26,6 +26,7 @@ function console.init(memo)
     console.wrap = true
     console.usemimosa = false
 
+    console.frame = 0
     -- Cursor x and y
     console.cx = 0
     console.cy = 0
@@ -68,6 +69,7 @@ end
 
 
 function console.update()
+    console.frame = console.frame + 1 % 0xFFFF
     local c = console
     local draw = c.draw
 
@@ -89,11 +91,13 @@ function console.update()
     if text ~= "" then
         c.entries[#c.entries] = c.entries[#c.entries] .. text
         c.autoscroll = true
+        console.frame = 45
     end
 
     -- Remove char with backspace
     if back then
         c.entries[#c.entries] = c.entries[#c.entries]:sub(1, -2)
+        console.frame = 45
     end
 
     -- Take command and add new input line on enter
@@ -126,6 +130,9 @@ function console.update()
         for index, txt in ipairs(c.entries) do
             if index == #c.entries then
                 txt = ">" .. txt
+                if console.frame % 60 >= 30 then
+                    txt = txt .. "_"
+                end
             end
             local split = c.splitstr(txt, 16)
             if split then
@@ -143,8 +150,8 @@ function console.update()
 
     -- Send unformatted text to use for writing
     else
-        for index, text in ipairs(c.entries) do
-            table.insert(to_write, text)
+        for index, txt in ipairs(c.entries) do
+            table.insert(to_write, txt)
         end
         if #to_write > 0 then
             to_write[#to_write] = ">" .. to_write[#to_write]

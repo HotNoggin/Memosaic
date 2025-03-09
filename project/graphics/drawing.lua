@@ -176,7 +176,13 @@ function drawing.draw_buffer()
             -- Draw the character
             for px = 0, 7 do
                 for py = 0, 7 do
-                    if drawing.font_pixel(px, py, char) then
+                    local draw_pixel
+                    if char >= 0x80 then
+                        draw_pixel = drawing.dither_pixel(px, py, char)
+                    else
+                        draw_pixel = drawing.font_pixel(px, py, char)
+                    end
+                    if draw_pixel then
                         drawing.pixel(tx * 8 + px, ty * 8 + py, fg)
                     else
                         drawing.pixel(tx * 8 + px, ty * 8 + py, bg)
@@ -184,6 +190,35 @@ function drawing.draw_buffer()
                 end
             end
         end
+    end
+end
+
+
+function drawing.dither_pixel(px, py, byte)
+    local pattern = bit.band(bit.rshift(byte, 4), 0b0111)
+    local quadidx = math.floor(py / 4) * 2 + math.floor(px / 4)
+    local quadmask = bit.lshift(1, 3 - quadidx)
+    local drawquad = bit.band(byte, quadmask) > 0
+    if drawquad then
+        if pattern == 0b000 then
+            return px % 2 == 0 -- Vertical stripes
+        elseif pattern == 0b001 then
+            return py % 2 == 0 -- Horizontal stripes
+        elseif pattern == 0b010 then
+            return px % 2 == 0 or py % 2 == 0 -- Grid
+        elseif pattern == 0b011 then
+            return not(px % 2 == 1 or py % 2 == 1) -- Dots
+        elseif pattern == 0b100 then
+            return (px + py) % 2 == 0 -- Checkerboard
+        elseif pattern == 0b101 then
+            return (px + py) % 4 == 0 -- Upward slope diagonals
+        elseif pattern == 0b110 then
+            return (px - py) % 4 == 0 -- Downward slope diagonals
+        else -- 0b111
+            return drawquad -- Fill
+        end
+    else
+        return false
     end
 end
 
