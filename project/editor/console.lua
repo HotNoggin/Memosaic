@@ -91,13 +91,13 @@ function console.update()
     if text ~= "" then
         c.entries[#c.entries] = c.entries[#c.entries] .. text
         c.autoscroll = true
-        console.frame = 30
+        console.frame = 45
     end
 
     -- Remove char with backspace
     if back then
         c.entries[#c.entries] = c.entries[#c.entries]:sub(1, -2)
-        console.frame = 30
+        console.frame = 45
     end
 
     -- Take command and add new input line on enter

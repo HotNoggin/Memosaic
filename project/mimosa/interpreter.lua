@@ -61,8 +61,10 @@ function mint.set()
     if name ~= nil and val ~= nil then
         if type(name) == "string" then
             mint.pile[name] = val
+        elseif type(name) == "number" then
+            mint.ok = mint.memo.memapi.poke(name, val)
         else
-            mint.err(" set", "expected identifier for name")
+            mint.err(" set", "expected identifier or address")
         end
         mint.say("set " .. name .. " to " .. tostring(val))
     else
@@ -82,8 +84,13 @@ function mint.get()
             else
                 mint.err(" get", name .. " is undefined")
             end
+        elseif type(name) == "number" then
+            local val = mint.memo.memapi.peek(name)
+            if val ~= nil then
+                mint.push(val)
+            end
         else
-            mint.err(" get", "expected identifier for name")
+            mint.err(" get", "expected identifier or address")
         end
     else
         mint.err(" get", "missing operand")
@@ -106,7 +113,7 @@ function mint.add()
     if a ~= nil and b ~= nil then
         mint.say("add " .. tostring(a) .." to " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
-            mint.push(math.floor(a + b))
+            mint.push(mint.int(a + b))
         elseif type(a) == "string" or type(b) == "string" then
             mint.push(tostring(a) .. tostring(b))
         else
@@ -123,7 +130,7 @@ function mint.sub()
     if a ~= nil and b ~= nil then
         mint.say("subtract " .. tostring(b) .." from " .. tostring(a))
         if type(a) == "number" and type(b) == "number" then
-            mint.push(math.floor(a - b))
+            mint.push(mint.int(a - b))
         else
             mint.err(" subtract", "cannot suntract " .. type(b) .. " from " .. type(a))
         end
@@ -138,7 +145,7 @@ function mint.mult()
     if a ~= nil and b ~= nil then
         mint.say("multiply " .. tostring(a) .." by " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
-            mint.push(math.floor(a * b))
+            mint.push(mint.int(a * b))
         else
             mint.err(" multiply", "cannot multiply " .. type(a) .. " by " .. type(b))
         end
@@ -157,7 +164,7 @@ function mint.div()
                 mint.err(" divide", "division by 0")
                 return
             end
-            mint.push(math.floor(a / b))
+            mint.push(mint.int(a / b))
         else
             mint.err(" divide", "cannot add " .. type(a) .. " to " .. type(b))
         end
@@ -172,7 +179,7 @@ function mint.pow()
     if a ~= nil and b ~= nil then
         mint.say("pow " .. tostring(a) .." to " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
-            mint.push(math.floor(a ^ b))
+            mint.push(mint.int(a ^ b))
         else
             mint.err(" power", "cannot raise " .. type(a) .. " to " .. type(b))
         end
@@ -191,7 +198,7 @@ function mint.mod()
                 mint.err(" modulo", "division by 0")
                 return
             end
-            mint.push(math.floor(a % b))
+            mint.push(mint.int(a % b))
         else
             mint.err(" modulo", "cannot divide " .. type(a) .. " by " .. type(b))
         end
@@ -205,7 +212,7 @@ function mint.negate()
     local value = mint.pop()
     if value ~= nil then
         if type(value) == "number" then
-            mint.push(math.floor(-value))
+            mint.push(mint.int(-value))
         else
             mint.err(" negate", "cannot negate " .. type(value))
         end
@@ -278,11 +285,17 @@ function mint.say(txt)
 end
 
 
+function mint.int(num)
+    local x = math.floor(num)
+    return (x + 0x8000) % (0x7FFF + 0x8000 + 1) + -0x8000
+end
+
+
 function mint.truth(value)
     if type(value) == "boolean" then
         return value
     elseif type(value) == "number" then
-        return math.floor(value) > 0
+        return mint.int(value) > 0
     elseif type(value) == "string" or type(value) == "table" then
         return #value > 0
     end
@@ -293,7 +306,7 @@ end
 -- Todo: list ([]), char, ink, tile, fill, txt, buff, comparison
 mint.operations = {
     string = mint.push,
-    int = mint.push,
+    int = function (value) mint.push(mint.int(value)) end,
     identifier = mint.push,
     pop = mint.pop,
     out = mint.out,
