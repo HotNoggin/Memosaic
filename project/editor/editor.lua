@@ -111,5 +111,12 @@ function editor.get_save()
     return cdata
 end
 
+
+function editor.tagify(txt)
+    if editor.cart.use_mimosa then return "(!" .. txt .. "!)" end
+    return "--!:" .. txt
+end
+
+
 -- Export the module as a table
 return editor

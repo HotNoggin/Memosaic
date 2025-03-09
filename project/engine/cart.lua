@@ -68,28 +68,31 @@ function cart.load_lines(lines)
     for k, line in ipairs(lines) do
         -- Keep track of special flags
         flag = next_flag
-        if line:sub(1, 4) == "--!:" then
+        if line:sub(1, 4) == "--!:" or (line:sub(1, 2) == "(!" and line:sub(-2, -1) == "!)") then
             next_flag = line
         else
             next_flag = ""
         end
 
         -- Load font to memory
-        if flag == "--!:font" then
-            local success = cart.memapi.load_font(line:sub(3, -1))
+        if cart.tag("font", flag) then
+            local fontstr = line:sub(3)
+            if cart.use_mimosa then fontstr = line:sub(2, -2) end
+            local success = cart.memapi.load_font(fontstr)
             if not success then
                 cart.cli.error("Bad font")
                 return false
             end
 
         -- Set name
-        elseif flag == "--!:name" then
-            cart.name = line:sub(3, -1)
+        elseif cart.tag("name", flag) then
+            cart.name = line:sub(3)
+            if cart.use_mimosa then cart.name = line:sub(2, -2) end
             love.window.setTitle("Memosaic - " .. cart.name)
             table.insert(cart.code, line)
 
         -- Add line to code (exclude font or sfx flags and data)
-        elseif next_flag ~= "--!:font" and next_flag ~= "--!:sfx" then
+        elseif not cart.tag("font", next_flag) and not cart.tag("sfx", next_flag) then
             table.insert(cart.code, line)
         end
     end
@@ -112,6 +115,16 @@ function cart.run()
         print("Cart is booting \n")
         cart.boot()
     end
+end
+
+
+function cart.tag(txt, tag)
+    if cart.use_mimosa and "(!" .. txt ..  "!)" == tag then
+        return true
+    elseif "--!:" .. txt == tag then
+        return true
+    end
+    return false
 end
 
 
