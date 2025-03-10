@@ -22,7 +22,6 @@ end
 function cart.load(path, hardtxt)
     if hardtxt then
         print("Loading built-in cart")
-        cart.name = "Built-in cart"
         local lines = {}
         local line = ""
         for i = 1, #hardtxt do
@@ -34,12 +33,12 @@ function cart.load(path, hardtxt)
                 line = line .. char
             end
         end
+        cart.name = "Built-in cart"
         cart.load_lines(lines)
         return true
     end
 
     print("Loading " .. path)
-    cart.name = "Loaded cart"
     local fileinfo = love.filesystem.getInfo(path, "file")
     if fileinfo ~= nil then
         local globalpath = love.filesystem.getSaveDirectory() .. "/" .. path
@@ -59,6 +58,7 @@ function cart.load(path, hardtxt)
             table.insert(lines, line)
         end
         file:close()
+        cart.name = "Loaded cart"
         cart.load_lines(lines)
         return true
     end
