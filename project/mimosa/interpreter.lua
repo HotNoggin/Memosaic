@@ -150,9 +150,13 @@ function mint.set()
         if type(name) == "string" then
             mint.pile[name] = val
         elseif type(name) == "number" then
-            mint.ok = mint.memo.memapi.poke(name, val)
-            if not mint.ok then
-                mint.err(" set", "could not write memory")
+            if type(val) == "number" then
+                mint.ok = mint.memo.memapi.poke(name, val)
+                if not mint.ok then
+                    mint.err(" poke", "could not write memory")
+                end
+            else
+                mint.err(" poke", "cannot poke " .. type(val))
             end
         else
             mint.err(" set", "expected identifier or address")
@@ -180,7 +184,7 @@ function mint.get()
             if val ~= nil then
                 mint.push(val)
             else
-                mint.err(" get", "could not read memory")
+                mint.err(" peek", "could not read memory")
             end
         else
             mint.err(" get", "expected identifier or address")

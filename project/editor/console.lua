@@ -72,6 +72,12 @@ function console.reset()
         "Run, Forest, run",
         "  no bugs here! ",
         "16-char message!",
+        "1024KiB is 1MiB!",
+        "memomemomemomemo",
+        "MEMOSAIIIIIIIIIC",
+        " have a smile \7",
+        "a kid made this!",
+        " ducky was here ",
     }
     local msg = messages[math.random(1, #messages)]
     console.print(msg, 10)

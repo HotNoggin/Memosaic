@@ -185,7 +185,7 @@ byte(): string.byte*
 
 len():  string.len*
 
-hex(): 
+hex(): Converts a number to a hexidecimal string.
 
 
 -----------

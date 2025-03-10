@@ -14,6 +14,7 @@ io.stdout:setvbuf("no")
 
 -- Called once at the start of the game
 function love.load()
+    math.randomseed(os.time())
     memo.init({win_scale = 4, vsync = true})
 end
 
