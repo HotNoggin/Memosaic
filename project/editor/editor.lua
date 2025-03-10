@@ -107,14 +107,12 @@ end
 function editor.get_save()
     local cdata = ""
     cdata = cdata .. editor.cart.get_script() .. "\n"
-    cdata = cdata .. "--!:font\n--" .. editor.font_tab.get_font(editor)
+    if editor.cart.use_mimosa then
+        cdata = cdata .. "(!font!)\n(" .. editor.font_tab.get_font(editor) .. ")"
+    else
+        cdata = cdata .. "--!:font\n--" .. editor.font_tab.get_font(editor)
+    end
     return cdata
-end
-
-
-function editor.tagify(txt)
-    if editor.cart.use_mimosa then return "(!" .. txt .. "!)" end
-    return "--!:" .. txt
 end
 
 

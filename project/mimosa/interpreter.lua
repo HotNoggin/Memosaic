@@ -3,7 +3,11 @@ local mint = {
     ok = true,
     memo = {},
     stack = {},
+    callstack = {},
+    skipstack = {},
     pile = {},
+    tags = {}, -- In name:position pairs
+    instructions = {}, -- last PASSED instructions from mint.interpret
 
     line = 1,
     idx = 1,
@@ -14,25 +18,30 @@ local mint = {
 }
 
 
-function mint.interpret(instructions, stack, pile)
+function mint.interpret(instructions, stack, pile, tags, from)
     mint.ok = true
     mint.line = 1
     mint.idx = 1
     mint.sp = 0
+    mint.callstack = {}
+    mint.skipstack = {}
+    mint.instructions = instructions
 
     mint.say("interpreting")
     if stack then mint.stack = stack end
     if pile then mint.pile = pile end
+    if tags then mint.tags = tags end
+    if from then mint.idx = from end
 
     while mint.idx <= #instructions do
         local inst = instructions[mint.idx]
         mint.line = inst.line
+
         local func = mint.operations[inst.type]
         if func == nil then
             mint.err("", "bad operation (" .. inst.type .. ")")
             return
         end
-
         func(inst.value)
 
         if not mint.ok then break end
@@ -44,8 +53,9 @@ end
 function mint.skip(skipstop)
     local bool = mint.pop()
     if bool ~= nil then
-        if bool then
+        if mint.truth(bool) then
             mint.say("no skip")
+            table.insert(mint.skipstack, mint.idx)
         else
             mint.say("skip to " .. skipstop)
             mint.idx = skipstop
@@ -56,6 +66,84 @@ function mint.skip(skipstop)
 end
 
 
+function mint.endskip()
+    mint.say("skip complete")
+    table.remove(mint.skipstack, #mint.skipstack)
+end
+
+
+function mint.hop()
+    local bool = mint.pop()
+    if bool ~= nil then
+        if mint.truth(bool) then
+            if #mint.skipstack > 0 then
+                mint.say("hop back up to " .. mint.skipstack[#mint.skipstack])
+                mint.idx = mint.skipstack[#mint.skipstack]
+            else
+                mint.err(" hop (^)", "not inside of skip")
+            end
+        else
+            mint.say("no hop")
+        end
+    else
+        mint.err(" hop (^)", "missing operand")
+    end
+end
+
+
+function mint.godo()
+    mint.jump(true)
+end
+
+
+function mint.jump(canreturn)
+    local where = " jump"
+    if canreturn then where = " do ($)" end
+    local funcname = mint.pop()
+    if funcname ~= nil then
+        if type(funcname) == "string" then
+            local pos = mint.tags[funcname]
+            if pos ~= nil then
+                mint.say("jumping to " .. funcname .. " at " .. pos)
+                if canreturn then
+                    mint.say("can return to " .. mint.idx)
+                    table.insert(mint.callstack,
+                    {name = funcname, from = mint.idx, line = mint.line})
+                    if #mint.callstack > 0xFFFF then
+                        mint.err(where, "callstack overflow from " .. funcname)
+                    end
+                end
+                mint.idx = pos
+            else
+                mint.err(where, "##" .. funcname .. " does not exist")
+            end
+        else
+            mint.err(where, "expected string, got " .. type(funcname))
+        end
+    else
+        mint.err(where, "missing operand")
+    end
+end
+
+
+function mint.goend()
+    if #mint.callstack > 0 then
+        local origin = table.remove(mint.callstack, #mint.callstack)
+        mint.idx = origin.from
+        mint.say("return to " .. origin.name)
+    else
+        mint.say("go to end")
+        mint.idx = #mint.instructions
+    end
+end
+
+
+function mint.tagskip(skipstop)
+    print("skip over tag to " .. skipstop)
+    mint.idx = skipstop
+end
+
+
 function mint.set()
     local name, val = mint.pop(), mint.pop()
     if name ~= nil and val ~= nil then
@@ -63,6 +151,9 @@ function mint.set()
             mint.pile[name] = val
         elseif type(name) == "number" then
             mint.ok = mint.memo.memapi.poke(name, val)
+            if not mint.ok then
+                mint.err(" set", "could not write memory")
+            end
         else
             mint.err(" set", "expected identifier or address")
         end
@@ -88,6 +179,8 @@ function mint.get()
             local val = mint.memo.memapi.peek(name)
             if val ~= nil then
                 mint.push(val)
+            else
+                mint.err(" get", "could not read memory")
             end
         else
             mint.err(" get", "expected identifier or address")
@@ -98,9 +191,39 @@ function mint.get()
 end
 
 
+function mint.increment(amount)
+    local name = mint.pop()
+    local toadd = 1
+    if amount then toadd = amount end
+    if name ~= nil then
+        mint.say("incrementing " .. name)
+        if type(name) == "string" then
+            if mint.pile[name] ~= nil then
+                mint.pile[name] = mint.int(mint.pile[name] + amount)
+            else
+                mint.err(" increment", name .. " is undefined")
+            end
+        elseif type(name) == "number" then
+            local val = mint.memo.memapi.peek(name)
+            if val ~= nil then
+                mint.ok = mint.memo.memapi.poke((val+toadd)%0xFF)
+                if not mint.ok then
+                    mint.err(" increment", "could not write memory")
+                end
+            else
+                mint.err(" increment", "could not read memory")
+            end
+        else
+            mint.err(" increment", "expected identifier or address")
+        end
+    end
+end
+
+
 function mint.out()
     local txt = mint.pop()
     if txt ~= nil then
+        mint.say("out")
         mint.memo.editor.console.print(txt, mint.outcolor)
     else
         mint.err(" out", "missing operand")
@@ -132,7 +255,7 @@ function mint.sub()
         if type(a) == "number" and type(b) == "number" then
             mint.push(mint.int(a - b))
         else
-            mint.err(" subtract", "cannot suntract " .. type(b) .. " from " .. type(a))
+            mint.err(" subtract", "cannot subtract " .. type(b) .. " from " .. type(a))
         end
     else
         mint.err(" subtract", " missing operand")
@@ -208,10 +331,52 @@ function mint.mod()
 end
 
 
+function mint.compare(mode)
+    local b, a = mint.pop(), mint.pop()
+    if a ~= nil and b ~= nil then
+        mint.say("compare " .. tostring(a) .. " " .. mode .. " " .. tostring(b))
+        if mode == "equals" then
+            mint.push(a == b)
+        elseif (type(a) == type(b)) then
+            if mode == "more" then
+                mint.push(a > b)
+            elseif mode == "less" then
+                mint.push(a < b)
+            elseif mode == "no less" then
+                mint.push(a >= b)
+            elseif mode == "no more" then
+                mint.push(a <= b)
+            end
+        else
+            mint.err(" " .. mode, "cannot compare " .. type(a) .. " and " .. type(b))
+        end
+    else
+        mint.err(" " .. mode, "missing operand")
+    end
+end
+
+
+function mint.logic(mode)
+    local b, a = mint.pop(), mint.pop()
+    if a ~= nil and b ~= nil then
+        a, b = mint.truth(a), mint.truth(b)
+        mint.say("logic " .. tostring(a) .. " " .. mode .. " " .. tostring(b))
+        if mode == "and" then
+            mint.push(a and b)
+        elseif mode == "or" then
+            mint.push(a or b)
+        end
+    else
+        mint.err(" " .. mode, "missing operand")
+    end
+end
+
+
 function mint.negate()
     local value = mint.pop()
     if value ~= nil then
         if type(value) == "number" then
+            mint.say("numerical negate " .. tostring(value))
             mint.push(mint.int(-value))
         else
             mint.err(" negate", "cannot negate " .. type(value))
@@ -225,6 +390,7 @@ end
 function mint.isnot()
     local value = mint.pop()
     if value ~= nil then
+        mint.say("logical negate " .. tostring(value))
         mint.push(not mint.truth(value))
     else
         mint.err(" not (!)", "missing operand")
@@ -261,14 +427,29 @@ end
 
 
 function mint.pop()
-    if mint.sp <= 0 then
+    if mint.sp > 0 then
+        local value = table.remove(mint.stack, mint.sp)
+        mint.sp = mint.sp - 1
+        mint.say("pop " .. tostring(value))
+        if value == nil then
+            mint.err(" pop", "fatal: is nil")
+        end
+        return value
+    else
         mint.err("", "stack underflow")
-        return
     end
-    local value = table.remove(mint.stack, mint.sp)
-    mint.sp = mint.sp - 1
-    mint.say("pop " .. tostring(value))
-    return value
+end
+
+
+function mint.pushpop()
+    mint.say("peeking")
+    local val = mint.pop()
+    if val ~= nil then
+        mint.push(val)
+        mint.push(val)
+    else
+        mint.err("push", "missing operand")
+    end
 end
 
 
@@ -309,10 +490,29 @@ mint.operations = {
     int = function (value) mint.push(mint.int(value)) end,
     identifier = mint.push,
     pop = mint.pop,
+    push = mint.pushpop,
+    ["?"] = mint.pushpop,
+    tag = mint.tagskip,
+    ["do"] = mint.godo,
+    ["$"] = mint.godo,
+    ["end"] = mint.goend,
+    ["^"] = mint.hop,
+    ["{"] = mint.skip,
+    jump = mint.jump,
+    ["}"] = mint.endskip,
     out = mint.out,
     O = mint.out,
     ["true"] = mint.bool,
     ["false"] = mint.bool,
+    [">"] = function () mint.compare("more") end,
+    ["<"] = function () mint.compare("less") end,
+    [">="] = function () mint.compare("no less") end,
+    ["<="] = function () mint.compare("no more") end,
+    ["=="] = function () mint.compare("equals") end,
+    ["&&"] = function () mint.logic("and") end,
+    ["||"] = function () mint.logic("or") end,
+    ["!"] = mint.isnot,
+    ["~~"] = mint.binot,
     ["="] = mint.set,
     ["."] = mint.get,
     ["+"] = mint.add,
@@ -321,11 +521,9 @@ mint.operations = {
     ["/"] = mint.div,
     ["**"] = mint.pow,
     ["\\"] = mint.mod,
-    ["--"] = mint.negate,
-    ["!"] = mint.isnot,
-    ["~"] = mint.binot,
-    ["{"] = mint.skip,
-    ["}"] = function () end,
+    ["++"] = function () mint.increment(1) end,
+    ["--"] = function () mint.increment(-1) end,
+    ["~"] = mint.negate,
 }
 
 

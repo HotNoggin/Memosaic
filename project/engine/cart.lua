@@ -13,15 +13,16 @@ function cart.init(memo)
     cart.memo = memo
     cart.memapi = memo.memapi
     cart.running = false
+    cart.use_mimosa = false
     cart.cli = memo.editor.console
     cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
 end
 
 
 function cart.load(path, hardtxt)
-    print("Loading built-in cart")
-    cart.name = "Built-in cart"
     if hardtxt then
+        print("Loading built-in cart")
+        cart.name = "Built-in cart"
         local lines = {}
         local line = ""
         for i = 1, #hardtxt do
@@ -45,6 +46,14 @@ function cart.load(path, hardtxt)
         local file = io.open(globalpath, "r")
 
         if not file then return end
+
+        cart.use_mimosa = false
+        if #path > 4 and string.sub(path, -5, -1) == ".mosa" then
+            cart.use_mimosa = true
+        elseif #path > 3 and string.sub(path, -4, -1) == ".lua" then
+            cart.use_mimosa = false
+        end
+
         local lines = {}
         for line in file:lines() do
             table.insert(lines, line)
@@ -74,8 +83,17 @@ function cart.load_lines(lines)
             next_flag = ""
         end
 
+        -- Set code mode
+        if k == 1 then
+            if flag == "--!:lua" then
+                cart.use_mimosa = false
+            elseif flag == "(!mimosa!)" then
+                cart.use_mimosa = true
+            end
+            table.insert(cart.code, line)
+
         -- Load font to memory
-        if cart.tag("font", flag) then
+        elseif cart.tag("font", flag) then
             local fontstr = line:sub(3)
             if cart.use_mimosa then fontstr = line:sub(2, -2) end
             local success = cart.memapi.load_font(fontstr)
@@ -105,11 +123,16 @@ function cart.run()
     love.window.setTitle("Memosaic - " .. cart.name)
     cart.running = true
 
-    cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
-    local ok, err = cart.sandbox.run(cart.get_script(), cart.name)
+    local ok, err
+    if cart.use_mimosa then
+        ok = cart.memo.mimosa.run(cart.get_script(), {}, {})
+    else
+        cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
+        ok, err = cart.sandbox.run(cart.get_script(), cart.name)
+    end
 
     if not ok then
-        cart.cli.error(err)
+        if err then cart.cli.error(err) end
         cart.stop()
     else
         print("Cart is booting \n")
@@ -121,7 +144,7 @@ end
 function cart.tag(txt, tag)
     if cart.use_mimosa and "(!" .. txt ..  "!)" == tag then
         return true
-    elseif "--!:" .. txt == tag then
+    elseif not cart.use_mimosa and "--!:" .. txt == tag then
         return true
     end
     return false
@@ -135,18 +158,20 @@ end
 
 
 function cart.boot()
+    if cart.use_mimosa then return end
     local ok, err = pcall(cart.sandbox.env.boot)
     if not ok then
-        cart.cli.error(err)
+        if err then cart.cli.error(err) end
         cart.stop()
     end
 end
 
 
 function cart.tick()
+    if cart.use_mimosa then return end
     local ok, err = pcall(cart.sandbox.env.tick)
     if not ok then
-        cart.cli.error(err)
+        if err then cart.cli.error(err) end
         cart.stop()
     end
 end

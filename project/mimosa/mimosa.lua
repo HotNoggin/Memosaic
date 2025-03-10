@@ -5,6 +5,7 @@ local mimosa = {
     had_err = false,
 }
 
+
 function mimosa.init(memo)
     mimosa.lexer.err = mimosa.err
     mimosa.parser.err = mimosa.err
@@ -17,10 +18,12 @@ end
 function mimosa.run(script, stack, pile)
     mimosa.had_err = false
     local tokens = mimosa.lexer.scan(script)
-    if mimosa.had_err then return end
-    local instructions = mimosa.parser.get_instructions(tokens)
-    if mimosa.had_err then return end
-    mimosa.interpreter.interpret(instructions, stack, pile)
+    if mimosa.had_err then return false end
+    local instructions, tags = mimosa.parser.get_instructions(tokens)
+    if mimosa.had_err then return false end
+    mimosa.interpreter.interpret(instructions, stack, pile, tags, 1)
+    if not mimosa.interpreter.ok then return false end
+    return true
 end
 
 
