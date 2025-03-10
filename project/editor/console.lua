@@ -69,9 +69,9 @@ function console.reset()
         "  Time to code  ",
         " Play or make?  ",
         "Folder? I hardl-",
-        "Run, Forest, run!",
-        "  no bugs here!  ",
-
+        "Run, Forest, run",
+        "  no bugs here! ",
+        "16-char message!",
     }
     local msg = messages[math.random(1, #messages)]
     console.print(msg, 10)
