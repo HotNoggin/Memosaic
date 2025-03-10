@@ -51,10 +51,36 @@ end
 function console.reset()
     console.clear()
     console.print("\1 \1 Memosaic \1 \1", 11)
-    console.print("Try HELP for the")
-    console.print("command list, or")
-    console.print("EDIT to switch  ")
-    console.print("to edit mode.   ")
+    console.print("An ASCII console", 12)
+    console.print("Try HELP or EDIT")
+    local messages = {
+        "Ready to create?",
+        "  BYO hardware! ",
+        " It does things ",
+        " It has a lang! ",
+        "   So quirky!   ",
+        " I need a hobby ",
+        " hello... world ",
+        " anyone there?  ",
+        "  knock knock!  ",
+        "  Howdy there!  ",
+        " Nice and tiny! ",
+        "  You got this  ",
+        "  Time to code  ",
+        " Play or make?  ",
+        "Folder? I hardl-",
+        "Run, Forest, run",
+        "  no bugs here! ",
+        "16-char message!",
+    }
+    local msg = messages[math.random(1, #messages)]
+    console.print(msg, 10)
+    local byte = 0xCF
+    local str = ""
+    for i=1,16 do
+        str = str .. string.char(byte)
+    end
+    console.print(str, 10)
 end
 
 
