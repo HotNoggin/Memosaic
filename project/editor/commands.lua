@@ -49,6 +49,7 @@ function cmd.command(str)
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
     elseif cmd.is(c, "edit", terms, 1) then cmd.edit()
+    elseif cmd.is(c, "folder", terms, 1) then cmd.folder()
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
@@ -105,6 +106,11 @@ function cmd.edit()
 end
 
 
+function cmd.folder()
+    love.system.openURL("file://"..love.filesystem.getSaveDirectory())
+end
+
+
 function cmd.setmimosa(ison)
     cmd.cli.usemimosa = ison
     local mode = "lua"
@@ -125,15 +131,14 @@ function cmd.listdir()
         if info == nil then return end
         if info then
             if info.type == "file" then
-                local extension = path:sub(#path -4, #path)
-                if extension == ".memo" then
+                local split = cmd.split(path, ".")
+                local extension = split[#split]
+                if extension == "memo" then
                     cmd.cli.print(" " .. name:sub(1, -5) .. "\1")
                     found_something = true
-                else extension = path:sub(#path -3, #path)
-                    if extension == ".lua" then
-                        cmd.cli.print(" " .. name)
-                        found_something = true
-                    end
+                elseif extension == "lua" or extension == "mosa" then
+                    cmd.cli.print(" " .. name)
+                    found_something = true
                 end
             elseif info.type == "directory" then
                 cmd.cli.print(" " .. name .. "/")
@@ -163,8 +168,16 @@ function cmd.save(terms)
         path = cmd.cli.cartfile
     end
 
-    if #path >= 5 and string.sub(path, 1, 5) ~= "memo/" then
+    if cmd.split(path, "/")[1] ~= "memo" then
         path = cmd.cli.getworkdir() .. path
+    end
+
+    local mosa = cmd.memo.cart.use_mimosa
+    local split = cmd.split(path, ".")
+    local extension = split[#split]
+    if extension == "mosa" then
+        mosa = true
+        cmd.memo.cart.use_mimosa = true
     end
 
     local success, message
@@ -181,7 +194,9 @@ function cmd.save(terms)
 
     cmd.cli.cartfile = path
 
-    if #path >= 5 and string.sub(path, -5) ~= ".memo" then
+    if mosa and extension ~= "mosa" then
+        success, message = love.filesystem.write(path .. ".mosa", savefile)
+    elseif not mosa and extension ~= "memo" and extension ~= "lua" then
         success, message = love.filesystem.write(path .. ".memo", savefile)
         minipath = minipath .. ".\1"
     else
@@ -189,6 +204,7 @@ function cmd.save(terms)
     end
 
     if success then
+        cmd.memo.cart.use_mimosa = mosa
         cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " .. minipath)
         return
     else
@@ -207,9 +223,11 @@ function cmd.load(file)
         -- No extension before with extension
         folder .. file .. ".memo",
         folder .. file .. ".lua",
+        folder .. file .. ".mosa",
         folder .. file,
         "memo/" .. file .. ".memo",
         "memo/" .. file .. ".lua",
+        "memo/" .. file .. ".mosa",
         "memo/" .. file,
     }
 
@@ -286,9 +304,9 @@ function cmd.is(command, name, t, count)
 end
 
 
-function cmd.split(str, c, s)
+function cmd.split(str, c, usespace)
     local space = false
-    if s then space = true end
+    if usespace then space = true end
     local words = {}
     local word = ""
     for i = 1, #str do

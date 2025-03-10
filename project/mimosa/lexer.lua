@@ -25,7 +25,7 @@ function lexer.scantoken()
     local l = lexer
     local c = lexer.advance()
 
-    local symbols = {".", ",", "%", "/", "\\", "{", "}", "(", ")", "+", ":", "?", "@", "~"}
+    local symbols = {".", ",", "%", "/", "\\", "{", "}", ":", "?", "@", "$",}
 
     if l.isin(c, symbols) then
         l.addtoken(c)
@@ -48,12 +48,17 @@ function lexer.scantoken()
                 end
                 string = string .. last
             end
+        elseif l.peek() == "#" then -- Tag
+            l.advance()
+            local name = ""
+            while l.islow(l.peek()) or l.iscaps(l.peek()) do
+                name = name .. l.advance()
+            end
+            l.addtoken("tag", name)
         elseif l.ishex(l.peek()) then -- Hex int
             local int = ""
-            local last = ""
             while not l.atend() and l.ishex(l.peek()) do
-                last = l.advance()
-                int = int .. last
+                int = int .. l.advance()
             end
             l.addtoken("hex", int)
         else
@@ -105,9 +110,17 @@ function lexer.scantoken()
         if l.match("*") then l.addtoken("**")
         else l.addtoken("*")
         end
+    elseif c == "+" then
+        if l.match("+") then l.addtoken("++")
+        else l.addtoken("+")
+        end
     elseif c == "-" then
         if l.match("-") then l.addtoken("--")
         else l.addtoken("-")
+        end
+    elseif c == "~" then
+        if l.match("~") then l.addtoken("~~")
+        else l.addtoken("~")
         end
     elseif c == "<" then
         if l.match("=") then l.addtoken("<=")
