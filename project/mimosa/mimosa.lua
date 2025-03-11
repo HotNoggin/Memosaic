@@ -2,6 +2,7 @@ local mimosa = {
     lexer = require("mimosa.lexer"),
     parser = require("mimosa.parser"),
     interpreter = require("mimosa.interpreter"),
+    library = require("mimosa.library"),
     had_err = false,
 }
 
@@ -11,8 +12,12 @@ function mimosa.init(memo)
     mimosa.parser.err = mimosa.err
     mimosa.interpreter.baseerr = mimosa.err
     mimosa.interpreter.memo = memo
+    mimosa.interpreter.lib = mimosa.library
     mimosa.cart_instructions = {}
     mimosa.memo = memo
+    
+    mimosa.interpreter.init()
+    mimosa.library.init(memo, mimosa.interpreter)
 end
 
 
