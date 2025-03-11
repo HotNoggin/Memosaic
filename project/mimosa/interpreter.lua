@@ -510,7 +510,7 @@ function mint.truth(value)
     if type(value) == "boolean" then
         return value
     elseif type(value) == "number" then
-        return mint.int(value) > 0
+        return mint.int(value) ~= 0
     elseif type(value) == "string" or type(value) == "table" then
         return #value > 0
     end
