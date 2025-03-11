@@ -84,6 +84,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         -- Table
         next = next,
         pairs = pairs,
+        ipairs = ipairs,
         insert = table.insert,
         rmv = table.remove,
         sort = table.sort,

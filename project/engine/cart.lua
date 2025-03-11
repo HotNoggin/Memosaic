@@ -68,7 +68,6 @@ end
 
 function cart.load_lines(lines)
     cart.code = {}
-    cart.font = ""
     cart.sfx = ""
 
     local next_flag = ""
@@ -100,7 +99,11 @@ function cart.load_lines(lines)
             if not success then
                 cart.cli.error("Bad font")
                 return false
+            else
+                cart.font = fontstr
             end
+        elseif cart.tag("defaultfont", flag) then
+            cart.memapi.load_font(cart.memapi.default_font)
 
         -- Set name
         elseif cart.tag("name", flag) then
@@ -158,21 +161,37 @@ end
 
 
 function cart.boot()
-    if cart.use_mimosa then return end
-    local ok, err = pcall(cart.sandbox.env.boot)
-    if not ok then
-        if err then cart.cli.error(err) end
-        cart.stop()
+    if cart.use_mimosa then
+        local mint = cart.memo.mimosa.interpreter
+        local idx = mint.tags["boot"]
+        if idx ~= nil then
+            -- Interpret the boot region, using the old stack, pile, and tags
+            mint.interpret(mint.instructions, nil, nil, nil, idx + 1)
+        end
+    else
+        local ok, err = pcall(cart.sandbox.env.boot)
+        if not ok then
+            if err then cart.cli.error(err) end
+            cart.stop()
+        end
     end
 end
 
 
 function cart.tick()
-    if cart.use_mimosa then return end
-    local ok, err = pcall(cart.sandbox.env.tick)
-    if not ok then
-        if err then cart.cli.error(err) end
-        cart.stop()
+    if cart.use_mimosa then
+        local mint = cart.memo.mimosa.interpreter
+        local idx = mint.tags["tick"]
+        if idx ~= nil then
+            -- Interpret the tick region, using the old stack, pile, and tags
+            mint.interpret(mint.instructions, nil, nil, nil, idx + 1)
+        end
+    else
+        local ok, err = pcall(cart.sandbox.env.tick)
+        if not ok then
+            if err then cart.cli.error(err) end
+            cart.stop()
+        end
     end
 end
 

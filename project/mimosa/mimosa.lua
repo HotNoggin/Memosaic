@@ -11,6 +11,7 @@ function mimosa.init(memo)
     mimosa.parser.err = mimosa.err
     mimosa.interpreter.baseerr = mimosa.err
     mimosa.interpreter.memo = memo
+    mimosa.cart_instructions = {}
     mimosa.memo = memo
 end
 

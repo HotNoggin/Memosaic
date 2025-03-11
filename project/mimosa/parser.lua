@@ -42,8 +42,14 @@ function parser.get_instructions(tokens)
                 end
             end
 
-        -- TAG BLOCKS --
+        -- TAGS and REGIONS --
         elseif inst.type == "tag" then
+            if inst.value ~= "" then
+                tags[inst.value] = i
+            else
+                parser.err(token.line, " tag", "no name")
+            end
+        elseif inst.type == "region" then
             if inst.value == "" then
                 inst.type = "end"
                 if #unclosedskips <= 0 then
@@ -51,9 +57,9 @@ function parser.get_instructions(tokens)
                 else
                     local idx = unclosedskips[#unclosedskips]
                     local oldinst = instructions[idx]
-                    if oldinst.type == "tag" then
+                    if oldinst.type == "region" then
                         instructions[idx] = {
-                            line = oldinst.line, type = "tag", value = i, name = oldinst.value}
+                            line = oldinst.line, type = "region", value = i, name = oldinst.value}
                         table.remove(unclosedskips, #unclosedskips)
                     else
                         parser.err(token.line, "", "unmatched '##'")
