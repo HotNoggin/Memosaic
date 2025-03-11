@@ -53,7 +53,8 @@ function cmd.command(str)
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
-    elseif cmd.is(c, "font", terms, 1) then cmd.font()
+    elseif cmd.is(c, "font", terms, 1) then cmd.font(0xFF)
+    elseif cmd.is(c, "chars", terms, 1) then cmd.font(0x7F)
     elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
     elseif cmd.is(c, "mimosa", terms, 1) then cmd.setmimosa(true)
     elseif cmd.is(c, "lua", terms, 1) then cmd.setmimosa(false)
@@ -151,9 +152,9 @@ function cmd.listdir()
 end
 
 
-function cmd.font()
+function cmd.font(num)
     local txt = ""
-    for i = 0, 0xFF do
+    for i = 0, num do
         txt = txt .. string.char(i)
     end
     cmd.cli.print(txt, cmd.gray)
@@ -273,6 +274,7 @@ end
 
 function cmd.new()
     cmd.memo.cart.load("", cmd.memo.demos["new_cart.memo"])
+    cmd.memo.memapi.load_font(cmd.memo.memapi.default_font)
     cmd.cli.cartfile = ""
     cmd.cli.print("New cart loaded")
 end
