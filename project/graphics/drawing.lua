@@ -126,7 +126,9 @@ function drawing.char(x, y, c)
     local idx = y * drawing.TILE_WIDTH + x
     local char = c
     if type(char) == "string" then char = string.byte(c) end
-    drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, char)
+    if char > 0 then
+        drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, char)
+    end
 end
 
 

@@ -40,6 +40,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         poke = memapi.poke,
 
         -- Input
+        stat = cart.memo.stat,
         btn = input.btn,
 
         -- Graphics
@@ -106,7 +107,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         return input.btn(i) and not input.old(i)
     end
 
-    function sandbox.btnup(i)
+    function sandbox.btnr(i)
         return input.old(i) and not input.btn(i)
     end
 

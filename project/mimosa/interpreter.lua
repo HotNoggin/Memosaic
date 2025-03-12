@@ -2,6 +2,8 @@
 local mint = {
     ok = true,
     memo = {},
+    lib = {},
+
     stack = {},
     callstack = {},
     skipstack = {},
@@ -13,7 +15,7 @@ local mint = {
     idx = 1,
     sp = 0,
 
-    verbose = true,
+    verbose = false,
     outcolor = 12,
 }
 
@@ -39,7 +41,7 @@ function mint.interpret(instructions, stack, pile, tags, from)
 
         local func = mint.operations[inst.type]
         if func == nil then
-            mint.err("", "bad operation (" .. inst.type .. ")")
+            mint.err(" interpret", "bad operation (" .. inst.type .. ")")
             return
         end
         func(inst.value)
@@ -138,8 +140,8 @@ function mint.goend()
 end
 
 
-function mint.tagskip(skipstop)
-    print("skip over tag to " .. skipstop)
+function mint.skipregion(skipstop)
+    mint.say("skip over tag to " .. skipstop)
     mint.idx = skipstop
 end
 
@@ -159,7 +161,7 @@ function mint.set()
                 mint.err(" poke", "cannot poke " .. type(val))
             end
         else
-            mint.err(" set", "expected identifier or address")
+            mint.err(" set", "expected identifier or address, got " .. type(name))
         end
         mint.say("set " .. name .. " to " .. tostring(val))
     else
@@ -187,7 +189,7 @@ function mint.get()
                 mint.err(" peek", "could not read memory")
             end
         else
-            mint.err(" get", "expected identifier or address")
+            mint.err(" get", "expected identifier or address, got " .. type(name))
         end
     else
         mint.err(" get", "missing operand")
@@ -218,7 +220,7 @@ function mint.increment(amount)
                 mint.err(" increment", "could not read memory")
             end
         else
-            mint.err(" increment", "expected identifier or address")
+            mint.err(" increment", "expected identifier or address, got ".. type(name))
         end
     end
 end
@@ -231,6 +233,24 @@ function mint.out()
         mint.memo.editor.console.print(txt, mint.outcolor)
     else
         mint.err(" out", "missing operand")
+    end
+end
+
+
+function mint.outcolr()
+    local colr = mint.pop()
+    if colr ~= nil then
+        if type(colr) == "number" then
+            if colr >= 0 and colr < 16 then
+                mint.outcolor = colr
+            else
+                mint.err(" outcolr", "color must be 0 to 15, but is " .. tostring(colr))
+            end
+        else
+            mint.err(" outcolr", "expected int, got " .. type(colr))
+        end
+    else
+        mint.err(" outcolr", "missing operand")
     end
 end
 
@@ -463,6 +483,16 @@ function mint.err(where, msg)
 end
 
 
+function mint.error()
+    local msg = mint.pop()
+    if msg ~= nil then
+        mint.err("", tostring(msg))
+    else
+        mint.err(" err", "missing operand")
+    end
+end
+
+
 function mint.say(txt)
     if mint.verbose then
         print(txt)
@@ -480,7 +510,7 @@ function mint.truth(value)
     if type(value) == "boolean" then
         return value
     elseif type(value) == "number" then
-        return mint.int(value) > 0
+        return mint.int(value) ~= 0
     elseif type(value) == "string" or type(value) == "table" then
         return #value > 0
     end
@@ -488,48 +518,86 @@ function mint.truth(value)
 end
 
 
--- Todo: list ([]), char, ink, tile, fill, txt, buff, comparison
-mint.operations = {
-    string = mint.push,
-    int = function (value) mint.push(mint.int(value)) end,
-    identifier = mint.push,
-    pop = mint.pop,
-    push = mint.pushpop,
-    P = mint.pushpop,
-    region = mint.tagskip,
-    tag = function (value) mint.say("Passed tag " .. value) end,
-    ["do"] = mint.godo,
-    ["$"] = mint.godo,
-    ["end"] = mint.goend,
-    ["^"] = mint.hop,
-    ["{"] = mint.skip,
-    jump = mint.jump,
-    ["}"] = mint.endskip,
-    out = mint.out,
-    O = mint.out,
-    ["true"] = mint.bool,
-    ["false"] = mint.bool,
-    [">"] = function () mint.compare("more") end,
-    ["<"] = function () mint.compare("less") end,
-    [">="] = function () mint.compare("no less") end,
-    ["<="] = function () mint.compare("no more") end,
-    ["=="] = function () mint.compare("equals") end,
-    ["&&"] = function () mint.logic("and") end,
-    ["||"] = function () mint.logic("or") end,
-    ["!"] = mint.isnot,
-    ["~~"] = mint.binot,
-    ["="] = mint.set,
-    ["."] = mint.get,
-    ["+"] = mint.add,
-    ["-"] = mint.sub,
-    ["*"] = mint.mult,
-    ["/"] = mint.div,
-    ["**"] = mint.pow,
-    ["\\"] = mint.mod,
-    ["++"] = function () mint.increment(1) end,
-    ["--"] = function () mint.increment(-1) end,
-    ["~"] = mint.negate,
-}
+
+function mint.init()
+    mint.operations = {
+        -- Literals
+        string = mint.push,
+        int = function (value) mint.push(mint.int(value)) end,
+        identifier = mint.push,
+        ["true"] = mint.bool,
+        ["false"] = mint.bool,
+
+        -- Stack and pile
+        pop = mint.pop,
+        push = mint.pushpop,
+        P = mint.pushpop,
+        ["="] = mint.set,
+        ["."] = mint.get,
+
+        -- Code flow
+        ["^"] = mint.hop,
+        ["{"] = mint.skip,
+        jump = mint.jump,
+        ["do"] = mint.godo,
+        ["$"] = mint.godo,
+        ["end"] = mint.goend,
+        region = mint.skipregion,
+        ["}"] = mint.endskip,
+        tag = function (value) mint.say("Passed tag " .. value) end,
+
+        -- Logical binops
+        [">"] = function () mint.compare("more") end,
+        ["<"] = function () mint.compare("less") end,
+        [">="] = function () mint.compare("no less") end,
+        ["<="] = function () mint.compare("no more") end,
+        ["=="] = function () mint.compare("equals") end,
+        ["&&"] = function () mint.logic("and") end,
+        ["||"] = function () mint.logic("or") end,
+
+        -- Mathematical binops
+        ["+"] = mint.add,
+        ["-"] = mint.sub,
+        ["*"] = mint.mult,
+        ["/"] = mint.div,
+        ["**"] = mint.pow,
+        ["\\"] = mint.mod,
+
+        -- Unary operations
+        ["!"] = mint.isnot,
+        ["~~"] = mint.binot,
+        ["~"] = mint.negate,
+        ["++"] = function () mint.increment(1) end,
+        ["--"] = function () mint.increment(-1) end,
+
+        -- Console
+        out = mint.out,
+        O = mint.out,
+        err = mint.error,
+        outcolr = mint.outcolr,
+
+        -- Input
+        ["?"] = mint.lib.stat,
+        stat = mint.lib.stat,
+        btn = mint.lib.btn,
+        btnp = mint.lib.btnp,
+        btnr = mint.lib.btnr,
+
+        -- Drawing
+        fill = mint.lib.fill,
+        tile = mint.lib.tile,
+        T = mint.lib.tile,
+        etch = mint.lib.etch,
+        E = mint.lib.etch,
+        ink = mint.lib.ink,
+        I = mint.lib.ink,
+        rect = mint.lib.rect,
+        R = mint.lib.rect,
+        crect = mint.lib.crect,
+        irect = mint.lib.irect,
+        text = mint.lib.text,
+    }
+end
 
 
 return mint

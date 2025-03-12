@@ -47,14 +47,16 @@ function cmd.command(str)
     elseif cmd.is(c, "new", terms, 1) then cmd.new()
     elseif cmd.is(c, "save", terms, 1) then cmd.save(terms)
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
+    elseif cmd.is(c, "reload", terms, 1) then cmd.load(cmd.cli.cartfile)
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
     elseif cmd.is(c, "edit", terms, 1) then cmd.edit()
     elseif cmd.is(c, "folder", terms, 1) then cmd.folder()
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
-    elseif cmd.is(c, "font", terms, 1) then cmd.font(0xFF)
-    elseif cmd.is(c, "chars", terms, 1) then cmd.font(0x7F)
+    elseif cmd.is(c, "font", terms, 1) then cmd.font(0x00, 0xFF)
+    elseif cmd.is(c, "chars", terms, 1) then cmd.font(0x00, 0x7F)
+    elseif cmd.is(c, "dithers", terms, 1) then cmd.font(0x80, 0xFF)
     elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
     elseif cmd.is(c, "mimosa", terms, 1) then cmd.setmimosa(true)
     elseif cmd.is(c, "lua", terms, 1) then cmd.setmimosa(false)
@@ -96,6 +98,7 @@ function cmd.info()
     out("\1", cmd.teal)
     out("Memosaic", cmd.gray)
     out(cmd.memo.info.version, cmd.blue)
+    out(" for " .. cmd.memo.info.version_name, cmd.blue)
     out(cmd.memo.cart.name, cmd.teal)
     out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ), cmd.blue)
     out("\1" .. cmd.cli.getworkdir():sub(5, -1), cmd.blue)
@@ -152,9 +155,9 @@ function cmd.listdir()
 end
 
 
-function cmd.font(num)
+function cmd.font(from, to)
     local txt = ""
-    for i = 0, num do
+    for i = from, to do
         txt = txt .. string.char(i)
     end
     cmd.cli.print(txt, cmd.gray)
@@ -230,6 +233,7 @@ function cmd.load(file)
         "memo/" .. file .. ".lua",
         "memo/" .. file .. ".mosa",
         "memo/" .. file,
+        file,
     }
 
     for i, path in ipairs(testpaths) do

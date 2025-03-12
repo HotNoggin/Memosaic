@@ -1,6 +1,6 @@
 -- Prepare a table for the module
 local memo = {
-    info = {version = "0.1.0-alpha", is_win = package.config:sub(1, 1) == "\\"},
+    info = {version = "0.1.0-alpha", version_name = "Astro", is_win = package.config:sub(1, 1) == "\\"},
 
     window = require("graphics.window"),
     input = require("engine.input"),
@@ -36,6 +36,34 @@ function memo.init(options)
     memo.editor.console.reset()
     print("Memosaic is ready\n========\n")
 end
+
+
+function memo.stat(code)
+    if code >= 0x00 and code <= 0x05 then
+        return memo.input.btn(code)
+    elseif code >= 0x08 and code <= 0x0F then
+        return memo.input.btn(code - 0x08) and not memo.input.old(code - 0x08)
+    elseif code == 0x20 then
+        return memo.input.lclick
+    elseif code == 0x21 then
+        return memo.input.rclick
+    elseif code == 0x22 then
+        return memo.input.wheel == 1
+    elseif code == 0x23 then
+        return memo.input.wheel == -1
+    elseif code == 0x24 then
+        return memo.input.lclick and not memo.input.lheld
+    elseif code == 0x25 then
+        return memo.input.rclick and not memo.input.rheld
+    elseif code == 0x26 then
+        return memo.input.mouse.x
+    elseif code == 0x27 then
+        return memo.input.mouse.y
+    else
+        return false
+    end
+end
+
 
 -- Export the module as a table
 return memo
