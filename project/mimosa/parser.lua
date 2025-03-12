@@ -3,11 +3,11 @@ local parser = {}
 parser.reserved = {
     -- Console
     "out", "O", "err", "outcolr",
-    -- Stack and literals
-    "push", "P", "pop",
+    -- Stack and pile
+    "push", "P", "pop", "del",
     "true", "false",
     -- Control flow
-    "do", "jump", "end",
+    "hop", "do", "jump", "end",
     -- Input
     "stat", "btn", "btnp", "btnr",
     -- Drawing

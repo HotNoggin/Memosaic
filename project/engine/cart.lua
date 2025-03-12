@@ -8,6 +8,7 @@ function cart.init(memo)
     print("Creating cart sandbox")
     cart.name = "New cart"
     cart.code = {}
+    cart.size = 0
     cart.font = ""
     cart.sfx = ""
     cart.memo = memo
@@ -44,7 +45,12 @@ function cart.load(path, hardtxt)
         local globalpath = love.filesystem.getSaveDirectory() .. "/" .. path
         local file = io.open(globalpath, "r")
 
-        if not file then return end
+        if not file then return false end
+
+        if cart.getfilesize(file) > 0x8000 then --32KiB
+            cart.cli.print("Cart is " .. cart.getfilesize(file) - 0x8000 .. " bytes too big!")
+            return false
+        end
 
         cart.use_mimosa = false
         if #path > 4 and string.sub(path, -5, -1) == ".mosa" then
@@ -202,6 +208,14 @@ function cart.get_script()
         script = script .. cart.code[line] .. '\n'
     end
     return script
+end
+
+
+function cart.getfilesize(file)
+    local current = file:seek()
+    local size = file:seek("end")
+    file:seek("set", current)
+    return size
 end
 
 

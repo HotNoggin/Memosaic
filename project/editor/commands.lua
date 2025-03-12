@@ -100,7 +100,10 @@ function cmd.info()
     out(cmd.memo.info.version, cmd.blue)
     out(" for " .. cmd.memo.info.version_name, cmd.blue)
     out(cmd.memo.cart.name, cmd.teal)
-    out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ), cmd.blue)
+    local cartsize, sizecolr = #cmd.memo.editor.get_save(), cmd.blue
+    if cartsize > 0x8000 then sizecolr = cmd.pink end
+    out("Size: " .. cartsize, sizecolr)
+    out(" /" .. 0x8000, sizecolr)
     out("\1" .. cmd.cli.getworkdir():sub(5, -1), cmd.blue)
 end
 
@@ -161,6 +164,9 @@ function cmd.font(from, to)
         txt = txt .. string.char(i)
     end
     cmd.cli.print(txt, cmd.gray)
+    if to - from >= 0xEF then
+        cmd.cli.print("scroll up!", cmd.blue)
+    end
 end
 
 
@@ -186,6 +192,12 @@ function cmd.save(terms)
 
     local success, message
     local savefile = cmd.memo.editor.get_save()
+    local cartsize = #cmd.memo.editor.get_save()
+    if cartsize > 0x8000 then
+        cmd.cli.print("Cart is " .. cartsize - 0x8000 .. " bytes too big!")
+        return
+     end
+
     local minipath = cmd.cli.getminidir(path)
     if path == "" then
         cmd.cli.print("No path provided", cmd.pink)

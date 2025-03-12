@@ -29,7 +29,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         pcall = pcall,
         num = tonumber,
         str = tostring,
-       -- time = os.clock()
+        -- time = os.clock()
 
         -- Callbacks
         boot = function() end,

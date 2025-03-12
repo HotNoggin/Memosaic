@@ -465,6 +465,28 @@ function mint.pop()
 end
 
 
+function mint.snap()
+    mint.say("snap")
+    mint.sp = 1
+    mint.stack = {}
+end
+
+
+function mint.del()
+    mint.say("del")
+    local name = mint.pop()
+    if name ~= nil then
+        if type(name) == "string" then
+            mint.pile[name] = nil
+        else
+            mint.err(" del", "expected identifier, got " .. type(name))
+        end
+    else
+        mint.err(" del", "missing operand")
+    end
+end
+
+
 function mint.pushpop()
     mint.say("peeking")
     local val = mint.pop()
@@ -529,13 +551,16 @@ function mint.init()
         ["false"] = mint.bool,
 
         -- Stack and pile
+        snap = mint.snap,
         pop = mint.pop,
         push = mint.pushpop,
         P = mint.pushpop,
+        del = mint.del,
         ["="] = mint.set,
         ["."] = mint.get,
 
         -- Code flow
+        hop = mint.hop,
         ["^"] = mint.hop,
         ["{"] = mint.skip,
         jump = mint.jump,

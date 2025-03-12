@@ -15,7 +15,6 @@ function mimosa.init(memo)
     mimosa.interpreter.lib = mimosa.library
     mimosa.cart_instructions = {}
     mimosa.memo = memo
-    
     mimosa.interpreter.init()
     mimosa.library.init(memo, mimosa.interpreter)
 end
