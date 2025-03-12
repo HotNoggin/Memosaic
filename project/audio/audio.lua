@@ -22,16 +22,16 @@ function audio.init(memo)
 
     local map = memo.memapi.map
     audio.memo = memo
+    audio.console = memo.editor.console
 
     audio.channels = {
         [0] = audio.new_channel("sqr", audio.sqr, map.sqrwav_start, 0.2),
         [1] = audio.new_channel("tri", audio.tri, map.triwav_start, 1),
         [2] = audio.new_channel("saw", audio.saw, map.sawwav_start, 0.3),
-        [3] = audio.new_channel("noz", audio.noz, map.nozwav_start, 0.6),
+        [3] = audio.new_channel("noz", audio.noz, map.nozwav_start, 0.7),
     }
 
     audio.chansize = map.sqrwav_stop - map.sqrwav_start + 1
-    print("chansize " .. audio.chansize)
 end
 
 
@@ -50,17 +50,12 @@ function audio.start()
 
     local a = audio
     local map = audio.memo.memapi.map
-    -- for idx = 0, audio.chansize - 1 do
-    --     for i, channel in ipairs(a.channels) do
-    --         local adr = idx + channel.ptr
-    --         a.memo.memapi.poke(adr, adr)
-    --     end
-    -- end
 end
 
 
 function audio.tick()
     local a = audio
+    -- Each audio buffer
     for i = 0, 3 do
         -- Get the instructions
         local channel = audio.channels[i]
@@ -79,14 +74,7 @@ function audio.tick()
         a.memo.memapi.poke(adr + 1, 0)
     end
 
-    a.idx = (a.idx + 2) % math.floor(a.chansize / 2)
-end
-
-
-function audio.new_channel(waveform, love_sound, start, basevolume)
-    return {pitch = 1, volume = 1,
-    name = waveform, sound = love_sound,
-    ptr = start, basevol = basevolume}
+    a.idx = (a.idx + 2) % math.floor(a.chansize)
 end
 
 
@@ -108,6 +96,49 @@ end
 
 function audio.note(idx, note)
     audio.pitch(idx, audio.to_pitch(note))
+end
+
+
+function audio.beepat(wav, note, vol, len, at)
+    for idx = audio.idx + at, audio.idx + at + (len - 1) do
+         audio.blipat(wav, note, vol, idx)
+    end
+end
+
+function audio.beep(wav, note, vol, len)
+    audio.beepat(wav, note, vol, len, 0)
+end
+
+
+function audio.blipat(wav, note, vol, at)
+    local con = audio.console
+    local a = audio
+    if con.bad_type(wav, "number", "blipat") or con.bad_type(note, "number", "blipat")
+    or con.bad_type(vol, "number", "blipat") or con.bad_type(at, "number", "blipat")
+    then return end
+
+    if math.floor(wav) > 3 or math.floor(wav) < 0 then
+        con.error("invalid audio channel index (" .. wav .. ")")
+        return
+    end
+
+    local chan = a.channels[math.floor(wav)]
+    local adr = (a.idx + (at * 2)) % a.chansize
+    print(adr + chan.ptr < chan.ptr)
+
+    audio.memo.memapi.poke(adr + chan.ptr, vol)
+    audio.memo.memapi.poke(adr + chan.ptr + 1, note)
+end
+
+function audio.blip(wav, note, vol)
+    audio.blipat(wav, note, vol, 0)
+end
+
+
+function audio.new_channel(waveform, love_sound, start, basevolume)
+    return {pitch = 1, volume = 1,
+    name = waveform, sound = love_sound,
+    ptr = start, basevol = basevolume}
 end
 
 

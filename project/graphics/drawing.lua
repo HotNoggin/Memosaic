@@ -126,6 +126,10 @@ function drawing.char(x, y, c)
     local idx = y * drawing.TILE_WIDTH + x
     local char = c
     if type(char) == "string" then char = string.byte(c) end
+    if type(char) ~= "number" then
+        drawing.console.error("in char: " .. "expected char or number, got " .. type(char))
+        return
+    end
     if char > 0 then
         drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, char)
     end
@@ -136,14 +140,14 @@ function drawing.ink(x, y, fg, bg)
     local con = drawing.console
     local fore = -1
     local back = -1
-    if con.bad_type(x, "number") or con.bad_type(y, "number")
+    if con.bad_type(x, "number", "ink") or con.bad_type(y, "number", "ink")
     then return end
     if fg then
-        if con.bad_type(fore, "number") then return end
+        if con.bad_type(fore, "number", "ink") then return end
         fore = fg
     end
     if bg then
-        if con.bad_type(back, "number") then return end
+        if con.bad_type(back, "number", "ink") then return end
         back = bg
     end
     if x < 0 or x >= drawing.TILE_WIDTH then return end

@@ -29,8 +29,6 @@ function cmd.command(str)
     -- help
     -- skim (ui for carts)
     -- copy
-    -- folder
-    -- load
     -- mkdir
 
     cmd.cli.print(str, cmd.green)
@@ -114,7 +112,7 @@ end
 
 
 function cmd.folder()
-    love.system.openURL("file://"..love.filesystem.getSaveDirectory())
+    love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/memo")
 end
 
 

@@ -17,7 +17,7 @@ function sandbox.run(code, name)
 end
 
 
-function sandbox.init(cart, input, memapi, drawing, console)
+function sandbox.init(cart, input, memapi, drawing, audio, console)
     print("Populating sandbox API")
     
     sandbox.func = function () end
@@ -52,6 +52,12 @@ function sandbox.init(cart, input, memapi, drawing, console)
         crect = drawing.crect,
         irect = drawing.irect,
         text = drawing.text,
+
+        -- Audio
+        blip = audio.blip,
+        beep = audio.beep,
+        blipat = audio.blipat,
+        beepat = audio.beepat,
 
         -- Console
         echo = console.print,

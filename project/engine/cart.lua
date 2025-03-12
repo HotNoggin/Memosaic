@@ -16,7 +16,7 @@ function cart.init(memo)
     cart.running = false
     cart.use_mimosa = false
     cart.cli = memo.editor.console
-    cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
+    cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
 end
 
 
@@ -136,7 +136,7 @@ function cart.run()
     if cart.use_mimosa then
         ok = cart.memo.mimosa.run(cart.get_script(), {}, {})
     else
-        cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
+        cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
         ok, err = cart.sandbox.run(cart.get_script(), cart.name)
     end
 
