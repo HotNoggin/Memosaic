@@ -14,6 +14,7 @@ function cmd.init(memo)
     cmd.blue = 10
     cmd.teal = 11
     cmd.gray = 12
+    cmd.white = 13
     cmd.pink = 14
 end
 
@@ -48,6 +49,7 @@ function cmd.command(str)
     elseif cmd.is(c, "reload", terms, 1) then cmd.load(cmd.cli.cartfile)
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
     elseif cmd.is(c, "edit", terms, 1) then cmd.edit()
+    elseif cmd.is(c, "trace", terms, 1) then cmd.trace()
     elseif cmd.is(c, "folder", terms, 1) then cmd.folder()
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
@@ -291,6 +293,46 @@ function cmd.new()
     cmd.memo.memapi.load_font(cmd.memo.memapi.default_font)
     cmd.cli.cartfile = ""
     cmd.cli.print("New cart loaded")
+end
+
+
+function cmd.trace()
+    local stack = cmd.memo.cart.errstack
+    local find = '%[string %"' .. cmd.memo.cart.name ..'%"%]'
+    stack = string.gsub(stack, find,
+        "%@" .. cmd.memo.cart.name)
+    local lines = {}
+    local cartentries = {}
+    local line = ""
+    local linenum = 1
+    for i = 1, #stack do
+        local c = string.sub(stack, i, i)
+        if c == "\n" then
+            table.insert(lines, line)
+            line = ""
+            linenum = linenum + 1
+        elseif c == "\t" then
+            line = line .. " "
+        elseif c ~= "\r" then
+            line = line .. c
+            if line == ' @' .. cmd.memo.cart.name then
+                table.insert(cartentries, linenum)
+            end
+        end
+    end
+    for i, msg in ipairs(lines) do
+        local color = cmd.blue
+        if i < 3 then color = cmd.pink end
+        if #cartentries > 0 then
+            if cartentries[1] == i then
+                table.remove(cartentries, 1)
+                color = cmd.pink
+            end
+        end
+        if not (i > #msg - 3) then
+            cmd.cli.print(msg, color)
+        end
+    end
 end
 
 

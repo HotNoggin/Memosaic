@@ -12,7 +12,9 @@ parser.reserved = {
     "stat", "btn", "btnp", "btnr",
     -- Drawing
     "fill", "tile", "T", "etch", "E", "ink", "I",
-    "rect", "R", "crect", "irect", "text"
+    "rect", "R", "crect", "irect", "text",
+    --Audio
+    "blipat"
 }
 
 

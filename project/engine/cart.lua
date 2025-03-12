@@ -13,9 +13,12 @@ function cart.init(memo)
     cart.sfx = ""
     cart.memo = memo
     cart.memapi = memo.memapi
+
     cart.running = false
     cart.use_mimosa = false
     cart.cli = memo.editor.console
+    cart.errstack = ""
+
     cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
 end
 
@@ -134,7 +137,7 @@ function cart.run()
 
     local ok, err
     if cart.use_mimosa then
-        ok = cart.memo.mimosa.run(cart.get_script(), {}, {})
+        ok = xpcall(cart.memo.mimosa.run, cart.handle_err, cart.get_script(), {}, {})
     else
         cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
         ok, err = cart.sandbox.run(cart.get_script(), cart.name)
@@ -172,10 +175,15 @@ function cart.boot()
         local idx = mint.tags["boot"]
         if idx ~= nil then
             -- Interpret the boot region, using the old stack, pile, and tags
-            mint.interpret(mint.instructions, nil, nil, nil, idx + 1)
+            local ok, err = xpcall(mint.interpret, cart.handle_err,
+            mint.instructions, nil, nil, nil, idx + 1)
+            if not ok then
+                if err then cart.cli.error(err) end
+                cart.stop()
+            end
         end
     else
-        local ok, err = pcall(cart.sandbox.env.boot)
+        local ok, err = xpcall(cart.sandbox.env.boot, cart.handle_err)
         if not ok then
             if err then cart.cli.error(err) end
             cart.stop()
@@ -190,10 +198,15 @@ function cart.tick()
         local idx = mint.tags["tick"]
         if idx ~= nil then
             -- Interpret the tick region, using the old stack, pile, and tags
-            mint.interpret(mint.instructions, nil, nil, nil, idx + 1)
+            local ok, err = xpcall(mint.interpret, cart.handle_err,
+            mint.instructions, nil, nil, nil, idx + 1)
+            if not ok then
+                if err then cart.cli.error(err) end
+                cart.stop()
+            end
         end
     else
-        local ok, err = pcall(cart.sandbox.env.tick)
+        local ok, err = xpcall(cart.sandbox.env.tick, cart.handle_err)
         if not ok then
             if err then cart.cli.error(err) end
             cart.stop()
@@ -216,6 +229,12 @@ function cart.getfilesize(file)
     local size = file:seek("end")
     file:seek("set", current)
     return size
+end
+
+
+function cart.handle_err(err)
+    cart.errstack = debug.traceback(err)
+    return err
 end
 
 

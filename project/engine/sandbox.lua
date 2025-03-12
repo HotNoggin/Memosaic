@@ -9,7 +9,7 @@ function sandbox.run(code, name)
         setfenv(sandbox.env.boot, env)
         setfenv(sandbox.env.tick, env)
         sandbox.func = result
-        local ok, err = pcall(result)
+        local ok, err = xpcall(result, sandbox.cart.handle_err)
         return ok, err
     else
         return false, error
@@ -19,8 +19,8 @@ end
 
 function sandbox.init(cart, input, memapi, drawing, audio, console)
     print("Populating sandbox API")
-    
     sandbox.func = function () end
+    sandbox.cart = cart
 
     -- The Memosaic API (safe lua default functions and custom functions)
     sandbox.env = {
@@ -29,6 +29,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         pcall = pcall,
         num = tonumber,
         str = tostring,
+        trace = debug.traceback,
         -- time = os.clock()
 
         -- Callbacks
@@ -67,7 +68,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
 
         -- Math
         abs = math.abs,
-        ciel = math.ceil,
+        ceil = math.ceil,
         cos = math.cos,
         deg = math.deg,
         flr = math.floor,

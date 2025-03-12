@@ -162,7 +162,7 @@ err(str, fg, bg): Logs a string to the editor CLI and stops the cart.
 ----------
 abs(): math.abs*
 
-ciel(): math.ceil*
+ceil(): math.ceil*
 
 cos(): math.cos*
 

@@ -123,7 +123,7 @@ function drawing.char(x, y, c)
     if y < 0 or y >= drawing.TILE_HEIGHT then return end
 
     -- Convert char to byte and poke the ascii buffer byte
-    local idx = y * drawing.TILE_WIDTH + x
+    local idx = math.floor(y) * drawing.TILE_WIDTH + math.floor(x)
     local char = c
     if type(char) == "string" then char = string.byte(c) end
     if type(char) ~= "number" then
@@ -144,17 +144,17 @@ function drawing.ink(x, y, fg, bg)
     then return end
     if fg then
         if con.bad_type(fore, "number", "ink") then return end
-        fore = fg
+        fore = math.floor(fg)
     end
     if bg then
         if con.bad_type(back, "number", "ink") then return end
-        back = bg
+        back = math.floor(bg)
     end
     if x < 0 or x >= drawing.TILE_WIDTH then return end
     if y < 0 or y >= drawing.TILE_HEIGHT then return end
 
     -- Poke the color buffer nibbles separately
-    local idx = y * drawing.TILE_WIDTH + x
+    local idx = math.floor(y) * drawing.TILE_WIDTH + math.floor(x)
     local color_byte = drawing.memapi.peek(idx + drawing.memapi.map.color_start)
     if fore >= 0 then
         color_byte = b.band(color_byte, 0x0f) -- Erase char color

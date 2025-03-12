@@ -101,12 +101,14 @@ end
 
 function audio.beepat(wav, note, vol, len, at)
     for idx = audio.idx + at, audio.idx + at + (len - 1) do
-         audio.blipat(wav, note, vol, idx)
+        local success = audio.blipat(wav, note, vol, idx)
+        if not success then return false end
     end
+    return true
 end
 
 function audio.beep(wav, note, vol, len)
-    audio.beepat(wav, note, vol, len, 0)
+    return audio.beepat(wav, note, vol, len, 0)
 end
 
 
@@ -115,23 +117,24 @@ function audio.blipat(wav, note, vol, at)
     local a = audio
     if con.bad_type(wav, "number", "blipat") or con.bad_type(note, "number", "blipat")
     or con.bad_type(vol, "number", "blipat") or con.bad_type(at, "number", "blipat")
-    then return end
+    then error("blipat only takes numbers") return false end
 
     if math.floor(wav) > 3 or math.floor(wav) < 0 then
         con.error("invalid audio channel index (" .. wav .. ")")
-        return
+        return false
     end
 
     local chan = a.channels[math.floor(wav)]
     local adr = (a.idx + (at * 2)) % a.chansize
-    print(adr + chan.ptr < chan.ptr)
 
     audio.memo.memapi.poke(adr + chan.ptr, vol)
     audio.memo.memapi.poke(adr + chan.ptr + 1, note)
+    return true
 end
 
+
 function audio.blip(wav, note, vol)
-    audio.blipat(wav, note, vol, 0)
+    return audio.blipat(wav, note, vol, 0)
 end
 
 
