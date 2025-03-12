@@ -52,6 +52,8 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         rect = drawing.rect,
         crect = drawing.crect,
         irect = drawing.irect,
+        cget = drawing.cget,
+        iget = drawing.iget,
         text = drawing.text,
 
         -- Audio
@@ -80,6 +82,13 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         sin =  math.sin,
         sqrt = math.sqrt,
         rnd = love.math.random,
+
+        -- Bitops
+        band = bit.band,
+        bor = bit.bor,
+        bnot = bit.bnot,
+        lshift = bit.lshift,
+        rshift = bit.rshift,
 
         -- String
         sub = string.sub,

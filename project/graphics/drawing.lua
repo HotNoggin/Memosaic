@@ -115,6 +115,29 @@ function drawing.tile(x, y, c, fg, bg)
 end
 
 
+function drawing.cget(tx, ty)
+    local con = drawing.console
+    if con.bad_type(tx, "number", "cget") or con.bad_type(ty, "number", "cget") then
+        return
+    end
+    local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
+    return drawing.memapi.peek(idx)
+end
+
+
+function drawing.iget(tx,ty)
+    local con = drawing.console
+    if con.bad_type(tx, "number", "iget") or con.bad_type(ty, "number", "iget") then
+        return
+    end
+    local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
+    local byte = drawing.memapi.peek(idx)
+    local fg = math.floor(byte / 16)
+    local bg = math.floor(byte) % 16
+    return fg, bg
+end
+
+
 function drawing.char(x, y, c)
     -- if con.bad_type(x, "number") or con.bad_type(y, "number") or
     -- con.bad_type(c, {"number", "string"}) then return end
@@ -127,7 +150,7 @@ function drawing.char(x, y, c)
     local char = c
     if type(char) == "string" then char = string.byte(c) end
     if type(char) ~= "number" then
-        drawing.console.error("in char: " .. "expected char or number, got " .. type(char))
+        drawing.console.error("in etch: expected char or number, got " .. type(char))
         return
     end
     if char > 0 then
