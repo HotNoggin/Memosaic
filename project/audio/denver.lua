@@ -164,7 +164,7 @@ oscillators.pinknoise = function () -- http://www.musicdsp.org/files/pink.txt
         b3 = 0.86650 * b3 + white * 0.3104856;
         b4 = 0.55000 * b4 + white * 0.5329522;
         b5 = -0.7616 * b5 - white * 0.0168980;
-        pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        local pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
         b6 = white * 0.115926;
         return pink * 0.11 -- (roughly) compensate for gain
     end

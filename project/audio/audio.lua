@@ -1,52 +1,92 @@
 local audio = {
     channels = {},
+    memo = {},
+    chansize = 0,
     idx = 0,
-    inote = 0,
 }
 
 audio.denver = require("audio.denver")
 
 
 function audio.init(memo)
-    audio.sqr = audio.denver.get({waveform='square', frequency=27.5})
-    audio.tri = audio.denver.get({waveform='triangle', frequency=27.5})
-    audio.saw = audio.denver.get({waveform='sawtooth', frequency=27.5})
-    audio.noz = audio.denver.get({waveform='pinknoise', frequency=27.5, length = 10})
+    -- A0 is 27.5, A1 is 55, A2 is 110
+    local freq = 27.5
+    audio.sqr = audio.denver.get({waveform='square', frequency=freq})
+    audio.tri = audio.denver.get({waveform='triangle', frequency=freq})
+    audio.saw = audio.denver.get({waveform='sawtooth', frequency=freq})
+    audio.noz = audio.denver.get({waveform='pinknoise', frequency=freq, length = 10})
     audio.sqr:setLooping(true)
     audio.tri:setLooping(true)
     audio.saw:setLooping(true)
     audio.noz:setLooping(true)
 
+    local map = memo.memapi.map
+    audio.memo = memo
+
     audio.channels = {
-        [0] = audio.new_channel("sqr", audio.sqr),
-        [1] = audio.new_channel("tri", audio.tri),
-        [2] = audio.new_channel("saw", audio.saw),
-        [3] = audio.new_channel("pnk", audio.noz),
+        [0] = audio.new_channel("sqr", audio.sqr, map.sqrwav_start, 0.2),
+        [1] = audio.new_channel("tri", audio.tri, map.triwav_start, 1),
+        [2] = audio.new_channel("saw", audio.saw, map.sawwav_start, 0.3),
+        [3] = audio.new_channel("noz", audio.noz, map.nozwav_start, 0.6),
     }
+
+    audio.chansize = map.sqrwav_stop - map.sqrwav_start + 1
+    print("chansize " .. audio.chansize)
 end
 
 
 function audio.start()
-    -- love.audio.play(
-    --     audio.tri
-    -- )
+    audio.vol(0, 0, 1)
+    audio.vol(1, 0, 1)
+    audio.vol(2, 0, 1)
+    audio.vol(3, 0, 1)
+
+    love.audio.play(
+        audio.sqr,
+        audio.tri,
+        audio.saw,
+        audio.noz
+    )
+
+    local a = audio
+    local map = audio.memo.memapi.map
+    -- for idx = 0, audio.chansize - 1 do
+    --     for i, channel in ipairs(a.channels) do
+    --         local adr = idx + channel.ptr
+    --         a.memo.memapi.poke(adr, adr)
+    --     end
+    -- end
 end
 
 
 function audio.tick()
-    audio.idx = (audio.idx + 1) % 10
-    if audio.idx == 0 then
-        audio.inote = (audio.inote + 1) % 88 -- 88 piano keys from A#0 to C#8
+    local a = audio
+    for i = 0, 3 do
+        -- Get the instructions
+        local channel = audio.channels[i]
+        local adr = a.idx + channel.ptr
+        local lbyte = a.memo.memapi.peek(adr)
+        local rbyte = a.memo.memapi.peek(adr + 1)
+        local vol = lbyte % 0x10
+        local note = rbyte % 0x80
+
+        -- Play the sound
+        audio.vol(i, vol, channel.basevol)
+        audio.note(i, note)
+
+        -- Erase the instructions
+        a.memo.memapi.poke(adr, 0)
+        a.memo.memapi.poke(adr + 1, 0)
     end
-    audio.note(0, audio.inote)
-    audio.note(1, audio.inote)
-    audio.note(2, audio.inote)
-    audio.note(3, audio.inote)
+
+    a.idx = (a.idx + 2) % math.floor(a.chansize / 2)
 end
 
 
-function audio.new_channel(waveform, love_sound)
-    return {pitch = 1, name = waveform, sound = love_sound}
+function audio.new_channel(waveform, love_sound, start, basevolume)
+    return {pitch = 1, volume = 1,
+    name = waveform, sound = love_sound,
+    ptr = start, basevol = basevolume}
 end
 
 
@@ -55,6 +95,14 @@ function audio.pitch(idx, pitch)
     local chan = audio.channels[idx]
     chan.pitch = pitch
     chan.sound:setPitch(chan.pitch)
+end
+
+
+function audio.vol(idx, vol, base)
+    local chan = audio.channels[idx]
+    -- Given volume in range 0-15, remap to 0-base
+    chan.volume = math.floor(vol) / 15 * base
+    chan.sound:setVolume(chan.volume)
 end
 
 
