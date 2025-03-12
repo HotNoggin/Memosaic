@@ -47,6 +47,7 @@ function cmd.command(str)
     elseif cmd.is(c, "new", terms, 1) then cmd.new()
     elseif cmd.is(c, "save", terms, 1) then cmd.save(terms)
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
+    elseif cmd.is(c, "reload", terms, 1) then cmd.load(cmd.cli.cartfile)
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
     elseif cmd.is(c, "edit", terms, 1) then cmd.edit()
     elseif cmd.is(c, "folder", terms, 1) then cmd.folder()
@@ -232,6 +233,7 @@ function cmd.load(file)
         "memo/" .. file .. ".lua",
         "memo/" .. file .. ".mosa",
         "memo/" .. file,
+        file,
     }
 
     for i, path in ipairs(testpaths) do

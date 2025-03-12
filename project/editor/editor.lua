@@ -16,6 +16,7 @@ function editor.init(memo)
     editor.cart = memo.cart
     editor.tab = 0
     editor.lasttab = 1
+    editor.ranfrom = 0
     editor.console.editor = editor
     editor.tooltip = ""
 
@@ -35,9 +36,22 @@ function editor.update()
     local ipt = editor.input
     local isesc = love.keyboard.isDown("escape")
 
-    -- Cart saving
+    -- Save cart hotkey
     if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
-        editor.console.cmd.command("save")
+        if ipt.shift then
+            editor.console.cmd.command("run")
+        else
+            editor.console.cmd.command("save")
+        end
+        if #editor.console.entries > 1 then
+            editor.tooltip = editor.console.entries[#editor.console.entries - 1]
+        end
+    end
+
+    -- Reload cart hotkey
+    if ipt.ctrl and ipt.shift and (ipt.key("r") and not ipt.oldkey("r")) then
+        editor.console.cmd.command("reload")
+        editor.ranfrom = editor.tab
         if #editor.console.entries > 1 then
             editor.tooltip = editor.console.entries[#editor.console.entries - 1]
         end
@@ -56,6 +70,7 @@ function editor.update()
             end
         end
     end
+
     editor.escdown = isesc
 
     if editor.tab > 0 then
