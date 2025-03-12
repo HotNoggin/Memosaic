@@ -4,10 +4,11 @@ local memo = {
 
     window = require("graphics.window"),
     input = require("engine.input"),
-    memapi = require("data.memory"),
+    memapi = require("engine.memapi"),
     tick = require("engine.tick"),
     canvas = require("graphics.canvas"),
     drawing = require("graphics.drawing"),
+    audio = require("audio.audio"),
     mimosa = require("mimosa.mimosa"),
     cart = require("engine.cart"),
     editor = require("editor.editor"),
@@ -22,6 +23,7 @@ function memo.init(options)
     memo.memapi.init(memo)
     memo.input.init(memo)
     memo.drawing.init(memo)
+    memo.audio.init(memo)
     memo.canvas.init(memo.window.WIDTH, memo.window.HEIGHT, memo)
     memo.mimosa.init(memo)
     memo.cart.init(memo)

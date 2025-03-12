@@ -6,8 +6,8 @@
 
 local memo = require("engine.memo")
 
-
 local esc_old = false
+local tick_audio = false
 
 io.stdout:setvbuf("no")
 
@@ -16,12 +16,17 @@ io.stdout:setvbuf("no")
 function love.load()
     math.randomseed(os.time())
     memo.init({win_scale = 4, vsync = true})
+    memo.audio.start()
 end
 
 
 -- Called each frame, continuously
 function love.update(dt)
     if memo.tick.update(dt) then
+        tick_audio = not tick_audio
+        if tick_audio then
+            memo.audio.tick()
+        end
         memo.input.update()
 
         -- Run game (temporary hard path used)
