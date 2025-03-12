@@ -36,21 +36,19 @@ function editor.update()
     local ipt = editor.input
     local isesc = love.keyboard.isDown("escape")
 
-    -- Save cart hotkey
-    if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
+    if ipt.ctrl and (ipt.key("r") and not ipt.oldkey("r")) then
         if ipt.shift then
-            editor.console.cmd.command("run")
+            editor.console.cmd.command("reload")
         else
-            editor.console.cmd.command("save")
+            editor.console.cmd.command("run")
         end
         if #editor.console.entries > 1 then
             editor.tooltip = editor.console.entries[#editor.console.entries - 1]
         end
     end
 
-    -- Reload cart hotkey
-    if ipt.ctrl and ipt.shift and (ipt.key("r") and not ipt.oldkey("r")) then
-        editor.console.cmd.command("reload")
+    if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
+        editor.console.cmd.command("save")
         editor.ranfrom = editor.tab
         if #editor.console.entries > 1 then
             editor.tooltip = editor.console.entries[#editor.console.entries - 1]
