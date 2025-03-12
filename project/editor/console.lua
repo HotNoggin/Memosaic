@@ -81,7 +81,7 @@ function console.reset()
     }
     local msg = messages[math.random(1, #messages)]
     console.print(msg, 10)
-    local byte = 0xCF
+    local byte = 0xCC
     local str = ""
     for i=1,16 do
         str = str .. string.char(byte)

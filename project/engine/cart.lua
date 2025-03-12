@@ -8,14 +8,18 @@ function cart.init(memo)
     print("Creating cart sandbox")
     cart.name = "New cart"
     cart.code = {}
+    cart.size = 0
     cart.font = ""
     cart.sfx = ""
     cart.memo = memo
     cart.memapi = memo.memapi
+
     cart.running = false
     cart.use_mimosa = false
     cart.cli = memo.editor.console
-    cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
+    cart.errstack = ""
+
+    cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
 end
 
 
@@ -44,7 +48,12 @@ function cart.load(path, hardtxt)
         local globalpath = love.filesystem.getSaveDirectory() .. "/" .. path
         local file = io.open(globalpath, "r")
 
-        if not file then return end
+        if not file then return false end
+
+        if cart.getfilesize(file) > 0x8000 then --32KiB
+            cart.cli.print("Cart is " .. cart.getfilesize(file) - 0x8000 .. " bytes too big!")
+            return false
+        end
 
         cart.use_mimosa = false
         if #path > 4 and string.sub(path, -5, -1) == ".mosa" then
@@ -128,9 +137,9 @@ function cart.run()
 
     local ok, err
     if cart.use_mimosa then
-        ok = cart.memo.mimosa.run(cart.get_script(), {}, {})
+        ok = xpcall(cart.memo.mimosa.run, cart.handle_err, cart.get_script(), {}, {})
     else
-        cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.editor.console)
+        cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
         ok, err = cart.sandbox.run(cart.get_script(), cart.name)
     end
 
@@ -166,10 +175,15 @@ function cart.boot()
         local idx = mint.tags["boot"]
         if idx ~= nil then
             -- Interpret the boot region, using the old stack, pile, and tags
-            mint.interpret(mint.instructions, nil, nil, nil, idx + 1)
+            local ok, err = xpcall(mint.interpret, cart.handle_err,
+            mint.instructions, nil, nil, nil, idx + 1)
+            if not ok then
+                if err then cart.cli.error(err) end
+                cart.stop()
+            end
         end
     else
-        local ok, err = pcall(cart.sandbox.env.boot)
+        local ok, err = xpcall(cart.sandbox.env.boot, cart.handle_err)
         if not ok then
             if err then cart.cli.error(err) end
             cart.stop()
@@ -184,10 +198,15 @@ function cart.tick()
         local idx = mint.tags["tick"]
         if idx ~= nil then
             -- Interpret the tick region, using the old stack, pile, and tags
-            mint.interpret(mint.instructions, nil, nil, nil, idx + 1)
+            local ok, err = xpcall(mint.interpret, cart.handle_err,
+            mint.instructions, nil, nil, nil, idx + 1)
+            if not ok then
+                if err then cart.cli.error(err) end
+                cart.stop()
+            end
         end
     else
-        local ok, err = pcall(cart.sandbox.env.tick)
+        local ok, err = xpcall(cart.sandbox.env.tick, cart.handle_err)
         if not ok then
             if err then cart.cli.error(err) end
             cart.stop()
@@ -202,6 +221,20 @@ function cart.get_script()
         script = script .. cart.code[line] .. '\n'
     end
     return script
+end
+
+
+function cart.getfilesize(file)
+    local current = file:seek()
+    local size = file:seek("end")
+    file:seek("set", current)
+    return size
+end
+
+
+function cart.handle_err(err)
+    cart.errstack = debug.traceback(err)
+    return err
 end
 
 

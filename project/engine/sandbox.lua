@@ -9,7 +9,7 @@ function sandbox.run(code, name)
         setfenv(sandbox.env.boot, env)
         setfenv(sandbox.env.tick, env)
         sandbox.func = result
-        local ok, err = pcall(result)
+        local ok, err = xpcall(result, sandbox.cart.handle_err)
         return ok, err
     else
         return false, error
@@ -17,10 +17,10 @@ function sandbox.run(code, name)
 end
 
 
-function sandbox.init(cart, input, memapi, drawing, console)
+function sandbox.init(cart, input, memapi, drawing, audio, console)
     print("Populating sandbox API")
-    
     sandbox.func = function () end
+    sandbox.cart = cart
 
     -- The Memosaic API (safe lua default functions and custom functions)
     sandbox.env = {
@@ -29,7 +29,8 @@ function sandbox.init(cart, input, memapi, drawing, console)
         pcall = pcall,
         num = tonumber,
         str = tostring,
-       -- time = os.clock()
+        trace = debug.traceback,
+        -- time = os.clock()
 
         -- Callbacks
         boot = function() end,
@@ -40,6 +41,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         poke = memapi.poke,
 
         -- Input
+        stat = cart.memo.stat,
         btn = input.btn,
 
         -- Graphics
@@ -50,7 +52,15 @@ function sandbox.init(cart, input, memapi, drawing, console)
         rect = drawing.rect,
         crect = drawing.crect,
         irect = drawing.irect,
+        cget = drawing.cget,
+        iget = drawing.iget,
         text = drawing.text,
+
+        -- Audio
+        blip = audio.blip,
+        beep = audio.beep,
+        blipat = audio.blipat,
+        beepat = audio.beepat,
 
         -- Console
         echo = console.print,
@@ -60,7 +70,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
 
         -- Math
         abs = math.abs,
-        ciel = math.ceil,
+        ceil = math.ceil,
         cos = math.cos,
         deg = math.deg,
         flr = math.floor,
@@ -72,6 +82,13 @@ function sandbox.init(cart, input, memapi, drawing, console)
         sin =  math.sin,
         sqrt = math.sqrt,
         rnd = love.math.random,
+
+        -- Bitops
+        band = bit.band,
+        bor = bit.bor,
+        bnot = bit.bnot,
+        lshift = bit.lshift,
+        rshift = bit.rshift,
 
         -- String
         sub = string.sub,
@@ -106,7 +123,7 @@ function sandbox.init(cart, input, memapi, drawing, console)
         return input.btn(i) and not input.old(i)
     end
 
-    function sandbox.btnup(i)
+    function sandbox.btnr(i)
         return input.old(i) and not input.btn(i)
     end
 

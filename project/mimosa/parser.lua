@@ -1,6 +1,21 @@
 local parser = {}
 
-parser.reserved = {"out", "O", "push", "pop", "true", "false", "goto", "do", "end",}
+parser.reserved = {
+    -- Console
+    "out", "O", "err", "outcolr",
+    -- Stack and pile
+    "push", "P", "pop", "del",
+    "true", "false",
+    -- Control flow
+    "hop", "do", "jump", "end",
+    -- Input
+    "stat", "btn", "btnp", "btnr",
+    -- Drawing
+    "fill", "tile", "T", "etch", "E", "ink", "I",
+    "rect", "R", "crect", "irect", "text",
+    --Audio
+    "blipat"
+}
 
 
 function parser.get_instructions(tokens)

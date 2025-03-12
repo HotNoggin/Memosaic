@@ -65,9 +65,19 @@ poke(ptr, val): Writes a byte to memory.
 -----------
 -- Input --
 -----------
-
-btn(n): Returns true if the button n is presed.
+btn(n): Returns true if the button n is pressed.
     n: The button to check [0=left 1=right 2=up 3=down 4=x/j(physical) 5=c/k(physical)]
+btnp(n): Returns true if the button n was just pressed.
+btnr(n): Returns true if the button n was just released.
+
+stat(code): Returns various values about the state of the console.
+    code: The code of the state to check. The returned values are (in hexadecimal):
+        0 to 5: Identical to btn().
+        8 to D: Identical to btnp() with 8-D mapped to 0-5.
+        20 or 21: True if the left or right mouse button is pressed.
+        22 or 23: True if the mousewheel is moving up or down.
+        24 or 25: True if the left or right mouse button was just pressed.
+        26 or 27: The mouse x or y coordinate (in tiles).
 
 
 --------------
@@ -96,7 +106,7 @@ etch(x, y, char): Sets the character of a tile on the ASCII grid.
     fg: The foreground color.
     bg: The background color.
 
-fill(str): Sets the entire ASCII buffer to the given string.
+!fill(str): Sets the entire ASCII buffer to the given string.
     str: The string to fill the buffer with, such as a tile map.
 
 ink(x, y, fg, bg): Sets the colors of a tile on the color grid.
@@ -126,7 +136,7 @@ irect(x, y, w, h, fg, bg): Sets a rectangle of colors on the color grid.
     bg: The background color.
 
 text(x, y, str, fg, bg): Copies a string of characters to the ASCII+color grid.
-    x, y: The tile coordinate of the rectangle. Ranges from 0 (top/left) to 15(bottom/right).
+    x, y: The tile coordinate of the start. Ranges from 0 (top/left) to 15(bottom/right).
     str: The string to write to the grid. ASCII control codes will be placed like any character.
     fg: The foreground color.
     bg: The background color.
@@ -135,14 +145,14 @@ text(x, y, str, fg, bg): Copies a string of characters to the ASCII+color grid.
 -------------
 -- Console --
 -------------
-echo(str, fg, bg): Logs a string to the editor console.
+echo(str, fg, bg): Logs a string to the editor CLI.
 AKA print(), AKA say()
-    str: The string to log to the console.
+    str: The string to log to the CLI.
     fg: The foreground color.
     bg: The background color.
 
-err(str, fg, bg): Logs a string to the editor console and stops the cart.
-    str: The string to log to the console.
+err(str, fg, bg): Logs a string to the editor CLI and stops the cart.
+    str: The string to log to the CLI.
     fg: The foreground color.
     bg: The background color.
 
@@ -152,7 +162,7 @@ err(str, fg, bg): Logs a string to the editor console and stops the cart.
 ----------
 abs(): math.abs*
 
-ciel(): math.ceil*
+ceil(): math.ceil*
 
 cos(): math.cos*
 
@@ -214,4 +224,4 @@ requal: rawequal*
 rget: rawget*
 rset: rawset*
 rlen: rawlen*
-slct: select*
+select: select*

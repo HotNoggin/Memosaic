@@ -44,7 +44,7 @@ function font_tab.update(editor)
     if ipt.lclick_in(8, 1, 15, 14) and not ipt.lheld then
         local idx = (m_y + 1) * 8 + m_x - 8
         font_tab.char = idx
-        editor.tooltip = "char: " .. string.char(idx)
+        editor.tooltip = "char: " .. string.char(idx) .. "(" .. idx .. ")"
     end
 
     -- BG select

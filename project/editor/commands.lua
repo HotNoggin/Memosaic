@@ -14,6 +14,7 @@ function cmd.init(memo)
     cmd.blue = 10
     cmd.teal = 11
     cmd.gray = 12
+    cmd.white = 13
     cmd.pink = 14
 end
 
@@ -29,8 +30,6 @@ function cmd.command(str)
     -- help
     -- skim (ui for carts)
     -- copy
-    -- folder
-    -- load
     -- mkdir
 
     cmd.cli.print(str, cmd.green)
@@ -47,14 +46,17 @@ function cmd.command(str)
     elseif cmd.is(c, "new", terms, 1) then cmd.new()
     elseif cmd.is(c, "save", terms, 1) then cmd.save(terms)
     elseif cmd.is(c, "load", terms, 2) then cmd.load(terms[2])
+    elseif cmd.is(c, "reload", terms, 1) then cmd.load(cmd.cli.cartfile)
     elseif cmd.is(c, "run", terms, 1) then cmd.run()
     elseif cmd.is(c, "edit", terms, 1) then cmd.edit()
+    elseif cmd.is(c, "trace", terms, 1) then cmd.trace()
     elseif cmd.is(c, "folder", terms, 1) then cmd.folder()
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
-    elseif cmd.is(c, "font", terms, 1) then cmd.font(0xFF)
-    elseif cmd.is(c, "chars", terms, 1) then cmd.font(0x7F)
+    elseif cmd.is(c, "font", terms, 1) then cmd.font(0x00, 0xFF)
+    elseif cmd.is(c, "chars", terms, 1) then cmd.font(0x00, 0x7F)
+    elseif cmd.is(c, "dithers", terms, 1) then cmd.font(0x80, 0xFF)
     elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
     elseif cmd.is(c, "mimosa", terms, 1) then cmd.setmimosa(true)
     elseif cmd.is(c, "lua", terms, 1) then cmd.setmimosa(false)
@@ -65,12 +67,12 @@ function cmd.command(str)
     if cmd.cli.usemimosa then
         local mimosa = cmd.memo.mimosa
         mimosa.had_err = false
-        local tokens = mimosa.lexer.scan(str)
+        local ok, tokens = pcall(mimosa.lexer.scan, str)
         if mimosa.had_err then
             cmd.cli.print("Not a command or valid mimosa", cmd.pink)
             return
         end
-        mimosa.parser.get_instructions(tokens)
+        pcall(mimosa.parser.get_instructions, tokens)
         if mimosa.had_err then
             cmd.cli.print("Not a command or valid mimosa", cmd.pink)
             return
@@ -96,8 +98,12 @@ function cmd.info()
     out("\1", cmd.teal)
     out("Memosaic", cmd.gray)
     out(cmd.memo.info.version, cmd.blue)
+    out(" for " .. cmd.memo.info.version_name, cmd.blue)
     out(cmd.memo.cart.name, cmd.teal)
-    out("Bytes: " .. math.ceil(#cmd.memo.editor.get_save() / 8 ), cmd.blue)
+    local cartsize, sizecolr = #cmd.memo.editor.get_save(), cmd.blue
+    if cartsize > 0x8000 then sizecolr = cmd.pink end
+    out("Size: " .. cartsize, sizecolr)
+    out(" /" .. 0x8000, sizecolr)
     out("\1" .. cmd.cli.getworkdir():sub(5, -1), cmd.blue)
 end
 
@@ -108,7 +114,7 @@ end
 
 
 function cmd.folder()
-    love.system.openURL("file://"..love.filesystem.getSaveDirectory())
+    love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/memo")
 end
 
 
@@ -152,12 +158,15 @@ function cmd.listdir()
 end
 
 
-function cmd.font(num)
+function cmd.font(from, to)
     local txt = ""
-    for i = 0, num do
+    for i = from, to do
         txt = txt .. string.char(i)
     end
     cmd.cli.print(txt, cmd.gray)
+    if to - from >= 0xEF then
+        cmd.cli.print("scroll up!", cmd.blue)
+    end
 end
 
 
@@ -183,6 +192,12 @@ function cmd.save(terms)
 
     local success, message
     local savefile = cmd.memo.editor.get_save()
+    local cartsize = #cmd.memo.editor.get_save()
+    if cartsize > 0x8000 then
+        cmd.cli.print("Cart is " .. cartsize - 0x8000 .. " bytes too big!")
+        return
+     end
+
     local minipath = cmd.cli.getminidir(path)
     if path == "" then
         cmd.cli.print("No path provided", cmd.pink)
@@ -230,6 +245,7 @@ function cmd.load(file)
         "memo/" .. file .. ".lua",
         "memo/" .. file .. ".mosa",
         "memo/" .. file,
+        file,
     }
 
     for i, path in ipairs(testpaths) do
@@ -277,6 +293,46 @@ function cmd.new()
     cmd.memo.memapi.load_font(cmd.memo.memapi.default_font)
     cmd.cli.cartfile = ""
     cmd.cli.print("New cart loaded")
+end
+
+
+function cmd.trace()
+    local stack = cmd.memo.cart.errstack
+    local find = '%[string %"' .. cmd.memo.cart.name ..'%"%]'
+    stack = string.gsub(stack, find,
+        "%@" .. cmd.memo.cart.name)
+    local lines = {}
+    local cartentries = {}
+    local line = ""
+    local linenum = 1
+    for i = 1, #stack do
+        local c = string.sub(stack, i, i)
+        if c == "\n" then
+            table.insert(lines, line)
+            line = ""
+            linenum = linenum + 1
+        elseif c == "\t" then
+            line = line .. " "
+        elseif c ~= "\r" then
+            line = line .. c
+            if line == ' @' .. cmd.memo.cart.name then
+                table.insert(cartentries, linenum)
+            end
+        end
+    end
+    for i, msg in ipairs(lines) do
+        local color = cmd.blue
+        if i < 3 then color = cmd.pink end
+        if #cartentries > 0 then
+            if cartentries[1] == i then
+                table.remove(cartentries, 1)
+                color = cmd.pink
+            end
+        end
+        if not (i > #msg - 3) then
+            cmd.cli.print(msg, color)
+        end
+    end
 end
 
 

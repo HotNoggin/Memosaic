@@ -115,6 +115,29 @@ function drawing.tile(x, y, c, fg, bg)
 end
 
 
+function drawing.cget(tx, ty)
+    local con = drawing.console
+    if con.bad_type(tx, "number", "cget") or con.bad_type(ty, "number", "cget") then
+        return
+    end
+    local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
+    return drawing.memapi.peek(idx)
+end
+
+
+function drawing.iget(tx,ty)
+    local con = drawing.console
+    if con.bad_type(tx, "number", "iget") or con.bad_type(ty, "number", "iget") then
+        return
+    end
+    local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
+    local byte = drawing.memapi.peek(idx)
+    local fg = math.floor(byte / 16)
+    local bg = math.floor(byte) % 16
+    return fg, bg
+end
+
+
 function drawing.char(x, y, c)
     -- if con.bad_type(x, "number") or con.bad_type(y, "number") or
     -- con.bad_type(c, {"number", "string"}) then return end
@@ -123,10 +146,16 @@ function drawing.char(x, y, c)
     if y < 0 or y >= drawing.TILE_HEIGHT then return end
 
     -- Convert char to byte and poke the ascii buffer byte
-    local idx = y * drawing.TILE_WIDTH + x
+    local idx = math.floor(y) * drawing.TILE_WIDTH + math.floor(x)
     local char = c
     if type(char) == "string" then char = string.byte(c) end
-    drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, char)
+    if type(char) ~= "number" then
+        drawing.console.error("in etch: expected char or number, got " .. type(char))
+        return
+    end
+    if char > 0 then
+        drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, char)
+    end
 end
 
 
@@ -134,21 +163,21 @@ function drawing.ink(x, y, fg, bg)
     local con = drawing.console
     local fore = -1
     local back = -1
-    if con.bad_type(x, "number") or con.bad_type(y, "number")
+    if con.bad_type(x, "number", "ink") or con.bad_type(y, "number", "ink")
     then return end
     if fg then
-        if con.bad_type(fore, "number") then return end
-        fore = fg
+        if con.bad_type(fore, "number", "ink") then return end
+        fore = math.floor(fg)
     end
     if bg then
-        if con.bad_type(back, "number") then return end
-        back = bg
+        if con.bad_type(back, "number", "ink") then return end
+        back = math.floor(bg)
     end
     if x < 0 or x >= drawing.TILE_WIDTH then return end
     if y < 0 or y >= drawing.TILE_HEIGHT then return end
 
     -- Poke the color buffer nibbles separately
-    local idx = y * drawing.TILE_WIDTH + x
+    local idx = math.floor(y) * drawing.TILE_WIDTH + math.floor(x)
     local color_byte = drawing.memapi.peek(idx + drawing.memapi.map.color_start)
     if fore >= 0 then
         color_byte = b.band(color_byte, 0x0f) -- Erase char color
