@@ -67,12 +67,12 @@ function cmd.command(str)
     if cmd.cli.usemimosa then
         local mimosa = cmd.memo.mimosa
         mimosa.had_err = false
-        local tokens = mimosa.lexer.scan(str)
+        local ok, tokens = pcall(mimosa.lexer.scan, str)
         if mimosa.had_err then
             cmd.cli.print("Not a command or valid mimosa", cmd.pink)
             return
         end
-        mimosa.parser.get_instructions(tokens)
+        pcall(mimosa.parser.get_instructions, tokens)
         if mimosa.had_err then
             cmd.cli.print("Not a command or valid mimosa", cmd.pink)
             return

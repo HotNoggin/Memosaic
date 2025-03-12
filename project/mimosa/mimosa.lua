@@ -22,9 +22,11 @@ end
 
 function mimosa.run(script, stack, pile)
     mimosa.had_err = false
-    local tokens = mimosa.lexer.scan(script)
+    local oka, tokens = xpcall(
+        mimosa.lexer.scan, mimosa.memo.cart.handle_err, script)
     if mimosa.had_err then return false end
-    local instructions, tags = mimosa.parser.get_instructions(tokens)
+    local okb, instructions, tags = xpcall(
+        mimosa.parser.get_instructions, mimosa.memo.cart.handle_err, tokens)
     if mimosa.had_err then return false end
     mimosa.interpreter.interpret(instructions, stack, pile, tags, 1)
     if not mimosa.interpreter.ok then return false end
