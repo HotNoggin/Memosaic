@@ -135,6 +135,12 @@ irect(x, y, w, h, fg, bg): Sets a rectangle of colors on the color grid.
     fg: The foreground color.
     bg: The background color.
 
+cget(x, y): Returns the character code at the given ASCII tile.
+    x, y: The tile coordinate of the tile. Ranges from 0 (top/left) to 15(bottom/right).
+
+iget(x, y): Returns the colors at the given ASCII tile as fg, bg.
+    x, y: The tile coordinate of the tile. Ranges from 0 (top/left) to 15(bottom/right).
+
 text(x, y, str, fg, bg): Copies a string of characters to the ASCII+color grid.
     x, y: The tile coordinate of the start. Ranges from 0 (top/left) to 15(bottom/right).
     str: The string to write to the grid. ASCII control codes will be placed like any character.

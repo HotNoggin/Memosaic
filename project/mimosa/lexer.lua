@@ -216,6 +216,7 @@ end
 
 function lexer.ishex(c)
     return lexer.isbetween(c, "0", "9") or lexer.isbetween(c, "A", "F")
+    or lexer.isbetween(c, "a", "f")
 end
 
 function lexer.isdec(c)
