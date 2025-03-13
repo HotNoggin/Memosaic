@@ -19,7 +19,9 @@ function editor.init(memo)
     editor.ranfrom = 0
     editor.console.editor = editor
     editor.tooltip = ""
+
     editor.hotreload = false
+    editor.save_at_unfocus = ""
 
     editor.console.init(memo)
     editor.font_tab.init(memo)
@@ -29,6 +31,11 @@ end
 
 
 function editor.update()
+    if editor.hotreload then
+        editor.update_reload()
+        return
+    end
+
     if editor.tab == 0 then editor.console.update()
     elseif editor.tab == 1 then editor.font_tab.update(editor)
     elseif editor.tab == 2 then editor.code_tab.update(editor)
@@ -110,6 +117,10 @@ function editor.update_bar()
     end
 
     draw.text(0, 15, editor.tooltip) -- x y string
+end
+
+
+function editor.update_reload()
 end
 
 

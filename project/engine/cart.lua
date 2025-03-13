@@ -42,7 +42,7 @@ function cart.load(path, hardtxt)
         return true
     end
 
-    print("Loading " .. path)
+    print("Attempting to load " .. path)
     local fileinfo = love.filesystem.getInfo(path, "file")
     if fileinfo ~= nil then
         local globalpath = love.filesystem.getSaveDirectory() .. "/" .. path
@@ -99,9 +99,10 @@ function cart.load_lines(lines)
             elseif flag == "(!mimosa!)" then
                 cart.use_mimosa = true
             end
+        end
 
         -- Load font to memory
-        elseif cart.tag("font", flag) then
+        if cart.tag("font", flag) then
             local fontstr = line:sub(3)
             if cart.use_mimosa then fontstr = line:sub(2, -2) end
             local success = cart.memapi.load_font(fontstr)
@@ -112,25 +113,20 @@ function cart.load_lines(lines)
                 cart.font = fontstr
             end
 
-        -- Add line to code (exclude font or sfx flags and data)
-        -- Ensure flags that should be added to the cart are BELOW this
-        elseif cart.tag("font", next_flag) or cart.tag("sfx", next_flag) then
-            goto continue
-        end
-
-        table.insert(cart.code, line)
-
-        if cart.tag("name", flag) then
+        elseif cart.tag("name", flag) then
             cart.name = line:sub(3)
             if cart.use_mimosa then cart.name = line:sub(2, -2) end
             love.window.setTitle("Memosaic - " .. cart.name)
-        end
+            table.insert(cart.code, line)
 
-        if cart.tag("defaultfont", flag) then
+        elseif cart.tag("defaultfont", flag) then
             cart.memapi.load_font(cart.memapi.default_font)
-        end
+            table.insert(cart.code, line)
 
-        ::continue::
+        -- Add line to code (exclude font or sfx flags and data)
+        elseif not cart.tag("font", next_flag) and not cart.tag("sfx", next_flag) then
+            table.insert(cart.code, line)
+        end
     end
 end
 

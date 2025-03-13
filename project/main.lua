@@ -72,6 +72,36 @@ function love.wheelmoved(x, y)
 end
 
 
+function love.focus(focus)
+    if focus then
+        print("Refocused")
+        -- HOT RELOADING --
+        local change = false
+        local editorsave = memo.editor.get_save()
+        local path = love.filesystem.getSaveDirectory() .. "/" .. memo.editor.console.cartfile
+        if path[#path] == "/" then -- This is a folder
+            return
+        end
+        local diskfile = io.open(path, "r")
+
+        if not diskfile then -- There is no file here
+            return
+        end
+
+        local disksave = diskfile:read("*a")
+
+        if disksave ~= editorsave then
+            print("External changes detected")
+            memo.editor.hotreload = true
+        else
+            print("No external changes")
+        end
+    else
+        print("Unfocused")
+    end
+end
+
+
 function love.textinput(txt)
     memo.input.text = memo.input.text .. txt
 end
