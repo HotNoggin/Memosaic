@@ -38,7 +38,6 @@ function font_tab.update(editor)
             byte = b.bor(byte, b.lshift(1, m_y - 1))
         end
         font_tab.memapi.poke(ptr, byte)
-        editor.stashed_font = font_tab.get_font(editor)
     end
 
     -- Char select
