@@ -38,8 +38,9 @@ end
 function memapi.load_font(font)
     print("Loading font")
     local font_size = memapi.map.font_end - memapi.map.font_start
+    if not font then return end
     for i = 0, font_size do
-        if #font < 2*i then return false end
+        if #font <= 2*i then return false end
         local byte = tonumber(string.sub(font, 2*i + 1, 2*i + 2), 16)
         memapi.poke(i + memapi.map.font_start, byte)
     end

@@ -23,10 +23,6 @@ end
 -- Called each frame, continuously
 function love.update(dt)
     if memo.tick.update(dt) then
-        tick_audio = not tick_audio
-        if tick_audio then
-            memo.audio.tick()
-        end
         memo.input.update()
 
         -- Run game (temporary hard path used)
@@ -44,6 +40,12 @@ function love.update(dt)
             memo.cart.tick()
         else
             memo.editor.update()
+        end
+
+        -- Play the instructions in the audio buffer
+        tick_audio = not tick_audio
+        if tick_audio then
+            memo.audio.tick()
         end
 
         -- Draw the ASCII + color buffers to the screen

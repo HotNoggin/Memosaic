@@ -38,21 +38,20 @@ function editor.update()
 
     if ipt.ctrl and (ipt.key("r") and not ipt.oldkey("r")) then
         if ipt.shift then
-            editor.console.cmd.command("reload")
+            editor.sendcmd("reload")
         else
-            editor.console.cmd.command("run")
-        end
-        if #editor.console.entries > 1 then
-            editor.tooltip = editor.console.entries[#editor.console.entries - 1]
+            editor.ranfrom = editor.tab
+            editor.sendcmd("run")
+            return
         end
     end
 
     if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
-        editor.console.cmd.command("save")
-        editor.ranfrom = editor.tab
-        if #editor.console.entries > 1 then
-            editor.tooltip = editor.console.entries[#editor.console.entries - 1]
-        end
+        editor.sendcmd("save")
+    end
+
+    if ipt.ctrl and ipt.shift and ipt.key("f") and not ipt.oldkey("f") then
+        editor.sendcmd("flipfont")
     end
 
     -- CLI-Editor switching
@@ -114,18 +113,28 @@ function editor.update_bar()
     end
 
     draw.text(0, 15, editor.tooltip) -- x y string
+    print("still going!")
 end
 
 
 function editor.get_save()
     local cdata = ""
     cdata = cdata .. editor.cart.get_script() .. "\n"
+    local font = editor.font_tab.get_font(editor)
     if editor.cart.use_mimosa then
-        cdata = cdata .. "(!font!)\n(" .. editor.font_tab.get_font(editor) .. ")"
+        cdata = cdata .. "(!font!)\n(" .. font .. ")"
     else
-        cdata = cdata .. "--!:font\n--" .. editor.font_tab.get_font(editor)
+        cdata = cdata .. "--!:font\n--" .. font
     end
     return cdata
+end
+
+
+function editor.sendcmd(command)
+    editor.console.cmd.command(command)
+    if #editor.console.entries > 1 then
+        editor.tooltip = editor.console.entries[#editor.console.entries - 1]
+    end
 end
 
 

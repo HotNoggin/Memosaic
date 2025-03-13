@@ -75,6 +75,7 @@ function cart.load(path, hardtxt)
 end
 
 
+
 function cart.load_lines(lines)
     cart.code = {}
     cart.sfx = ""
@@ -98,7 +99,6 @@ function cart.load_lines(lines)
             elseif flag == "(!mimosa!)" then
                 cart.use_mimosa = true
             end
-            table.insert(cart.code, line)
 
         -- Load font to memory
         elseif cart.tag("font", flag) then
@@ -111,19 +111,23 @@ function cart.load_lines(lines)
             else
                 cart.font = fontstr
             end
-        elseif cart.tag("defaultfont", flag) then
-            cart.memapi.load_font(cart.memapi.default_font)
 
-        -- Set name
-        elseif cart.tag("name", flag) then
+        -- Add line to code (exclude font or sfx flags and data)
+        -- Ensure flags that should be added to the cart are BELOW this
+        elseif cart.tag("font", next_flag) or cart.tag("sfx", next_flag) then
+            return
+        end
+
+        table.insert(cart.code, line)
+
+        if cart.tag("name", flag) then
             cart.name = line:sub(3)
             if cart.use_mimosa then cart.name = line:sub(2, -2) end
             love.window.setTitle("Memosaic - " .. cart.name)
-            table.insert(cart.code, line)
+        end
 
-        -- Add line to code (exclude font or sfx flags and data)
-        elseif not cart.tag("font", next_flag) and not cart.tag("sfx", next_flag) then
-            table.insert(cart.code, line)
+        if cart.tag("defaultfont", flag) then
+            cart.memapi.load_font(cart.memapi.default_font)
         end
     end
 end

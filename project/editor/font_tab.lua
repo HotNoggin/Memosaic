@@ -38,13 +38,14 @@ function font_tab.update(editor)
             byte = b.bor(byte, b.lshift(1, m_y - 1))
         end
         font_tab.memapi.poke(ptr, byte)
+        editor.stashed_font = font_tab.get_font(editor)
     end
 
     -- Char select
     if ipt.lclick_in(8, 1, 15, 14) and not ipt.lheld then
         local idx = (m_y + 1) * 8 + m_x - 8
         font_tab.char = idx
-        editor.tooltip = "char: " .. string.char(idx) .. "(" .. idx .. ")"
+        editor.tooltip = "char: " .. string.char(idx) .. " (" .. idx .. ")"
     end
 
     -- BG select
@@ -73,8 +74,8 @@ function font_tab.update(editor)
     end
 
     -- Color drawing
-    draw.text(0, 9, "BG Color", 10) -- blue
-    draw.text(0, 12, "FG Color", 10)
+    draw.text(0, 9, "bg color", 10) -- blue
+    draw.text(0, 12, "fg color", 10)
     local isfg = false
     for count = 0, 1 do
         for x = 0, 7 do
@@ -98,7 +99,7 @@ function font_tab.update(editor)
 
     -- Draw chars
     for x = 0, 7 do
-        for y = 2, 16 do
+        for y = 2, 15 do
             local idx = (y * 8) + x
             draw.tile(x + 8, y - 1, idx, 13, 0)
             if idx == font_tab.char then

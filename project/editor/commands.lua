@@ -37,6 +37,7 @@ function cmd.command(str)
     cmd.found_command = false
 
     if cmd.is(c, "info", terms, 1) then cmd.info()
+    elseif cmd.is(c, "help", terms, 1) then cmd.help(terms)
     elseif cmd.is(c, "cd", terms, 2) then cmd.cli.changedir(terms[2])
     elseif cmd.is(c, "ls", terms, 1) then cmd.listdir()
     elseif cmd.is(c, "dir", terms, 1) then cmd.listdir()
@@ -54,8 +55,7 @@ function cmd.command(str)
     elseif cmd.is(c, "demos", terms, 1) then cmd.demos()
     elseif cmd.is(c, "clear", terms, 1) then cmd.cli.clear()
     elseif cmd.is(c, "welcome", terms, 1) then cmd.cli.reset()
-    elseif cmd.is(c, "font", terms, 1) then cmd.font(0x00, 0xFF)
-    elseif cmd.is(c, "chars", terms, 1) then cmd.font(0x00, 0x7F)
+    elseif cmd.is(c, "font", terms, 1) then cmd.font(0x00, 0x7F)
     elseif cmd.is(c, "dithers", terms, 1) then cmd.font(0x80, 0xFF)
     elseif cmd.is(c, "wrap", terms, 1) then cmd.cli.wrap = not cmd.cli.wrap
     elseif cmd.is(c, "mimosa", terms, 1) then cmd.setmimosa(true)
@@ -91,6 +91,14 @@ function cmd.command(str)
         end
     end
 end
+
+
+function cmd.help(terms)
+    if #terms == 1 then
+        
+    end
+end
+
 
 
 function cmd.info()
@@ -262,8 +270,8 @@ end
 
 
 function cmd.demos(specific)
-    if lfs.getInfo("memo/carts/demos", "directory") == nil then
-        local success = lfs.createDirectory("memo/carts/demos")
+    if lfs.getInfo("memo/demos", "directory") == nil then
+        local success = lfs.createDirectory("memo/demos")
         if not success then
             cmd.cli.print("Couldn't install demos", cmd.pink)
             cmd.cli.print("Couldn't create folder", cmd.red)
@@ -273,9 +281,9 @@ function cmd.demos(specific)
     for name, cart in pairs(cmd.memo.demos) do
         local success, msg
         if specific == nil then
-            success, msg = lfs.write("memo/carts/demos/" .. name, cart)
+            success, msg = lfs.write("memo/demos/" .. name, cart)
         elseif name == specific then
-            success, msg = lfs.write("memo/carts/demos/" .. name, cart)
+            success, msg = lfs.write("memo/demos/" .. name, cart)
         end
         if not success then
             cmd.cli.print("Couldn't install demos", cmd.pink)
@@ -284,7 +292,7 @@ function cmd.demos(specific)
         end
     end
     cmd.cli.print("Saved demos to")
-    cmd.cli.print("\1/carts/demos/")
+    cmd.cli.print("\1/demos/")
 end
 
 
