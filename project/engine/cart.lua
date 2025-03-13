@@ -115,7 +115,7 @@ function cart.load_lines(lines)
         -- Add line to code (exclude font or sfx flags and data)
         -- Ensure flags that should be added to the cart are BELOW this
         elseif cart.tag("font", next_flag) or cart.tag("sfx", next_flag) then
-            return
+            goto continue
         end
 
         table.insert(cart.code, line)
@@ -129,6 +129,8 @@ function cart.load_lines(lines)
         if cart.tag("defaultfont", flag) then
             cart.memapi.load_font(cart.memapi.default_font)
         end
+
+        ::continue::
     end
 end
 
