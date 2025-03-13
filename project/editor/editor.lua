@@ -109,7 +109,6 @@ function editor.update_bar()
     end
 
     draw.text(0, 15, editor.tooltip) -- x y string
-    print("still going!")
 end
 
 
