@@ -50,10 +50,6 @@ function editor.update()
         editor.sendcmd("save")
     end
 
-    if ipt.ctrl and ipt.shift and ipt.key("f") and not ipt.oldkey("f") then
-        editor.sendcmd("flipfont")
-    end
-
     -- CLI-Editor switching
     if isesc and not editor.escdown then
         editor.tooltip = "\1"
