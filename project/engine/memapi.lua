@@ -20,7 +20,9 @@ memapi.map = {
 
     ascii_start  = 0xc00, ascii_end  = 0xcff, -- 256 bytes for ascii char grid of 256 chars
     color_start  = 0xd00, color_end  = 0xdff, -- 256 bytes for 4-bit color grid of 512 colors
-    bonus_start  = 0xe00, bonus_end  = 0xfff, -- 512 bytes for multiple uses, including saving
+
+    scroll_start = 0xe00, scroll_end = 0xe0f, -- 16 bytes for 128 pixels of scroll per tile line
+    pan_x = 0xe10, pan_y = 0xe11              -- 2 bytes for the tile grid pan x and y
 }
 
 

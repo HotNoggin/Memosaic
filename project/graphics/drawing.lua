@@ -8,6 +8,9 @@ local b = require("bit")
 drawing.TILE_WIDTH = 16
 drawing.TILE_HEIGHT = 16
 
+-- Ranges from 0 to 15, allows smooth scrolling + other effects
+drawing.offset = {x = 0, y = 0}
+
 drawing.palette = {
     -- KIBI 16 (by me, made for KIBIBOY)
     -- {r = 0.035, g = 0.008, b = 0.133}, -- 0 black
@@ -197,6 +200,14 @@ function drawing.ink(x, y, fg, bg)
 end
 
 
+function drawing.setoffset(px, py)
+    if drawing.console.bad_type(px, "number", "offset") then return end
+    if drawing.console.bad_type(py, "number", "offset") then return end
+    drawing.memapi.poke(drawing.memapi.map.pan_x, math.floor(px) % 128)
+    drawing.memapi.poke(drawing.memapi.map.pan_y, math.floor(py) % 128)
+end
+
+
 -- ## Canvas pixel drawing methods ## --
 
 function drawing.draw_buffer()
@@ -216,10 +227,15 @@ function drawing.draw_buffer()
                     else
                         draw_pixel = drawing.font_pixel(px, py, char)
                     end
+                    local off_x = drawing.memapi.peek(drawing.memapi.map.pan_x) % 128
+                    local off_y = drawing.memapi.peek(drawing.memapi.map.pan_y) % 128
+                    local row_x = drawing.memapi.peek(drawing.memapi.map.scroll_start + ty) % 128
+                    local opx = (tx * 8 + px + off_x + row_x) % 128
+                    local opy = (ty * 8 + py + off_y) % 128
                     if draw_pixel then
-                        drawing.pixel(tx * 8 + px, ty * 8 + py, fg)
+                        drawing.pixel(opx, opy, fg)
                     else
-                        drawing.pixel(tx * 8 + px, ty * 8 + py, bg)
+                        drawing.pixel(opx, opy, bg)
                     end
                 end
             end

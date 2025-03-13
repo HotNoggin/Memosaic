@@ -169,6 +169,11 @@ end
 
 function cart.stop()
     print("Cart stopped\n")
+    cart.memo.drawing.setoffset(0, 0)
+    -- Reset individual line scroll
+    for i = 0, 15 do
+        cart.memapi.poke(cart.memapi.map.scroll_start + i, 0)
+    end
     cart.running = false
 end
 
