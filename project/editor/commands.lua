@@ -8,7 +8,7 @@ function cmd.init(memo)
     cmd.memo = memo
     cmd.cli = memo.editor.console
     cmd.purple = 2
-    cmd.red = 3
+    cmd.red = 3 -- actually brown but i like the dark one
     cmd.lime = 8
     cmd.green = 9
     cmd.blue = 10
