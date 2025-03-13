@@ -19,6 +19,7 @@ function editor.init(memo)
     editor.ranfrom = 0
     editor.console.editor = editor
     editor.tooltip = ""
+    editor.hotreload = false
 
     editor.console.init(memo)
     editor.font_tab.init(memo)
@@ -114,7 +115,7 @@ end
 
 function editor.get_save()
     local cdata = ""
-    cdata = cdata .. editor.cart.get_script() .. "\n"
+    cdata = cdata .. editor.cart.get_script()
     local font = editor.font_tab.get_font(editor)
     if editor.cart.use_mimosa then
         cdata = cdata .. "(!font!)\n(" .. font .. ")"
