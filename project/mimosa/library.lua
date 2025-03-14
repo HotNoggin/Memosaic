@@ -17,6 +17,8 @@ function lib.init(memo, mint)
 end
 
 
+----------- SYSTEM -----------
+
 function lib.stat(offset)
     lib.mint.say("stat")
     local code = lib.mint.pop()
@@ -64,6 +66,8 @@ function lib.btnr()
     end
 end
 
+
+----------- DRAWING -----------
 
 function lib.fill()
     local m = lib.mint
@@ -145,6 +149,8 @@ function lib.ink(val, pidx, pcolr)
     end
 end
 
+
+----------- AUDIO -----------
 
 function lib.blipat(val, pwav, pnote, pvol, pat)
     local m = lib.mint

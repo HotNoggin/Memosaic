@@ -329,6 +329,8 @@ function console.error(text)
     end
 end
 
+console.err = console.error
+
 
 function console.splitstr(text, chunkSize)
     local tbl = {}

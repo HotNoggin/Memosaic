@@ -106,11 +106,12 @@ function drawing.text(x, y, str, fg, bg, w)
     local dx = x
     local dy = y
     local width = 0
+    local s = tostring(str)
     if w then width = w end
     if c.bad_type(width, "number", "text:width") then return end
     local dowrap = width > 0
-    for i = 1, string.len(str) do
-        local char = str:sub(i, i)
+    for i = 1, #s do
+        local char = s:sub(i, i)
         if dowrap and dx >= x + width then
             dx = x
             dy = dy + 1

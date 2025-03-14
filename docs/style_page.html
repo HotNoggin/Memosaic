@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Memosaic Documentation</title>
+    <link rel="icon" type="image/x-icon" href="images/icon.png">
+    <link rel="stylesheet" href="css/style.css" type="text/css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href=
+    "https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet">
+    <meta property="og:title" content="Memosaic User Manual">
+    <meta property="og:locale" content="en">
+    <meta property="og:image" content="images/icon.png">
+    <meta property="og:url" content="jjgame.dev/memo/">
+    <meta name="og:description" content="The portfolio of a teenage indie game developer.">
+    <meta name="description" content="The portfolio of a teenage indie game developer.">
+    <meta name="author" content="JJ">
+    <script>
+        function myFunction() {
+            var element = document.body;
+            element.classList.toggle("light-mode");
+        }
+    </script>
+</head>
+
+
+<body>
+<div id="main">
+<button onclick="myFunction()" style="font-size:32px; float:right;"> ◐ </button>
+<h1>Memosaic Documentation</h1>
+
+<p>
+Memosaic is a tiny ASCII fantasy console. This is some text describing this page.<br>
+Yada yada yada yada, click the links below to see speciic pages of the documentation.
+<ul>
+    <li><a href="manual/">User Manual</a></li>
+    <li><a href="lua_api/">Lua API</a></li>
+    <li><a href="mosa_api/">Mimosa API</a></li>
+</ul>
+</p>
+
+<pre class="codebox">
+-- This is a codebox
+
+num = 0
+
+-- Called once after load                          far right
+function boot()
+    print("Code is running!")
+end
+
+-- Called 60 times per second
+function tick()
+    num = num + 1
+    print(num)
+end
+
+print("Done loading!")
+</pre>
+</div>
+</body>
+
+
+</html>
