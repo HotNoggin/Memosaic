@@ -8,24 +8,27 @@ local b = require("bit")
 drawing.TILE_WIDTH = 16
 drawing.TILE_HEIGHT = 16
 
+-- Ranges from 0 to 15, allows smooth scrolling + other effects
+drawing.offset = {x = 0, y = 0}
+
 drawing.palette = {
     -- KIBI 16 (by me, made for KIBIBOY)
-    {r = 0.035, g = 0.008, b = 0.133}, -- 0 black
-    {r = 0.227, g = 0.208, b = 0.196}, -- 1 silver
-    {r = 0.290, g = 0.020, b = 0.302}, -- 2 purple
-    {r = 0.447, g = 0.106, b = 0.188}, -- 3 red
-    {r = 0.490, g = 0.200, b = 0.024}, -- 4 brown
-    {r = 0.976, g = 0.588, b = 0.086}, -- 5 orange
-    {r = 0.965, g = 0.753, b = 0.471}, -- 6 peach
-    {r = 1.000, g = 0.855, b = 0.078}, -- 7 yellow
-    {r = 0.659, g = 1.000, b = 0.318}, -- 8 lime
-    {r = 0.090, g = 0.318, b = 0.145}, -- 9 green
-    {r = 0.267, g = 0.259, b = 0.745}, -- a/10 blue
-    {r = 0.141, g = 0.698, b = 0.729}, -- b/11 teal
-    {r = 0.647, g = 0.816, b = 0.824}, -- c/12 gray
-    {r = 0.965, g = 0.953, b = 0.816}, -- d/13 white
-    {r = 0.973, g = 0.420, b = 0.537}, -- e/14 pink
-    {r = 0.663, g = 0.204, b = 0.678}, -- f/15 magenta
+    -- {r = 0.035, g = 0.008, b = 0.133}, -- 0 black
+    -- {r = 0.227, g = 0.208, b = 0.196}, -- 1 silver
+    -- {r = 0.290, g = 0.020, b = 0.302}, -- 2 purple
+    -- {r = 0.447, g = 0.106, b = 0.188}, -- 3 red
+    -- {r = 0.490, g = 0.200, b = 0.024}, -- 4 brown
+    -- {r = 0.976, g = 0.588, b = 0.086}, -- 5 orange
+    -- {r = 0.965, g = 0.753, b = 0.471}, -- 6 peach
+    -- {r = 1.000, g = 0.855, b = 0.078}, -- 7 yellow
+    -- {r = 0.659, g = 1.000, b = 0.318}, -- 8 lime
+    -- {r = 0.090, g = 0.318, b = 0.145}, -- 9 green
+    -- {r = 0.267, g = 0.259, b = 0.745}, -- a/10 blue
+    -- {r = 0.141, g = 0.698, b = 0.729}, -- b/11 teal
+    -- {r = 0.647, g = 0.816, b = 0.824}, -- c/12 gray
+    -- {r = 0.965, g = 0.953, b = 0.816}, -- d/13 white
+    -- {r = 0.973, g = 0.420, b = 0.537}, -- e/14 pink
+    -- {r = 0.663, g = 0.204, b = 0.678}, -- f/15 magenta
 }
 
 
@@ -34,6 +37,11 @@ function drawing.init(memo)
     drawing.canvas = memo.canvas
     drawing.memapi = memo.memapi
     drawing.console = memo.editor.console
+    local img = love.image.newImageData("img/memo_16.png")
+    for i = 0, 15 do
+        local pr, pg, pb = img:getPixel(i, 0)
+        drawing.palette[i + 1] = {r = pr, g = pg, b = pb}
+    end
 end
 
 
@@ -92,14 +100,18 @@ end
 -- Draw a line of text onto the screen
 -- If w > 1, this wraps to keep width w
 function drawing.text(x, y, str, fg, bg, w)
+    local c = drawing.console
+    if c.bad_type(x, "number", "text:x") then return end
+    if c.bad_type(y, "number", "text:y") then return end
     local dx = x
     local dy = y
     local width = 0
     if w then width = w end
+    if c.bad_type(width, "number", "text:width") then return end
     local dowrap = width > 0
     for i = 1, string.len(str) do
         local char = str:sub(i, i)
-        if dowrap and dx > x + width then
+        if dowrap and dx >= x + width then
             dx = x
             dy = dy + 1
         end
@@ -117,7 +129,7 @@ end
 
 function drawing.cget(tx, ty)
     local con = drawing.console
-    if con.bad_type(tx, "number", "cget") or con.bad_type(ty, "number", "cget") then
+    if con.bad_type(tx, "number", "cget:x") or con.bad_type(ty, "number", "cget:y") then
         return
     end
     local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
@@ -127,7 +139,7 @@ end
 
 function drawing.iget(tx,ty)
     local con = drawing.console
-    if con.bad_type(tx, "number", "iget") or con.bad_type(ty, "number", "iget") then
+    if con.bad_type(tx, "number", "iget:x") or con.bad_type(ty, "number", "iget:y") then
         return
     end
     local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
@@ -150,7 +162,7 @@ function drawing.char(x, y, c)
     local char = c
     if type(char) == "string" then char = string.byte(c) end
     if type(char) ~= "number" then
-        drawing.console.error("in etch: expected char or number, got " .. type(char))
+        drawing.console.error("etch:char: expected char or number, got " .. type(char))
         return
     end
     if char > 0 then
@@ -163,7 +175,7 @@ function drawing.ink(x, y, fg, bg)
     local con = drawing.console
     local fore = -1
     local back = -1
-    if con.bad_type(x, "number", "ink") or con.bad_type(y, "number", "ink")
+    if con.bad_type(x, "number", "ink:x") or con.bad_type(y, "number", "ink:y")
     then return end
     if fg then
         if con.bad_type(fore, "number", "ink") then return end
@@ -192,6 +204,14 @@ function drawing.ink(x, y, fg, bg)
 end
 
 
+function drawing.setoffset(px, py)
+    if drawing.console.bad_type(px, "number", "offset") then return end
+    if drawing.console.bad_type(py, "number", "offset") then return end
+    drawing.memapi.poke(drawing.memapi.map.pan_x, math.floor(px) % 128)
+    drawing.memapi.poke(drawing.memapi.map.pan_y, math.floor(py) % 128)
+end
+
+
 -- ## Canvas pixel drawing methods ## --
 
 function drawing.draw_buffer()
@@ -211,10 +231,15 @@ function drawing.draw_buffer()
                     else
                         draw_pixel = drawing.font_pixel(px, py, char)
                     end
+                    local off_x = drawing.memapi.peek(drawing.memapi.map.pan_x) % 128
+                    local off_y = drawing.memapi.peek(drawing.memapi.map.pan_y) % 128
+                    local row_x = drawing.memapi.peek(drawing.memapi.map.scroll_start + ty) % 128
+                    local opx = (tx * 8 + px + off_x + row_x) % 128
+                    local opy = (ty * 8 + py + off_y) % 128
                     if draw_pixel then
-                        drawing.pixel(tx * 8 + px, ty * 8 + py, fg)
+                        drawing.pixel(opx, opy, fg)
                     else
-                        drawing.pixel(tx * 8 + px, ty * 8 + py, bg)
+                        drawing.pixel(opx, opy, bg)
                     end
                 end
             end
@@ -271,6 +296,16 @@ function drawing.clear(color)
             drawing.pixel(x, y, color)
         end
     end
+end
+
+
+-- Takes a hex color #AABBCC and returns a, b, c
+-- Where all values are between 0 and 1
+function drawing.colr(color)
+    local clr = math.floor(color)
+    local ba = bit.rshift(bit.band(clr, 0xFF0000), 16) / 0xFF
+    local bb = bit.rshift(bit.band(clr, 0x00FF00), 8) / 0xFF
+    local bc = bit.band(clr, 0xFF) / 0xFF
 end
 
 -- Export the module as a table

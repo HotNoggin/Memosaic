@@ -23,10 +23,6 @@ end
 -- Called each frame, continuously
 function love.update(dt)
     if memo.tick.update(dt) then
-        tick_audio = not tick_audio
-        if tick_audio then
-            memo.audio.tick()
-        end
         memo.input.update()
 
         -- Run game (temporary hard path used)
@@ -44,6 +40,12 @@ function love.update(dt)
             memo.cart.tick()
         else
             memo.editor.update()
+        end
+
+        -- Play the instructions in the audio buffer
+        tick_audio = not tick_audio
+        if tick_audio then
+            memo.audio.tick()
         end
 
         -- Draw the ASCII + color buffers to the screen
@@ -66,6 +68,45 @@ end
 function love.wheelmoved(x, y)
     if y > 0 then memo.input.wheel = 1 elseif
     y < 0 then memo.input.wheel = -1
+    end
+end
+
+
+function love.focus(focus)
+    if focus then
+        print("Refocused")
+        -- HOT RELOADING --
+        local change = false
+        local editorsave = memo.editor.get_save()
+        local path = love.filesystem.getSaveDirectory() .. "/" .. memo.editor.console.cartfile
+        if path[#path] == "/" then -- This is a folder
+            return
+        end
+        local diskfile = io.open(path, "r")
+
+        if not diskfile then -- There is no file here
+            return
+        end
+
+        local disksave = diskfile:read("*a")
+
+        if disksave ~= editorsave then
+            print("External changes detected")
+            -- Only handle conflict if the editor has its own unsaved changes
+            -- Otherwise just load the changes from the disk
+            if memo.editor.get_save() ~= memo.editor.cart_at_save then
+                print("Queue conflict resolution")
+                memo.editor.hotreload = true
+            else
+                print("No local changes")
+                memo.editor.sendcmd("reload")
+            end
+        else
+            print("No external changes")
+        end
+    else
+        print("Unfocused")
+        memo.editor.save_at_unfocus = memo.editor.get_save()
     end
 end
 

@@ -86,7 +86,7 @@ stat(code): Returns various values about the state of the console.
 -- There are 16 colors from the defined in the color palette.
 -- All drawing methods which need color use these 16 colors.
 -- Each tile is an ASCII character in the foreground color on top of the background color.
--- 0=black, 1=silver, 2=purple, 3=red, 4=brown, 5=orange, 6=peach, 7=yellow,
+-- 0=black, 1=silver, 2=purple, 3=brown, 4=red, 5=orange, 6=peach, 7=yellow,
 -- 8=lime, 9=green, 10=blue, 11=teal, 12=gray, 13=white, 14=pink, 15=magenta
 
 clrs(char, fg, bg): Fills the entire ASCII+color grid with the same tile.
@@ -134,6 +134,12 @@ irect(x, y, w, h, fg, bg): Sets a rectangle of colors on the color grid.
     h: The height of the rectangle. The rectangle extends from y to y + h.
     fg: The foreground color.
     bg: The background color.
+
+cget(x, y): Returns the character code at the given ASCII tile.
+    x, y: The tile coordinate of the tile. Ranges from 0 (top/left) to 15(bottom/right).
+
+iget(x, y): Returns the colors at the given ASCII tile as fg, bg.
+    x, y: The tile coordinate of the tile. Ranges from 0 (top/left) to 15(bottom/right).
 
 text(x, y, str, fg, bg): Copies a string of characters to the ASCII+color grid.
     x, y: The tile coordinate of the start. Ranges from 0 (top/left) to 15(bottom/right).
