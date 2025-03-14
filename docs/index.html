@@ -29,37 +29,20 @@
 
 <body>
 <div id="main">
+
 <button onclick="myFunction()" style="font-size:32px; float:right;"> ◐ </button>
-<h1>Memosaic Documentation</h1>
+<h1 id="docs"><a href="#docs">Memosaic Documentation</a></h1>
 
 <p>
-Memosaic is a tiny ASCII fantasy console. This is some text describing this page.<br>
-Yada yada yada yada, click the links below to see speciic pages of the documentation.
+Memosaic is a tiny, ASCII fantasy console. You can play, create, and share games and other programs
+all within the console. It's made to feel and act like a physical console that runs on your computer!
 <ul>
-    <li><a href="manual/">User Manual</a></li>
-    <li><a href="lua_api/">Lua API</a></li>
-    <li><a href="mosa_api/">Mimosa API</a></li>
+    <li><a href="manual.html">User Manual</a></li>
+    <li><a href="lua_api.html">Lua API</li>
+    <li><a href="mosa_api.html">Mimosa API</a></li>
 </ul>
 </p>
 
-<pre class="codebox">
--- This is a codebox
-
-num = 0
-
--- Called once after load                          far right
-function boot()
-    print("Code is running!")
-end
-
--- Called 60 times per second
-function tick()
-    num = num + 1
-    print(num)
-end
-
-print("Done loading!")
-</pre>
 </div>
 </body>
 

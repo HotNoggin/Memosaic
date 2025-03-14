@@ -50,6 +50,11 @@ li:before {
     padding-right: 5px;
 }
 
+.headerlink {
+    color: white;
+}
+
+
 .codebox {
     display:block;
     break-inside: avoid;
@@ -69,6 +74,6 @@ li:before {
 }
 
 .light-mode {
-    background-color: white;
-    color: black;
+    background-color: white !important;
+    color: black !important;
 }
