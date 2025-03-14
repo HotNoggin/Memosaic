@@ -230,6 +230,7 @@ function cmd.save(terms)
     if success then
         cmd.memo.cart.use_mimosa = mosa
         cmd.cli.print("Saved " .. cmd.memo.cart.name .. " to " .. minipath)
+        cmd.memo.editor.cart_at_save = cmd.memo.editor.get_save()
         return
     else
         cmd.cli.print("Couldn't save.", cmd.pink)

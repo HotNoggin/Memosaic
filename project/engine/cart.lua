@@ -128,6 +128,8 @@ function cart.load_lines(lines)
             table.insert(cart.code, line)
         end
     end
+
+    cart.memo.editor.cart_at_save = cart.memo.editor.get_save()
 end
 
 

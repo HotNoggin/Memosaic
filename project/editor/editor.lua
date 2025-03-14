@@ -21,6 +21,9 @@ function editor.init(memo)
     editor.tooltip = ""
 
     editor.hotreload = false
+    editor.remember_reload_choice = false
+    editor.saved_reload_choice = 0
+    editor.cart_at_save = ""
     editor.save_at_unfocus = ""
 
     editor.console.init(memo)
@@ -121,6 +124,80 @@ end
 
 
 function editor.update_reload()
+    local draw = editor.drawing
+    local ipt = editor.input
+
+    -- Conflict resolution options
+    if ipt.key("1") and not ipt.oldkey("1") or
+    editor.saved_reload_choice == 1 or
+    ipt.lclick_in(0, 5, 15, 6) and not ipt.lheld then
+        editor.sendcmd("reload")
+        editor.sendcmd("save")
+        print("Loaded external changes")
+        editor.save_reload_choice(1)
+        return
+    elseif ipt.key("2") and not ipt.oldkey("2") or
+    editor.saved_reload_choice == 2 or
+    ipt.lclick_in(0, 8, 15, 9) and not ipt.lheld then
+        editor.sendcmd("save")
+        print("Saved editor changes")
+        editor.save_reload_choice(2)
+        return
+    elseif ipt.key("3") and not ipt.oldkey("3") or
+    editor.saved_reload_choice == 3 or
+    ipt.lclick_in(0, 11, 15, 12) and not ipt.lheld then
+        print("Ignored external changes")
+        editor.save_reload_choice(3)
+        return
+    end
+
+    -- Base popup text
+    draw.clrs()
+    draw.text(0, 0, "External change detected!", 5, 0, 16) -- orange
+    draw.text(0, 2, "Which do you    want to save?", 3, 0, 16) -- brown
+    local byte = 0xCC
+    local str = ""
+    for i=1,16 do
+        str = str .. string.char(byte)
+    end
+    draw.text(0, 4, str, 3)
+    draw.text(0, 5, "1:Load External")
+    draw.text(0, 6, " (Lose Editors)")
+    draw.text(0, 8, "2:Save Editor's")
+    draw.text(0, 9, " (Lose External)")
+    draw.text(0, 11, "3:Keep Editor's")
+    draw.text(0, 12, " (Do not save)")
+    draw.text(0, 15, " Don't ask again", 1) -- silver
+
+    local mx, my = ipt.mouse.x, ipt.mouse.y
+
+    for i = 5, 11, 3 do
+        if my == i or my == i + 1 then
+            draw.irect(0, i, 16, 2, 4) -- x y w h red
+        else
+            draw.irect(0, i, 16, 1, 5) -- x y w h orange
+            draw.irect(0, i, 16, 1, 3) -- x y w h brown
+        end
+    end
+
+    -- Remember choice toggle
+    if mx == 0 and my == 15 and ipt.lclick and not ipt.lheld then
+        editor.remember_reload_choice = not editor.remember_reload_choice
+    end
+    if editor.remember_reload_choice then
+        draw.char(0, 15, 7)
+        draw.irect(0, 15, 16, 1, 5) -- x y w h orange
+    else
+        draw.tile(0, 15, 6, 0, 1) -- x y c black, silver
+    end
+end
+
+
+function editor.save_reload_choice(num)
+    if editor.remember_reload_choice then
+        editor.saved_reload_choice = num
+    end
+    editor.hotreload = false
 end
 
 

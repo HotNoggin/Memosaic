@@ -92,12 +92,21 @@ function love.focus(focus)
 
         if disksave ~= editorsave then
             print("External changes detected")
-            memo.editor.hotreload = true
+            -- Only handle conflict if the editor has its own unsaved changes
+            -- Otherwise just load the changes from the disk
+            if memo.editor.get_save() ~= memo.editor.cart_at_save then
+                print("Queue conflict resolution")
+                memo.editor.hotreload = true
+            else
+                print("No local changes")
+                memo.editor.sendcmd("reload")
+            end
         else
             print("No external changes")
         end
     else
         print("Unfocused")
+        memo.editor.save_at_unfocus = memo.editor.get_save()
     end
 end
 
