@@ -161,13 +161,13 @@ function editor.update_reload()
         str = str .. string.char(byte)
     end
     draw.text(0, 4, str, 3)
-    draw.text(0, 5, "1:Load External")
-    draw.text(0, 6, " (Lose Editors)")
-    draw.text(0, 8, "2:Save Editor's")
-    draw.text(0, 9, " (Lose External)")
-    draw.text(0, 11, "3:Keep Editor's")
-    draw.text(0, 12, " (Do not save)")
-    draw.text(0, 15, " Don't ask again", 1) -- silver
+    draw.text(0, 5, "1:load external")
+    draw.text(0, 6, " (lose editor's)")
+    draw.text(0, 8, "2:save changes")
+    draw.text(0, 9, " (lose external)")
+    draw.text(0, 11, "3:overwrite none")
+    draw.text(0, 12, " (do not save)")
+    draw.text(0, 15, " don't ask again", 1) -- silver
 
     local mx, my = ipt.mouse.x, ipt.mouse.y
 
