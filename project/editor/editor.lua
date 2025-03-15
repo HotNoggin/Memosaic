@@ -24,7 +24,6 @@ function editor.init(memo)
     editor.remember_reload_choice = false
     editor.saved_reload_choice = 0
     editor.cart_at_save = ""
-    editor.save_at_unfocus = ""
 
     editor.console.init(memo)
     editor.font_tab.init(memo)
@@ -218,6 +217,43 @@ function editor.sendcmd(command)
     editor.console.cmd.command(command)
     if #editor.console.entries > 1 then
         editor.tooltip = editor.console.entries[#editor.console.entries - 1]
+    end
+end
+
+
+-- Checks the saves and triggers a hot reload if needed
+-- Returns true if the cart is ok to run (no conflicts)
+function editor.check_save()
+    local change = false
+    local editorsave = editor.get_save()
+    local path = love.filesystem.getSaveDirectory() .. "/" .. editor.console.cartfile
+    if path[#path] == "/" then -- This is a folder
+        return true
+    end
+    local diskfile = io.open(path, "r")
+
+    if not diskfile then -- There is no file here
+        return true
+    end
+
+    local disksave = diskfile:read("*a")
+
+    if disksave ~= editorsave and disksave ~= editor.cart_at_save then
+        print("External changes detected")
+        -- Only handle conflict if the editor has its own unsaved changes
+        -- Otherwise just load the changes from the disk
+        if editor.get_save() ~= editor.cart_at_save then
+            print("Queue conflict resolution")
+            editor.hotreload = true
+            return false
+        else
+            print("No local changes")
+            editor.sendcmd("reload")
+            return true
+        end
+    else
+        print("No external changes")
+        return true
     end
 end
 

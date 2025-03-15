@@ -134,6 +134,7 @@ end
 
 
 function cart.run()
+    if not cart.memo.editor.check_save() then return end
     local memo = cart.memo
     print("Starting cart")
     love.window.setTitle("Memosaic - " .. cart.name)
