@@ -3,15 +3,15 @@ local paths = {"beep.memo", "lil_jumpy.memo", "poke.memo", "scroll.memo", "snek.
 
 
 for i, path in ipairs(paths) do
-	local info = love.filesystem.getInfo("carts/demos/".. path)
-	if info then
-		local globalpath = "/carts/demos/" .. path
-        local file = love.filesystem.read("carts/demos/" .. path)
+	local file = love.filesystem.read("carts/demos" .. path)
 
-        if not file then print("no demo named " .. path) break end
-		demos[path] = file
+	if not file then
+		file = love.filesystem.read("carts/games/" .. path)
+		if not file then break end
 	end
+	demos[path] = file
 end
+
 
 demos["new_cart.memo"] =
 [[

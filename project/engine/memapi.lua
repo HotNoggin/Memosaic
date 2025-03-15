@@ -7,29 +7,32 @@ memapi.default_font = "007e464a52627e007733770077577500005e42425e505000004c42424
 
 -- The addresses of specific areas of memory
 memapi.map = {
-    memory_start = 0x000, memory_end = 0xfff, -- The entirety of the memory
-    write_start  = 0x000, write_end  = 0xfff, -- The writable memory block
-    font_start   = 0x000, font_end   = 0x3ff, -- 1024 (1 kibi) bytes for 128 8-byte chars
-    sounds_start = 0x400, sounds_end = 0x7ff, -- 1024 (1 kibi) bytes for 32 to 48 32-byte sounds
+    memory_start = 0x0000, memory_end = 0x1fff, -- The entirety of the memory
+    write_start  = 0x0000, write_end  = 0x1fff, -- The writable memory block
+    font_start   = 0x0000, font_end   = 0x03ff, -- 1024 (1 kibi) bytes for 128 8-byte cart chars
+    sounds_start = 0x0400, sounds_end = 0x07ff, -- 1024 (1 kibi) bytes for 32 to 48 32-byte sounds
 
-    audio_start  = 0x800, audio_stop = 0xbff, -- 1024 (1 kibi) bytes for audio buffer
-    sqrwav_start = 0x800, sqrwav_stop = 0x8ff, -- Channel 0: square, 256 bytes of instruction
-    triwav_start = 0x900, triwav_stop = 0x9ff, -- Channel 0: triangle, 256 bytes of instruction
-    sawwav_start = 0xa00, sawwav_stop = 0xaff, -- Channel 0: sawtooth, 256 bytes of instruction
-    nozwav_start = 0xb00, nozwav_stop = 0xbff, -- Channel 0: noise, 256 bytes of instruction
+    sqrwav_start = 0x0800, sqrwav_stop = 0x09ff, -- Channel 0: square, 512 bytes of instruction
+    triwav_start = 0x0a00, triwav_stop = 0x0bff, -- Channel 1: triangle, 512 bytes of instruction
 
-    ascii_start  = 0xc00, ascii_end  = 0xcff, -- 256 bytes for ascii char grid of 256 chars
-    color_start  = 0xd00, color_end  = 0xdff, -- 256 bytes for 4-bit color grid of 512 colors
+    ascii_start  = 0x0c00, ascii_end  = 0x0cff, -- 256 bytes for ascii char grid of 256 chars
+    color_start  = 0x0d00, color_end  = 0x0dff, -- 256 bytes for 4-bit color grid of 512 colors
 
-    scroll_start = 0xe00, scroll_end = 0xe0f, -- 16 bytes for 128 pixels of scroll per tile line
-    pan_x = 0xe10, pan_y = 0xe11              -- 2 bytes for the tile grid pan x and y
+    scroll_start = 0x0e00, scroll_end = 0x0e0f, -- 16 bytes for 128 pixels of scroll per tile line
+    pan_x        = 0x0e10, pan_y      = 0x0e11, -- 2 bytes for the tile grid pan x and y
+    rflags_start = 0x0e20, rflags_end = 0x0e2f, -- 16 bytes for tile row flags of 8 flags per row
+
+    efont_start  = 0x1000, efont_end  = 0x13ff, -- 1024 (1 kibi) bytes for 128 8-byte editor chars 
+
+    sawwav_start = 0x1800, sawwav_stop = 0x19ff, -- Channel 2: sawtooth, 512 bytes of instruction
+    nozwav_start = 0x1a00, nozwav_stop = 0x1bff, -- Channel 3: noise, 512 bytes of instruction
 }
 
 
 -- Create a new, 4Kib memory buffer
 function memapi.init(memo)
     print("Creating memory buffer")
-    memapi.bytes = love.data.newByteData(0x1000) -- New 4Kib buffer
+    memapi.bytes = love.data.newByteData(0x2000) -- New 8Kib buffer
     memapi.ptr = ffi.cast('uint8_t*', memapi.bytes:getFFIPointer()) -- Byte pointer
     memapi.load_font(memapi.default_font)
     memapi.memo = memo
