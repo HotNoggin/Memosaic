@@ -35,19 +35,22 @@ function memapi.init(memo)
     memapi.bytes = love.data.newByteData(0x2000) -- New 8Kib buffer
     memapi.ptr = ffi.cast('uint8_t*', memapi.bytes:getFFIPointer()) -- Byte pointer
     memapi.load_font(memapi.default_font)
+    memapi.load_font(memapi.default_font, true)
     memapi.memo = memo
 end
 
 
 -- Loads font from a hexadecimal string
-function memapi.load_font(font)
+function memapi.load_font(font, editor)
     print("Loading font")
     local font_size = memapi.map.font_end - memapi.map.font_start
+    local font_start = memapi.map.font_start
+    if editor then font_start = memapi.map.efont_start end
     if not font then return end
     for i = 0, font_size do
         if #font <= 2*i then return false end
         local byte = tonumber(string.sub(font, 2*i + 1, 2*i + 2), 16)
-        memapi.poke(i + memapi.map.font_start, byte)
+        memapi.poke(i + font_start, byte)
     end
     return true
 end

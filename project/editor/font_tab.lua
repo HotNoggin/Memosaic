@@ -18,8 +18,14 @@ end
 function font_tab.update(editor)
     local draw = font_tab.draw
     local ipt = font_tab.input
+    local mem = font_tab.memapi
 
     draw.clrs()
+
+    -- Set efont flag to false on sprite rows
+    for i = mem.map.rflags_start + 1, mem.map.rflags_end - 1 do
+        mem.poke(i, 0x00)
+    end
 
     local m_x = ipt.mouse.x
     local m_y = ipt.mouse.y
@@ -30,14 +36,14 @@ function font_tab.update(editor)
             font_tab.pen = font_tab.draw.font_pixel(m_x, m_y - 1, font_tab.char)
         end
 
-        local ptr = (font_tab.char * 8) + m_x + font_tab.memapi.map.font_start
-        local byte = font_tab.memapi.peek(ptr)
+        local ptr = (font_tab.char * 8) + m_x + mem.map.font_start
+        local byte = mem.peek(ptr)
         if font_tab.pen then
             byte = b.band(byte, b.bnot(b.lshift(1, m_y - 1)))
         else
             byte = b.bor(byte, b.lshift(1, m_y - 1))
         end
-        font_tab.memapi.poke(ptr, byte)
+        mem.poke(ptr, byte)
     end
 
     -- Char select
@@ -65,9 +71,9 @@ function font_tab.update(editor)
     for x = 0, 7 do
         for y = 0, 7 do
             if font_tab.draw.font_pixel(x, y, font_tab.char) then
-                draw.ink(x, y + 1, font_tab.bg, font_tab.fg)
+                draw.tile(x, y + 1, 0x80, font_tab.bg, font_tab.fg) -- Char 0x80 is blank dither
             else
-                draw.ink(x, y + 1, font_tab.bg, font_tab.bg)
+                draw.tile(x, y + 1, 0x80, font_tab.bg, font_tab.bg)
             end
         end
     end

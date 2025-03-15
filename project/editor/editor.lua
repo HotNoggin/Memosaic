@@ -33,6 +33,13 @@ end
 
 
 function editor.update()
+    local map = editor.memapi.map
+
+    -- Reset all flags, set efont flag to true
+    for i = map.rflags_start, map.rflags_end do
+        editor.memapi.poke(i, 0x01)
+    end
+
     if editor.hotreload then
         editor.update_reload()
         return

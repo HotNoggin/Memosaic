@@ -140,6 +140,11 @@ function cart.run()
     love.window.setTitle("Memosaic - " .. cart.name)
     cart.running = true
 
+    -- Reset all row flags
+    for i = cart.memapi.map.rflags_start, cart.memapi.map.rflags_end do
+        cart.memapi.poke(i, 0x00)
+    end
+
     local ok, err
     if cart.use_mimosa then
         ok = xpcall(cart.memo.mimosa.run, cart.handle_err, cart.get_script(), {}, {})

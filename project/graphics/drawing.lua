@@ -219,6 +219,8 @@ function drawing.draw_buffer()
     for tx = 0, drawing.TILE_WIDTH - 1 do
         for ty = 0, drawing.TILE_HEIGHT - 1 do
             local tile = ty * drawing.TILE_WIDTH + tx -- which tile this is
+            local row_flag = drawing.memapi.peek(drawing.memapi.map.rflags_start + ty)
+            local use_efont = bit.band(row_flag, 0b00000001) > 0 -- font mode
             local char = drawing.memapi.peek(tile + drawing.memapi.map.ascii_start)
             local color = drawing.memapi.peek(tile + drawing.memapi.map.color_start)
             local fg = b.rshift(b.band(color, 0xf0), 4) -- Get left color
@@ -226,11 +228,15 @@ function drawing.draw_buffer()
             -- Draw the character
             for px = 0, 7 do
                 for py = 0, 7 do
-                    local draw_pixel
+                    local draw_pixel = false
                     if char >= 0x80 then
                         draw_pixel = drawing.dither_pixel(px, py, char)
                     else
-                        draw_pixel = drawing.font_pixel(px, py, char)
+                        if use_efont then
+                            draw_pixel = drawing.font_pixel(px, py, char, true)
+                        else
+                            draw_pixel = drawing.font_pixel(px, py, char, false)
+                        end
                     end
                     local off_x = drawing.memapi.peek(drawing.memapi.map.pan_x) % 128
                     local off_y = drawing.memapi.peek(drawing.memapi.map.pan_y) % 128
@@ -278,8 +284,10 @@ function drawing.dither_pixel(px, py, byte)
 end
 
 
-function drawing.font_pixel(px, py, idx)
-    local byte = drawing.memapi.peek(idx * 8 + px + drawing.memapi.map.font_start)
+function drawing.font_pixel(px, py, idx, editor)
+    local font_start = drawing.memapi.map.font_start
+    if editor then font_start = drawing.memapi.map.efont_start end
+    local byte = drawing.memapi.peek(idx * 8 + px + font_start)
     local pixel = bit.rshift(bit.band(byte, bit.lshift(1, py)), py)
     return pixel == 1
 end
