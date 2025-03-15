@@ -450,6 +450,21 @@ function mint.push(value)
 end
 
 
+function mint.snap()
+    mint.say("snap")
+    mint.sp = 1
+    mint.stack = {}
+end
+
+
+function mint.crackle()
+    local stack = mint.stack
+    -- mint.push(stack)
+    mint.err(" crackle", "not yet implemented")
+    return
+end
+
+
 function mint.pop()
     if mint.sp > 0 then
         local value = table.remove(mint.stack, mint.sp)
@@ -462,13 +477,6 @@ function mint.pop()
     else
         mint.err("", "stack underflow")
     end
-end
-
-
-function mint.snap()
-    mint.say("snap")
-    mint.sp = 1
-    mint.stack = {}
 end
 
 
@@ -552,6 +560,7 @@ function mint.init()
 
         -- Stack and pile
         snap = mint.snap,
+        crackle = mint.crackle,
         pop = mint.pop,
         push = mint.pushpop,
         P = mint.pushpop,
@@ -621,6 +630,12 @@ function mint.init()
         crect = mint.lib.crect,
         irect = mint.lib.irect,
         text = mint.lib.text,
+
+        -- Audio
+        blipat = mint.lib.blipat,
+        blip = mint.lib.blip,
+        beepat = mint.lib.beepat,
+        beep = mint.lib.beep,
     }
 end
 

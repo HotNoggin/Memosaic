@@ -148,6 +148,17 @@ text(x, y, str, fg, bg): Copies a string of characters to the ASCII+color grid.
     bg: The background color.
 
 
+---------
+- Audio -
+---------
+-- There are 4 audio channels that each play 30 samples per second.
+-- Each channel reads from its own buffer of 256 bytes at a rate of 60 bytes per second.
+-- The playhead moves along this wrapping buffer, resetting the bytes after they are played.
+-- 0=square (sqr), 1=triangle (tri), 2=sawtooth (saw), 3=noise (noz)
+
+
+
+
 -------------
 -- Console --
 -------------
