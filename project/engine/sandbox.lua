@@ -106,6 +106,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         insert = table.insert,
         rmv = table.remove,
         sort = table.sort,
+        unpack = unpack,
 
         -- Metatable
         setmeta = setmetatable,
