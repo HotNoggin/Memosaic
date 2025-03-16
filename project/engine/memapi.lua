@@ -33,10 +33,25 @@ memapi.map = {
 function memapi.init(memo)
     print("Creating memory buffer")
     memapi.bytes = love.data.newByteData(0x2000) -- New 8Kib buffer
+    memapi.stash = love.data.newByteData(0x2000) -- Duplicate buffer for editor stash
     memapi.ptr = ffi.cast('uint8_t*', memapi.bytes:getFFIPointer()) -- Byte pointer
     memapi.load_font(memapi.default_font)
     memapi.load_font(memapi.default_font, true)
+    memapi.backup()
     memapi.memo = memo
+end
+
+
+function memapi.backup()
+    memapi.stash = memapi.bytes:clone()
+    print("Stashed editor memory")
+end
+
+
+function memapi.retrieve()
+    memapi.bytes = memapi.stash:clone()
+    memapi.ptr = ffi.cast('uint8_t*', memapi.bytes:getFFIPointer()) -- Byte pointer
+    print("Retrieved editor memory")
 end
 
 

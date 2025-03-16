@@ -140,6 +140,9 @@ function cart.run()
     love.window.setTitle("Memosaic - " .. cart.name)
     cart.running = true
 
+    -- Backup editor memory for retrieval
+    cart.memapi.backup()
+    
     -- Reset all row flags
     for i = cart.memapi.map.rflags_start, cart.memapi.map.rflags_end do
         cart.memapi.poke(i, 0x00)

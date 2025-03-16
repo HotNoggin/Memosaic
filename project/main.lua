@@ -32,6 +32,7 @@ function love.update(dt)
                 -- Prevents the esc from being read by both editor and this
                 memo.editor.escdown = true
                 memo.editor.tab = memo.editor.ranfrom
+                memo.editor.opened()
             end
         end
 

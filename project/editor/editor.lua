@@ -29,16 +29,23 @@ function editor.init(memo)
     editor.font_tab.init(memo)
     editor.code_tab.init(memo)
     editor.escdown = false
+    editor.opened()
+end
+
+
+function editor.opened()
+    -- Retrieve editor memory from backup
+    editor.memapi.retrieve()
+
+    -- Reset all flags, set efont flag to true
+    for i = editor.memapi.map.rflags_start, editor.memapi.map.rflags_end do
+        editor.memapi.poke(i, 0x01)
+    end
 end
 
 
 function editor.update()
     local map = editor.memapi.map
-
-    -- Reset all flags, set efont flag to true
-    for i = map.rflags_start, map.rflags_end do
-        editor.memapi.poke(i, 0x01)
-    end
 
     if editor.hotreload then
         editor.update_reload()
