@@ -1,17 +1,14 @@
+@font-face {
+    font-family: 'NFCode-Regular';
+    src:  url(font/NFCode-Regular.ttf);
+}
+
 body {
     padding: 25px;
     background-color: black;
     color: white;
     font-size: 16px;
-    font-family: 'Space Mono', 'Courier New', Courier, monospace;
-}
-
-a {
-    color: #48c3ff;
-}
-
-a:hover {
-    color: #2b76df;
+    font-family: 'NFCode-Regular', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 h1 {
@@ -21,8 +18,8 @@ h1 {
 div {
     min-width: 400px;
     max-width: 80vw;
-    margin:auto;
-    width: 60%;
+    margin: auto;
+    width: 90%;
 }
 
 button {
@@ -57,8 +54,13 @@ li:before {
     color: white;
 }
 
+p {
+    line-height: 24px;
+}
 
 pre {
+    font-family: 'Courier New', Courier, monospace;
+
     display:block;
     break-inside: avoid;
     padding: 16px;
@@ -66,17 +68,37 @@ pre {
     margin-top: 16px;
     margin-bottom: 24px;
 
-    border-width:2px;
-    border-radius:2px;
-    border-style:solid;
+    border-width: 2px;
+    border-radius: 2px;
+    border-style: solid;
     border-color: #48c3ff;
     overflow-x: auto;
-    -webkit-overflow-scrolling:touch;
+    -webkit-overflow-scrolling: touch;
     scrollbar-color: #2b76df #48c3ff;
     scrollbar-width: thin;
 }
 
+code {
+    font-family: 'Courier New', Courier, monospace;
+    
+    border-radius: 2px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: #48c3ff;
+    padding-inline: 4px;
+    margin-inline: 2px;
+    white-space: nowrap;
+}
+
 .light-mode {
-    background-color: white !important;
-    color: black !important;
+    background-color: white;
+    color: black;
+}
+
+a {
+    color: #48c3ff;
+}
+
+a:hover {
+    color: #2b76df;
 }
