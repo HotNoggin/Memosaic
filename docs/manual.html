@@ -18,33 +18,163 @@
     <meta name="og:description" content="The portfolio of a teenage indie game developer.">
     <meta name="description" content="The portfolio of a teenage indie game developer.">
     <meta name="author" content="JJ">
-    <script>
-        function myFunction() {
-            var element = document.body;
-            element.classList.toggle("light-mode");
-        }
-    </script>
+    <script src="light_toggle.js"></script>
 </head>
 
 
 <body>
 <div id="main">
 
-<button onclick="myFunction()" style="font-size:32px; float:right;"> ◐ </button>
-<h1 id="manual"><a href="#manual">Memosaic User Manual</a></h1>
+<button onclick="lightToggle()" style="font-size:32px; float:right;"> ◐ </button>
+<a href="index.html" width="16" height="16"><img src="images/icon.png" alt="Go home"></a>
 
+<!------------------------------->
+<!-- Section 0: About Memosaic -->
+<!------------------------------->
+<h1 id="manual"><a href="#manual">Memosaic User Manual</a></h1>
 <p>
-Example text!
+Memosaic v0.2.1-alpha (Cookie)<br>
+(c) Copyright 2025 JJ, Hot Noggin Studios, and contributors<br>
+https://jjgame.dev/memo<br>
+<br>
+Made using:
 <ul>
-    <li>item a</li>
-    <li>item b</li>
-    <li>item c</li>
+<li>Love2D (see license.txt*)</li>
+<li>Denver (see license.txt*)</li>
 </ul>
+Unimplemented features are marked with an asterisk (*).
 </p>
 
-<pre class="codebox">
--- This is a codebox
+<h2 id="TOC"><a href="#TOC">Contents</a></h2>
+<ul>
+<li>Introduction
+    <ul>
+    <li><a href="#introduction">Introducing Memosaic</a></li>
+    <li><a href="#specifications">Specifications</a></li>
+    </ul>
+</li>
+<li><a href="#get-started">1 Getting Started</a>
+    <ul>
+    <li><a href="#hello-memo">1.1 Hello Memo</a></li>
+    <li><a href="#first-cart">1.2 Your First Cart</a></li>
+    <li><a href="#external-editors">1.3 Using External Editors</a></li>
+    </ul>
+</li>
+</ul>
+
+<h2 id="introduction"><a href="#introduction">Introducing Memosaic</a></h2>
+<p>
+Memosaic is a tiny, ASCII fantasy console. It feels and acts like a physical console,
+but runs on your device! Memosaic has limitations that are fun and cozy to work within
+and challenging to work around. Carts made with it all have that signature feel.
+</p>
+
+<h2 id="specifications"><a href="#specifications">Specifications</a></h2>
+<pre>
+Display
+ - 16x16 tiles, 128x128 pixels
+ - 16-color palette
+ - 2 colors/tile
+
+Audio
+ - 4 channels (square, sine, sawtooth, noise)
+ - 256 samples/channel
+ - 30 samples/second
+
+Input
+ - D-pad (WASD on QWERTY, ZQSD on AZERTY)
+ - X (X or J) and O (C or K) buttons
+ - START and SELECT (ENTER and SHIFT)*
+
+Cart Data
+ - Up to 32KiB cart*
+ - Up to 2KiB of font data
+ - Up to 2KiB of sound data*
+ - Up to 8KiB of ROM*
+
+CPU
+ - ~1 million vm instructions/second*
 </pre>
+
+<!-------------------------------->
+<!-- Section 1: Getting Started -->
+<!-------------------------------->
+<h1 id="get-started"><a href="#get-started">1 Getting Started</a></h1>
+
+<h2 id="hello-memo"><a href="#hello-memo">1.1 Hello Memo</a></h2>
+<p>
+When you first boot Memosaic, you'll be met with the command line interface
+(or CLI for short). Input Lua commands to interact with it.
+Try some of these commands to test it out:
+</p>
+<pre>
+> print("hello")
+> beep(0, 30, 7, 20)
+> for i=0,16 do print(i) end
+</pre>
+<p>
+Install some demo carts using these commands:
+<pre>
+> demos
+> cd demos
+> ls
+</pre>
+Try a cart out using [>load] and [>run]. For example:
+<pre>
+> load spincube
+> run
+</pre>
+Stop the running cart by pressing ESC.
+</p>
+
+<h2 id="first-cart"><a href="#first-cart">1.2 Your First Cart</a></h2>
+<p>
+You can create Memosaic carts using Lua (or Mimosa) scripts.
+To make a new cart, use these commands:
+<pre>
+> new
+> save mycart
+</pre>
+You can save your new lua cart with the .memo or .lua extension (or as .mosa for a Mimosa cart).
+Use [>edit] or press ESC to switch to the editor.
+Navigate to the code tab* using the toolbar at the top of the editor and try this code:
+<pre>
+x = 7
+y = 7
+
+function tick()
+ clrs()
+ text(2, 5, "move with \14", 9, 0)
+ if btn(0) then x = x - 0.2 end
+ if btn(1) then x = x + 0.2 end
+ if btn(2) then y = y - 0.2 end
+ if btn(3) then y = y + 0.2 end
+ tile(flr(x), flr(y), "@", 8, 0)
+end
+</pre>
+Navigate back to the CLI using the toolbar or ESC, then run the cart.
+</p>
+
+<h2 id="external-editors"><a href="#external-editors">1.3 Using External Editors</a></h2>
+<p>
+Memosaic supports external editors. Simply open your cart elsewhere to make changes to it.
+Use [>folder] to open the cart folder in your file explorer.
+You can also write .lua scripts in an external editor, then use #include* in your cart to copy
+the scripts' contents into the cart at the desired location. This allows carts like this:
+<pre>
+#include code
+
+function boot()
+ reset()
+end
+
+function tick()
+ run()
+end
+</pre>
+In this example, code.lua can be safely edited externally without affecting the loaded cart.
+It is as if the text from code.lua was written where "#include code" was placed.
+</p>
 
 </div>
 </body>

@@ -1,15 +1,9 @@
 local demos = {}
-local paths = {"beep.memo", "lil_jumpy.memo", "poke.memo", "scroll.memo", "snek.memo", "spincube.memo"}
+local paths = {"beep", "poke", "scroll", "snek", "spincube"}
 
 
-for i, path in ipairs(paths) do
-	local file = love.filesystem.read("carts/demos" .. path)
-
-	if not file then
-		file = love.filesystem.read("carts/games/" .. path)
-		if not file then break end
-	end
-	demos[path] = file
+for i, name in ipairs(paths) do
+	demos[name .. ".memo"] = require("carts.demos." .. name)
 end
 
 

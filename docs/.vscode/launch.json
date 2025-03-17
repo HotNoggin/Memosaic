@@ -8,7 +8,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "file://C:/Users/space/Visual Studio/Memosaic/docs/index.html",
+            "url": "file://C:/Users/space/Visual Studio/Memosaic/docs/manual.html",
             "webRoot": "${workspaceFolder}"
         }
     ]

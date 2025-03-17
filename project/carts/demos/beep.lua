@@ -1,7 +1,10 @@
+return
+[[
 --!:lua
---!:defaultfont
 --!:name
 --Beep
+--!:author
+--jjgame.dev
 
 i = 0
 wav = 0
@@ -25,3 +28,6 @@ function tick()
  if t then blip(wav, note, 7) end
  i=(i+1)%32
 end
+
+--!:defaultfont
+]]

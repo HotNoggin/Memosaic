@@ -1,6 +1,10 @@
---!:defaultfont
+return
+[[
+--!:lua
 --!:name
 --Scroll
+--!:author
+--jjgame.dev
 
 function boot()
  i = 0
@@ -24,3 +28,6 @@ function tick()
 
  pan(i % 128, i % 128)
 end
+
+--!:defaultfont
+]]
