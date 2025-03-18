@@ -116,13 +116,14 @@ function audio.chirp(sound, wav, addnote)
         local byte = mem.peek(start + 2 + idx) -- Header is 2 bytes long
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
-        audio.blip(wav, basenote + addnote + note, vol, idx)
+        audio.blip(wav, basenote + toadd + note, vol, idx)
     end
 end
 
 
 function audio.beep(wav, note, vol, len, at)
     local con = audio.console
+
     if con.bad_type(wav, "number", "beep:wave") or con.bad_type(note, "number", "beep:note")
     or con.bad_type(vol, "number", "beep:volume") or con.bad_type(len, "number", "beep:length")
     then error("beep only takes numbers") return false end
