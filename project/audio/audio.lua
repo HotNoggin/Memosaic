@@ -115,13 +115,11 @@ function audio.chirp(sound, wav, base, len, at)
     local head_b = mem.peek(start + 1)
     local basenote = head_a % 128
 
-    for idx = 0, 29 do
+    for idx = 0, 30 do
         local byte = mem.peek(start + 1 + idx) -- Header is 1 byte long
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
-        for i = 0, length do -- mini beep for each note
-            audio.blip(wav, basenote + toadd + note, vol, idx * (length + 1) + offset + i)
-        end
+        audio.beep(wav, basenote + toadd + note, vol, len + 1, idx * (len + 1) - len)
     end
     return true
 end

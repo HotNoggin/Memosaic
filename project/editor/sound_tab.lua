@@ -133,7 +133,7 @@ function sound_tab.update(editor)
     if ipt.lclick_in(12, 10, 15, 10) and not ipt.lheld then
         local waves = {"sqr", "sin", "saw", "noz"}
         sound_tab.waveform = mx - 12
-        editor.tooltip = "preview: " .. waves[mx - 11]
+        editor.tooltip = "preview: " .. waves[mx - 11] .. " (" .. mx - 12 .. ")"
     end
 
     -- Play sound
@@ -143,11 +143,24 @@ function sound_tab.update(editor)
     end
 
     -- Switch volume and note mode
-    if sound_tab.tab and not sound_tab.oldtab then
+    if (sound_tab.tab and not sound_tab.oldtab)
+    or (mx == 0 and my == 10 and ipt.lclick and not ipt.lheld) then
         sound_tab.volume_mode = not sound_tab.volume_mode
+        if sound_tab.volume_mode then
+            editor.tooltip = "mode: volume"
+        else
+            editor.tooltip = "mode: notes"
+        end
     end
-    if mx == 0 and my == 10 and ipt.lclick and not ipt.lheld then
-        sound_tab.volume_mode = not sound_tab.volume_mode
+
+    -- Preview speeds
+    if mx == 3 and my == 10 and ipt.lclick and not ipt.lheld then
+        sound_tab.len = math.max(sound_tab.len - 1, 0)
+        editor.tooltip = "length: ".. sound_tab.len .. " (" .. sound_tab.len + 1 .. "x)"
+    end
+    if mx == 5 and my == 10 and ipt.lclick and not ipt.lheld then
+        sound_tab.len = math.min(sound_tab.len + 1, 7)
+        editor.tooltip = "length: ".. sound_tab.len .. " (" .. sound_tab.len + 1 .. "x)"
     end
 
     -- Set base note
