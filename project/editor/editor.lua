@@ -4,6 +4,8 @@ local editor = {}
 editor.console = require("editor.console")
 editor.font_tab = require("editor.font_tab")
 editor.code_tab = require("editor.code_tab")
+editor.sound_tab = require("editor.sound_tab")
+editor.data_tab = require("editor.data_tab")
 
 
 function editor.init(memo)
@@ -28,8 +30,14 @@ function editor.init(memo)
     editor.console.init(memo)
     editor.font_tab.init(memo)
     editor.code_tab.init(memo)
+    editor.sound_tab.init(memo)
+    editor.data_tab.init(memo)
     editor.escdown = false
     editor.opened()
+
+    editor.bar_bg = 0
+    editor.bar_fg = 0
+    editor.bar_lit = 0
 end
 
 
@@ -55,6 +63,8 @@ function editor.update()
     if editor.tab == 0 then editor.console.update()
     elseif editor.tab == 1 then editor.font_tab.update(editor)
     elseif editor.tab == 2 then editor.code_tab.update(editor)
+    elseif editor.tab == 3 then editor.sound_tab.update(editor)
+    elseif editor.tab == 4 then editor.data_tab.update(editor)
     end
 
     local ipt = editor.input
@@ -92,6 +102,7 @@ function editor.update()
 
     if editor.tab > 0 then
        editor.update_bar()
+       if editor.tab == 1 then editor.font_tab.update_bar(editor) end
     end
 end
 
@@ -103,8 +114,8 @@ function editor.update_bar()
     local click = editor.input.lclick
     local held = editor.input.lheld
 
-    local tabicons = {">", 7, 1}
-    local tabnames = {"cmd (ESC)", "font", "code"}
+    local tabicons = {16, 17, 18, 19, 20}
+    local tabnames = {"cmd (ESC)", "font", "code", "sounds", "data"}
 
     if my == 0 and mx < #tabicons and click and not held then
         editor.tab = mx
@@ -115,11 +126,8 @@ function editor.update_bar()
 
     -- Draw top bar and bottom bar
     for x = 0, 15 do
-        draw.tile(x, 0, "_", 12, 0) -- x y c gray black
-        if editor.tab == x then
-            draw.ink(x, 0, 11, 0) -- x y teal black
-        end
-        draw.tile(x, 15, " ", 10, 0) -- x y c blue black
+        draw.tile(x, 0, " ", editor.bar_fg, editor.bar_bg)
+        draw.tile(x, 15, " ", editor.bar_fg, editor.bar_bg)
     end
 
     -- Draw tabs
@@ -127,8 +135,30 @@ function editor.update_bar()
         local x = i - 1
         draw.char(x, 0, c)
         if mx == x and my == 0 then
-            draw.ink(x, 0, 0, 11) -- x y black teal
+            draw.ink(x, 0, editor.bar_lit, editor.bar_bg)
             editor.tooltip = "tab: " .. tabnames[i]
+        end
+        if editor.tab == x then
+            draw.ink(x, 0, editor.bar_bg, editor.bar_lit)
+        end
+    end
+
+    -- Run
+    draw.char(14, 0, 21)
+    if mx == 14 and my == 0 then
+        draw.tile(14, 0, 22, editor.bar_lit)
+        if click and not held then
+            editor.ranfrom = editor.tab
+            editor.sendcmd("run")
+        end
+    end
+
+    -- Save
+    draw.char(15, 0, 23)
+    if mx == 15 and my == 0 then
+        draw.ink(15, 0, editor.bar_lit)
+        if click and not held then
+            editor.sendcmd("save")
         end
     end
 
@@ -198,10 +228,10 @@ function editor.update_reload()
         editor.remember_reload_choice = not editor.remember_reload_choice
     end
     if editor.remember_reload_choice then
-        draw.char(0, 15, 7)
+        draw.char(0, 15, 30)
         draw.irect(0, 15, 16, 1, 5) -- x y w h orange
     else
-        draw.tile(0, 15, 6, 0, 1) -- x y c black, silver
+        draw.tile(0, 15, 29, 1, 0) -- x y c silver, black
     end
 end
 

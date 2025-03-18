@@ -211,7 +211,6 @@ function console.update()
         c.scroll_time = c.scroll_time + 1
     end
 
-    
     c.sy = math.max(0, math.min(c.sy, #to_write - 1))
 
     -- Display the formatted text to the console
@@ -312,6 +311,21 @@ function console.print(text, fg, bg)
     console.fgc[#console.fgc] = fore
     console.bgc[#console.bgc] = back
     console.take_input()
+end
+
+
+function console.str_insert(str1, str2, pos)
+    return str1:sub(1, pos) .. str2 .. str1:sub(pos + 1)
+end
+
+
+function console.str_remove(str, idx)
+    local length = #str
+    if (idx < 1 or idx > length) then
+        return str
+    else
+        return string.sub(str, 1, idx - 1) .. string.sub(str, idx + 1, length)
+    end
 end
 
 

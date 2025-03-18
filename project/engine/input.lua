@@ -98,6 +98,11 @@ function input.btn(num)
 end
 
 
+function input.btnp(num)
+    return input.btn(num) and not input.old(num)
+end
+
+
 function input.key(key)
     if input.alpha[key] then return true else return false end
 end
