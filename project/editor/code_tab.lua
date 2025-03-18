@@ -21,7 +21,10 @@ function code_tab.update(editor)
     editor.bar_fg = 8
     editor.bar_lit = 7
 
-    draw.clrs()
+    draw.clrs(" ", 14, 0)
+
+    draw.text(0, 1, "temporarily down", 8, 0, 16)
+    draw.text(0, 3, "use external    editor for now", 8, 0, 16)
 end
 
 

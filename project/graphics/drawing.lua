@@ -143,7 +143,7 @@ function drawing.iget(tx,ty)
     if con.bad_type(tx, "number", "iget:x") or con.bad_type(ty, "number", "iget:y") then
         return
     end
-    local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
+    local idx = drawing.memapi.map.color_start + ((tx + ty*16) % 0x100)
     local byte = drawing.memapi.peek(idx)
     local fg = math.floor(byte / 16)
     local bg = math.floor(byte) % 16

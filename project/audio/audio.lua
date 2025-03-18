@@ -99,13 +99,15 @@ function audio.note(idx, note)
 end
 
 
-function audio.chirp(sound, wav, addnote, at)
+function audio.chirp(sound, wav, base, len, at)
     local con = audio.console
     if con.bad_type(sound, "number", "beep:sound") or con.bad_type(wav, "number", "beep:wave")
     then return false end
 
-    local toadd = addnote or 0
+    local toadd = base or 0
     local offset = at or 0
+    local length = len or 0
+    length = math.max(0, math.min(length, 7))
 
     local mem = audio.memo.memapi
     local start = sound * 32 + mem.map.sounds_start
@@ -114,11 +116,14 @@ function audio.chirp(sound, wav, addnote, at)
     local basenote = head_a % 128
 
     for idx = 0, 29 do
-        local byte = mem.peek(start + 2 + idx) -- Header is 2 bytes long
+        local byte = mem.peek(start + 1 + idx) -- Header is 1 byte long
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
-        audio.blip(wav, basenote + toadd + note, vol, idx + offset)
+        for i = 0, length do -- mini beep for each note
+            audio.blip(wav, basenote + toadd + note, vol, idx * (length + 1) + offset + i)
+        end
     end
+    return true
 end
 
 
@@ -127,7 +132,7 @@ function audio.beep(wav, note, vol, len, at)
 
     if con.bad_type(wav, "number", "beep:wave") or con.bad_type(note, "number", "beep:note")
     or con.bad_type(vol, "number", "beep:volume") or con.bad_type(len, "number", "beep:length")
-    then error("beep only takes numbers") return false end
+    then return false end
 
     local offset = at or 0
 

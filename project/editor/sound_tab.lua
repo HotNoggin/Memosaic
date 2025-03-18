@@ -22,6 +22,7 @@ function sound_tab.init(memo)
     sound_tab.stashed = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
 
     sound_tab.selected = 0
+    sound_tab.len = 0
     sound_tab.waveform = 0
     sound_tab.scroll = 0
     sound_tab.click_started_in_canvas = false
@@ -92,7 +93,7 @@ function sound_tab.update(editor)
     -- Paint sound
     if ipt.lclick_in(0, 1, 15, 8) then
         if sound_tab.click_started_in_canvas then
-            local start = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 2
+            local start = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 1
             local adr = start + mx + sound_tab.scroll
             if ipt.ctrl then
                 sound_tab.memapi.poke(adr, 0x00) -- Fully erase pitch and volume
@@ -121,7 +122,7 @@ function sound_tab.update(editor)
     -- Erase sound
     if ipt.rclick_in(0, 1, 15, 8) then
         if sound_tab.erase_started_in_canvas then
-            local start = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 2
+            local start = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 1
             local adr = start + mx + sound_tab.scroll
             sound_tab.memapi.poke(adr, 0x00) -- Fully erase pitch and volume
             editor.tooltip = "erase note"
@@ -137,19 +138,20 @@ function sound_tab.update(editor)
 
     -- Play sound
     if sound_tab.space and not sound_tab.oldspace then
-        sound_tab.audio.chirp(sound_tab.selected, sound_tab.waveform, 20)
+        sound_tab.audio.chirp(sound_tab.selected, sound_tab.waveform, 0, sound_tab.len, 0)
+        -- sound, wav, base, len, at
     end
 
     -- Switch volume and note mode
     if sound_tab.tab and not sound_tab.oldtab then
         sound_tab.volume_mode = not sound_tab.volume_mode
     end
-    if ipt.lclick_in(0, 10, 3, 10) and not ipt.lheld then
+    if mx == 0 and my == 10 and ipt.lclick and not ipt.lheld then
         sound_tab.volume_mode = not sound_tab.volume_mode
     end
 
     -- Set base note
-    if mx == 5 and my == 10 and ipt.lclick and not ipt.lheld then
+    if mx == 6 and my == 10 and ipt.lclick and not ipt.lheld then
         local note = 0
         if ipt.ctrl then
             note = sound_tab.up_base(-12)
@@ -158,7 +160,7 @@ function sound_tab.update(editor)
         end
         editor.tooltip = "base: " .. sound_tab.to_key(note) .. " ("..note..")"
     end
-    if mx == 9 and my == 10 and ipt.lclick and not ipt.lheld then
+    if mx == 10 and my == 10 and ipt.lclick and not ipt.lheld then
         local note = 0
         if ipt.ctrl then
             note = sound_tab.up_base(12)
@@ -196,7 +198,7 @@ function sound_tab.update(editor)
     -- Draw selected sound
     for x = 0, 15 do
         -- Sound data starts at second byte, sounds are 32 bytes long
-        local adr = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 2
+        local adr = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 1
         local byte = sound_tab.memapi.peek(adr + x + sound_tab.scroll)
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
@@ -231,13 +233,23 @@ function sound_tab.update(editor)
 
     -- Draw note/volume toggle
     if vol_mode then
-        draw.text(0, 10, "\30vol", highlight, 0)
+        draw.tile(0, 10, 30, highlight, 0)
     else
-        draw.text(0, 10, "\29vol", highlight, 0)
+        draw.tile(0, 10, 29, highlight, 0)
     end
 
+    -- Draw length
+    draw.text(3, 10, "<" .. sound_tab.len .. ">", highlight)
+
     -- Draw base note
-    draw.text(5, 10, "<" .. sound_tab.to_key(basenote) .. ">", highlight)
+    draw.text(6, 10, "<" .. sound_tab.to_key(basenote) .. ">", highlight)
+
+    for i, pos in ipairs{0, 3, 5, 6, 10} do
+        if mx == pos and my == 10 then
+            local fg, bg = draw.iget(mx, 10)
+            draw.ink(mx, my, bg, fg)
+        end
+    end
 
     -- Draw selection numbers
     for x = 0, 7 do
@@ -336,7 +348,6 @@ end
 
 
 function sound_tab.up_base(value)
-    print("up base by " .. value)
     local toadd = value
     local adr = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32
     local byte = sound_tab.memapi.peek(adr)
@@ -374,7 +385,7 @@ end
 function sound_tab.maximize()
     local mem = sound_tab.memapi
     local adr = mem.map.sounds_start + (sound_tab.selected * 32)
-    for i = 2, 31 do
+    for i = 1, 31 do
         local byte = mem.peek(adr + i)
         byte = bit.bor(byte, 0x0F) -- maximize volume
         mem.poke(adr + i, byte)
@@ -385,7 +396,7 @@ end
 function sound_tab.silence()
     local mem = sound_tab.memapi
     local adr = mem.map.sounds_start + (sound_tab.selected * 32)
-    for i = 2, 31 do
+    for i = 1, 31 do
         local byte = mem.peek(adr + i)
         byte = bit.band(byte, 0xF0) -- minimize volume
         mem.poke(adr + i, byte)
