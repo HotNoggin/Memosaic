@@ -25,6 +25,7 @@ function sound_tab.init(memo)
     sound_tab.waveform = 0
     sound_tab.scroll = 0
     sound_tab.click_started_in_canvas = false
+    sound_tab.erase_started_in_canvas = false
 end
 
 
@@ -63,7 +64,7 @@ function sound_tab.update(editor)
 
     -- Set scroll
     if ipt.lclick_in(0, 9, 15, 9) then
-        sound_tab.scroll = math.min(math.floor(mpx/4), 16)
+        sound_tab.scroll = mx
     end
 
     -- Sound keyboard navigation
@@ -71,9 +72,14 @@ function sound_tab.update(editor)
         sound_tab.scroll = math.max(0, sound_tab.scroll - 1)
     end
     if ipt.btn(1) then
-        sound_tab.scroll = math.min(sound_tab.scroll + 1, 16)
+        sound_tab.scroll = math.min(sound_tab.scroll + 1, 15)
     end
 
+    if ipt.rclick_in(0, 1, 15, 8) and not ipt.held then
+        sound_tab.erase_started_in_canvas = true
+    else
+        sound_tab.erase_started_in_canvas = false
+    end
     if ipt.lclick_in(0, 1, 15, 8) and not ipt.lheld then
         sound_tab.click_started_in_canvas = true
     elseif ipt.lclick and not ipt.lheld then
@@ -83,19 +89,44 @@ function sound_tab.update(editor)
     -- Paint sound
     if ipt.lclick_in(0, 1, 15, 8) then
         if sound_tab.click_started_in_canvas then
-            local tsize = 8
-            local height = 15 - math.floor(((mpy-tsize)/(tsize/2)))
             local start = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 2
             local adr = start + mx + sound_tab.scroll
-            local byte = sound_tab.memapi.peek(adr)
-            if vol_mode then
-                -- Set volume
-                byte = bit.bor(bit.band(byte, 0xF0), height)
+            if ipt.ctrl then
+                sound_tab.memapi.poke(adr, 0x00) -- Fully erase pitch and volume
+                editor.tooltip = "erase note"
             else
-                -- Set pitch
-                byte = bit.bor(bit.band(byte, 0x0F), bit.lshift(height, 4))
+                local tsize = 8
+                local height = 15 - math.floor(((mpy-tsize)/(tsize/2)))
+                local byte = sound_tab.memapi.peek(adr)
+                if vol_mode then
+                    -- Set volume
+                    byte = bit.bor(bit.band(byte, 0xF0), height)
+                    editor.tooltip = "volume: " .. height
+                else
+                    -- Set pitch
+                    local vol = bit.rshift(byte, 4)
+                    byte = bit.bor(bit.band(byte, 0x0F), bit.lshift(height, 4))
+                    -- Set volume to max if muted
+                    if vol == 0 then
+                        byte = bit.bor(byte, 0x0F)
+                    end
+                    -- Tooltip
+                    local head_a = sound_tab.memapi.peek(start - 2)
+                    local basenote = head_a % 128
+                    editor.tooltip = "note: " .. sound_tab.to_key(height + basenote)
+                        .. " (" .. height + basenote .. ")"
+                end
+                sound_tab.memapi.poke(adr, byte)
             end
-            sound_tab.memapi.poke(adr, byte)
+        end
+    end
+    -- Erase sound
+    if ipt.rclick_in(0, 1, 15, 8) then
+        if sound_tab.erase_started_in_canvas then
+            local start = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 2
+            local adr = start + mx + sound_tab.scroll
+            sound_tab.memapi.poke(adr, 0x00) -- Fully erase pitch and volume
+            editor.tooltip = "erase note"
         end
     end
 
@@ -158,45 +189,22 @@ function sound_tab.update(editor)
         end
 
         -- Draw values
-        for section = 0, val do
-            local y = math.floor((15 - section) / 2) + 1
-            local color = val_colors[y]
-            draw.tile(x, y, fulltile, color, 0)
-            -- half the top if even
-            if val % 2 == 0 and section == val then
-                draw.tile(x, y, halftile, color, 0)
+        if vol ~= 0 then
+            for section = 0, val do
+                local y = math.floor((15 - section) / 2) + 1
+                local color = val_colors[y]
+                draw.tile(x, y, fulltile, color, 0)
+                -- half the top if even
+                if val % 2 == 0 and section == val then
+                    draw.tile(x, y, halftile, color, 0)
+                end
             end
         end
     end
 
-    -- Draw scrollbar (sound preview)
-    for x = 0, 15 do
-        local tile = 0b11111010
-        local adr = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32 + 2
-        local lidx = adr + (x * 2)
-        local ridx = lidx + 1
-        local lbyte = sound_tab.memapi.peek(lidx)
-        local rbyte = sound_tab.memapi.peek(ridx)
-        local lcolr, rcolr = 0, 0
-        local palette = sound_tab.note_colors
-        if vol_mode then
-            -- Paint with volume
-            lcolr = bit.band(lbyte, 0x0F)
-            rcolr = bit.band(rbyte, 0x0F)
-            palette = sound_tab.vol_colors
-        else
-            -- Paint with pitch
-            lcolr = bit.rshift(bit.band(lbyte, 0xF0), 4)
-            rcolr = bit.rshift(bit.band(rbyte, 0xF0), 4)
-        end
-        lcolr = math.floor(lcolr / 2)
-        rcolr = math.floor(rcolr / 2)
-        local link = palette[8 - lcolr]
-        local rink = palette[8 - rcolr]
-        if x*2 == sound_tab.scroll then link = 0 end
-        if x*2 + 1 == sound_tab.scroll then rink = 0 end
-        draw.tile(x, 9, tile, link, rink)
-    end
+    -- Draw scrollbar
+    draw.irect(0, 9, 16, 1, 0, 2)
+    draw.char(sound_tab.scroll, 9, 6) -- char 6 is dot
 
     -- Draw selection numbers
     for x = 0, 7 do
@@ -282,6 +290,15 @@ function sound_tab.update_bar(editor)
             sound_tab.silence()
         end
     end
+end
+
+
+function sound_tab.to_key(note)
+    local sequence = {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"}
+    local octavenote = note % 12 + 1
+    local octave = math.floor(note / 12)
+    local key = sequence[octavenote] .. octave
+    return tostring(key)
 end
 
 

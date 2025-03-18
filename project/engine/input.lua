@@ -98,6 +98,17 @@ function input.lclick_in(x, y, a, b)
 end
 
 
+function input.rclick_in(x, y, a, b)
+    if input.rclick then
+        if input.mouse.x >= x and input.mouse.x <= a and
+            input.mouse.y >= y and input.mouse.y <= b then
+            return true
+        end
+    end
+    return false
+end
+
+
 function input.btn(num)
     if num < 0 or num > 7 then return false end
     return input.buttons[num + 1]
