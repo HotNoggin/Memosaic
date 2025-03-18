@@ -19,7 +19,10 @@ function sound_tab.init(memo)
     sound_tab.oldspace = false
     sound_tab.oldtab = false
 
+    sound_tab.stashed = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+
     sound_tab.selected = 0
+    sound_tab.waveform = 0
     sound_tab.scroll = 0
     sound_tab.click_started_in_canvas = false
 end
@@ -46,6 +49,9 @@ function sound_tab.update(editor)
 
     draw.clrs()
 
+    local highlight = 14
+    if vol_mode then highlight = 11 end
+
     -- Select sound
     if ipt.lclick_in(0, 11, 15, 14) and not ipt.lheld then
         local tx = math.floor(mx / 2)
@@ -58,6 +64,14 @@ function sound_tab.update(editor)
     -- Set scroll
     if ipt.lclick_in(0, 9, 15, 9) then
         sound_tab.scroll = math.min(math.floor(mpx/4), 16)
+    end
+
+    -- Sound keyboard navigation
+    if ipt.btn(0) then
+        sound_tab.scroll = math.max(0, sound_tab.scroll - 1)
+    end
+    if ipt.btn(1) then
+        sound_tab.scroll = math.min(sound_tab.scroll + 1, 16)
     end
 
     if ipt.lclick_in(0, 1, 15, 8) and not ipt.lheld then
@@ -85,9 +99,44 @@ function sound_tab.update(editor)
         end
     end
 
+    -- Select waveform
+    if ipt.lclick_in(11, 10, 15, 10) and not ipt.lheld then
+        sound_tab.waveform = mx - 12
+    end
+
     -- Play sound
     if sound_tab.space and not sound_tab.oldspace then
-        sound_tab.audio.chirp(sound_tab.selected, 2, 20)
+        sound_tab.audio.chirp(sound_tab.selected, sound_tab.waveform, 20)
+    end
+
+    -- Switch volume and note mode
+    if sound_tab.tab and not sound_tab.oldtab then
+        sound_tab.volume_mode = not sound_tab.volume_mode
+    end
+
+    -- Hotkeys
+    if ipt.ctrl then
+        if ipt.key("c") and not ipt.oldkey("c") then
+            sound_tab.copy()
+            editor.tooltip = "copy sound"
+        end
+        if ipt.key("v") and not ipt.oldkey("v") then
+            sound_tab.paste()
+            editor.tooltip = "paste sound"
+        end
+        if ipt.key("x") and not ipt.oldkey("x") then
+            sound_tab.copy()
+            sound_tab.paste("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")
+            editor.tooltip = "cut sound"
+        end
+        if ipt.key("n") and not ipt.oldkey("n") then
+            sound_tab.maximize()
+            editor.tooltip = "max volume"
+        end
+        if ipt.key("m") and not ipt.oldkey("m") then
+            sound_tab.silence()
+            editor.tooltip = "min volume"
+        end
     end
 
     -- Draw selected sound
@@ -98,7 +147,7 @@ function sound_tab.update(editor)
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
         local halftile = 0b10010010
-        local fulltile  = 0b10011010
+        local fulltile = 0b10011010
 
         -- Volume mode switch
         local val = note
@@ -118,11 +167,6 @@ function sound_tab.update(editor)
                 draw.tile(x, y, halftile, color, 0)
             end
         end
-    end
-
-    -- Switch volume and note mode
-    if sound_tab.tab and not sound_tab.oldtab then
-        sound_tab.volume_mode = not sound_tab.volume_mode
     end
 
     -- Draw scrollbar (sound preview)
@@ -163,15 +207,125 @@ function sound_tab.update(editor)
             local fg, bg = 2, 0
             if (x + y) % 2 == 0 then fg, bg = 0, 2 end
             if i == sound_tab.selected then
-                if fg == 2 then fg = 14 end
-                if bg == 2 then bg = 14 end
+                if fg == 2 then fg = highlight end
+                if bg == 2 then bg = highlight end
             end
             draw.text(x * 2, y + 11, str, fg, bg)
         end
     end
 
+    -- Draw waveform selection
+    for x = 0, 3 do
+        draw.tile(x + 12, 10, x + 2, highlight, 0) -- num + 2 gets the waveform icon idx
+        if x == sound_tab.waveform then
+            draw.ink(x + 12, 10, 0, highlight)
+        end
+    end
+
     sound_tab.oldspace = sound_tab.space
     sound_tab.oldtab = sound_tab.tab
+end
+
+
+function sound_tab.update_bar(editor)
+    local draw = sound_tab.drawing
+    local ipt = sound_tab.input
+    local mx, my = ipt.mouse.x, ipt.mouse.y
+
+    -- Copy
+    draw.char(8, 0, 24)
+    if mx == 8 and my == 0 then
+        draw.ink(8, 0, editor.bar_lit)
+        editor.tooltip = "copy (ctrl+c)"
+        if ipt.lclick and not ipt.lheld then
+            sound_tab.copy()
+        end
+    end
+
+    -- Paste
+    draw.char(9, 0, 25)
+    if mx == 9 and my == 0 then
+        draw.ink(9, 0, editor.bar_lit)
+        editor.tooltip = "paste (ctrl+v)"
+        if ipt.lclick and not ipt.lheld then
+            sound_tab.paste()
+        end
+    end
+
+    -- Cut
+    draw.char(10, 0, 26)
+    if mx == 10 and my == 0 then
+        draw.ink(10, 0, editor.bar_lit)
+        editor.tooltip = "cut (CTRL+x)"
+        if ipt.lclick and not ipt.lheld then
+            sound_tab.copy()
+            sound_tab.paste("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")
+        end
+    end
+
+    -- Max volume
+    draw.char(11, 0, 0b10011010)
+    if mx == 11 and my == 0 then
+        draw.ink(11, 0, editor.bar_lit)
+        editor.tooltip = "max vol (CTRL+n)"
+        if ipt.lclick and not ipt.lheld then
+            sound_tab.maximize()
+        end
+    end
+
+    -- Min volume
+    draw.char(12, 0, 0b10010010)
+    if mx == 12 and my == 0 then
+        draw.ink(12, 0, editor.bar_lit)
+        editor.tooltip = "min vol (CTRL+m)"
+        if ipt.lclick and not ipt.lheld then
+            sound_tab.silence()
+        end
+    end
+end
+
+
+function sound_tab.copy()
+    sound_tab.stashed = ""
+    local mem = sound_tab.memapi
+    local adr = mem.map.sounds_start + (sound_tab.selected * 32)
+    for i = 0, 31 do
+        local byte = mem.peek(adr + i)
+        sound_tab.stashed = sound_tab.stashed .. string.char(byte)
+    end
+end
+
+
+function sound_tab.paste(sound)
+    local topaste = sound or sound_tab.stashed
+    local mem = sound_tab.memapi
+    local adr = mem.map.sounds_start + (sound_tab.selected * 32)
+    for i = 0, 31 do
+        local byte = string.byte(topaste:sub(i + 1, i + 1))
+        mem.poke(adr + i, byte)
+    end
+end
+
+
+function sound_tab.maximize()
+    local mem = sound_tab.memapi
+    local adr = mem.map.sounds_start + (sound_tab.selected * 32)
+    for i = 2, 31 do
+        local byte = mem.peek(adr + i)
+        byte = bit.bor(byte, 0x0F) -- maximize volume
+        mem.poke(adr + i, byte)
+    end
+end
+
+
+function sound_tab.silence()
+    local mem = sound_tab.memapi
+    local adr = mem.map.sounds_start + (sound_tab.selected * 32)
+    for i = 2, 31 do
+        local byte = mem.peek(adr + i)
+        byte = bit.band(byte, 0xF0) -- minimize volume
+        mem.poke(adr + i, byte)
+    end
 end
 
 

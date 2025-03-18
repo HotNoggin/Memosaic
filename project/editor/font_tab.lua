@@ -158,7 +158,7 @@ function font_tab.update_bar(editor)
     draw.char(8, 0, 24)
     if mx == 8 and my == 0 then
         draw.ink(8, 0, editor.bar_lit)
-        editor.tooltip = "copy char"
+        editor.tooltip = "copy (CTRL+c)"
         if ipt.lclick and not ipt.lheld then
             font_tab.copy()
         end
@@ -168,7 +168,7 @@ function font_tab.update_bar(editor)
     draw.char(9, 0, 25)
     if mx == 9 and my == 0 then
         draw.ink(9, 0, editor.bar_lit)
-        editor.tooltip = "paste char"
+        editor.tooltip = "paste (CTRL+v)"
         if ipt.lclick and not ipt.lheld then
             font_tab.paste()
         end
@@ -178,7 +178,7 @@ function font_tab.update_bar(editor)
     draw.char(10, 0, 26)
     if mx == 10 and my == 0 then
         draw.ink(10, 0, editor.bar_lit)
-        editor.tooltip = "cut char"
+        editor.tooltip = "cut (CTRL+x)"
         if ipt.lclick and not ipt.lheld then
             font_tab.copy()
             font_tab.paste("\0\0\0\0\0\0\0\0")
@@ -215,15 +215,6 @@ function font_tab.copy()
 end
 
 
-function font_tab.fontwrap(num)
-    local range_start = 0x10
-    local range_end = 0x7F
-    local range_size = range_end - range_start + 1 -- Include the end value
-
-    return (math.floor(num) - range_start) % range_size + range_start
-end
-
-
 function font_tab.paste(char)
     local topaste = char or font_tab.stashed
     local mem = font_tab.memapi
@@ -232,6 +223,15 @@ function font_tab.paste(char)
         local byte = string.byte(topaste:sub(i + 1, i + 1))
         mem.poke(adr + i, byte)
     end
+end
+
+
+function font_tab.fontwrap(num)
+    local range_start = 0x10
+    local range_end = 0x7F
+    local range_size = range_end - range_start + 1 -- Include the end value
+
+    return (math.floor(num) - range_start) % range_size + range_start
 end
 
 

@@ -111,7 +111,8 @@ function editor.update()
 
     if editor.tab > 0 then
        editor.update_bar()
-       if editor.tab == 1 then editor.font_tab.update_bar(editor) end
+       if editor.tab == 1 then editor.font_tab.update_bar(editor)
+       elseif editor.tab == 3 then editor.sound_tab.update_bar(editor) end
     end
 end
 
@@ -156,6 +157,9 @@ function editor.update_bar()
     draw.char(14, 0, 21)
     if mx == 14 and my == 0 then
         draw.tile(14, 0, 22, editor.bar_lit)
+        if not click then
+            editor.tooltip = "run (CTRL+S)"
+        end
         if click and not held then
             editor.ranfrom = editor.tab
             editor.sendcmd("run")
@@ -166,6 +170,9 @@ function editor.update_bar()
     draw.char(15, 0, 23)
     if mx == 15 and my == 0 then
         draw.ink(15, 0, editor.bar_lit)
+        if not click then
+            editor.tooltip = "save (CTRL+S)"
+        end
         if click and not held then
             editor.sendcmd("save")
         end

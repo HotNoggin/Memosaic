@@ -99,12 +99,13 @@ function audio.note(idx, note)
 end
 
 
-function audio.chirp(sound, wav, addnote)
+function audio.chirp(sound, wav, addnote, at)
     local con = audio.console
     if con.bad_type(sound, "number", "beep:sound") or con.bad_type(wav, "number", "beep:wave")
     then return false end
 
     local toadd = addnote or 0
+    local offset = at or 0
 
     local mem = audio.memo.memapi
     local start = sound * 32 + mem.map.sounds_start
@@ -116,7 +117,7 @@ function audio.chirp(sound, wav, addnote)
         local byte = mem.peek(start + 2 + idx) -- Header is 2 bytes long
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
-        audio.blip(wav, basenote + toadd + note, vol, idx)
+        audio.blip(wav, basenote + toadd + note, vol, idx + offset)
     end
 end
 
@@ -128,10 +129,10 @@ function audio.beep(wav, note, vol, len, at)
     or con.bad_type(vol, "number", "beep:volume") or con.bad_type(len, "number", "beep:length")
     then error("beep only takes numbers") return false end
 
-    local start = at or 0
+    local offset = at or 0
 
-    for idx = audio.idx + start, audio.idx + start + (len - 1) do
-        local success = audio.blipat(wav, note, vol, idx)
+    for idx = 0, len - 1 do
+        local success = audio.blip(wav, note, vol, idx + offset)
         if not success then return false end
     end
     return true
@@ -150,13 +151,17 @@ function audio.blip(wav, note, vol, at)
         return false
     end
 
-    local start = at or 0
+    local where = at or 0
 
     local chan = a.channels[math.floor(wav)]
-    local adr = (a.idx + (start * 2)) % a.chansize
+    local adr = (a.idx + (where * 2)) % a.chansize
 
-    audio.memo.memapi.poke(adr + chan.ptr, vol)
-    audio.memo.memapi.poke(adr + chan.ptr + 1, note)
+    if where > 0 then
+        if vol > 0 then
+            audio.memo.memapi.poke(adr + chan.ptr, vol)
+        end
+        audio.memo.memapi.poke(adr + chan.ptr + 1, note)
+    end
     return true
 end
 
