@@ -12,7 +12,7 @@ function font_tab.init(memo)
     font_tab.pen = false
     font_tab.bg = 0
     font_tab.fg = 13
-    font_tab.stashed = "00000000"
+    font_tab.stashed = "\0\0\0\0\0\0\0\0"
 end
 
 

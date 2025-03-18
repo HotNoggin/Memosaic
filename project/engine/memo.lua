@@ -59,6 +59,10 @@ function memo.stat(code)
         return memo.input.mouse.x
     elseif code == 0x27 then
         return memo.input.mouse.y
+    elseif code == 0x28 then
+        return memo.input.mouse.px
+    elseif code == 0x29 then
+        return memo.input.mouse.py
     else
         return false
     end

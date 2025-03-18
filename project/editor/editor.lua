@@ -49,6 +49,8 @@ end
 
 function editor.update()
     local map = editor.memapi.map
+    local ipt = editor.input
+    local isesc = love.keyboard.isDown("escape")
 
     -- Reset all flags, set efont flag to true
     for i = map.rflags_start, map.rflags_end do
@@ -60,6 +62,16 @@ function editor.update()
         return
     end
 
+    -- Hotkey nav
+    for i = 0, 4 do
+        if ipt.ctrl and love.keyboard.isDown(tostring(i)) then
+            editor.tab = i
+            if editor.tab > 0 then
+                editor.lasttab = editor.tab
+            end
+        end
+    end
+
     if editor.tab == 0 then editor.console.update()
     elseif editor.tab == 1 then editor.font_tab.update(editor)
     elseif editor.tab == 2 then editor.code_tab.update(editor)
@@ -67,9 +79,7 @@ function editor.update()
     elseif editor.tab == 4 then editor.data_tab.update(editor)
     end
 
-    local ipt = editor.input
-    local isesc = love.keyboard.isDown("escape")
-
+    -- Hotkeys
     if ipt.ctrl and (ipt.key("r") and not ipt.oldkey("r")) then
         if ipt.shift then
             editor.sendcmd("reload")
@@ -79,7 +89,6 @@ function editor.update()
             return
         end
     end
-
     if ipt.ctrl and (ipt.key("s") and not ipt.oldkey("s")) then
         editor.sendcmd("save")
     end

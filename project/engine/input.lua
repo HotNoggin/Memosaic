@@ -46,7 +46,7 @@ function input.update()
     input.buttons[4] = love.keyboard.isScancodeDown("s") or love.keyboard.isScancodeDown("down")
     input.buttons[5] = love.keyboard.isScancodeDown("x") or love.keyboard.isScancodeDown("j")
     input.buttons[6] = love.keyboard.isScancodeDown("c") or love.keyboard.isScancodeDown("k")
-    
+
     input.lheld = input.lclick
     input.rheld = input.rheld
     input.lclick = love.mouse.isDown(1)
@@ -75,6 +75,9 @@ function input.update()
 
     local mouse_x = (love.mouse.getX() - offset_x) / scale
     local mouse_y = (love.mouse.getY() - offset_y) / scale
+
+    input.mouse.px = math.max(0, math.min(math.floor(mouse_x), 127))
+    input.mouse.py = math.max(0, math.min(math.floor(mouse_y), 127))
 
     input.mouse.x = math.max(0, math.min(math.floor(mouse_x / 8), 15))
     input.mouse.y = math.max(0, math.min(math.floor(mouse_y / 8), 15))

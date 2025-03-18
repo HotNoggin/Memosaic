@@ -60,8 +60,6 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         -- Audio
         blip = audio.blip,
         beep = audio.beep,
-        blipat = audio.blipat,
-        beepat = audio.beepat,
 
         -- Console
         echo = console.print,

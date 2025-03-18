@@ -151,6 +151,14 @@ end
 
 
 ----------- AUDIO -----------
+function lib.blip(val, pwav, pnote, pvol)
+    local m = lib.mint
+    local wav = pwav or m.pop()
+    local note = pnote() or m.pop()
+    local vol = pvol or m.pop()
+    lib.blipat(val, pwav, pnote, pvol, 0)
+end
+
 
 function lib.blipat(val, pwav, pnote, pvol, pat)
     local m = lib.mint
