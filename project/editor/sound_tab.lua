@@ -103,13 +103,11 @@ function sound_tab.update(editor)
                     byte = bit.bor(bit.band(byte, 0xF0), height)
                     editor.tooltip = "volume: " .. height
                 else
-                    -- Set pitch
-                    local vol = bit.rshift(byte, 4)
-                    byte = bit.bor(bit.band(byte, 0x0F), bit.lshift(height, 4))
                     -- Set volume to max if muted
-                    if vol == 0 then
-                        byte = bit.bor(byte, 0x0F)
-                    end
+                    local vol = byte % 16
+                    if vol == 0 then byte = 0x0F end
+                    -- Set pitch
+                    byte = bit.bor(bit.band(byte, 0x0F), bit.lshift(height, 4))
                     -- Tooltip
                     local head_a = sound_tab.memapi.peek(start - 2)
                     local basenote = head_a % 128
