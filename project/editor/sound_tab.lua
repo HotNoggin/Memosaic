@@ -86,6 +86,9 @@ function sound_tab.update(editor)
         sound_tab.click_started_in_canvas = false
     end
 
+    local header = sound_tab.memapi.peek(sound_tab.memapi.map.sounds_start + sound_tab.selected * 32)
+    local basenote = header % 128
+
     -- Paint sound
     if ipt.lclick_in(0, 1, 15, 8) then
         if sound_tab.click_started_in_canvas then
@@ -108,9 +111,6 @@ function sound_tab.update(editor)
                     if vol == 0 then byte = 0x0F end
                     -- Set pitch
                     byte = bit.bor(bit.band(byte, 0x0F), bit.lshift(height, 4))
-                    -- Tooltip
-                    local head_a = sound_tab.memapi.peek(start - 2)
-                    local basenote = head_a % 128
                     editor.tooltip = "note: " .. sound_tab.to_key(height + basenote)
                         .. " (" .. height + basenote .. ")"
                 end
@@ -129,8 +129,10 @@ function sound_tab.update(editor)
     end
 
     -- Select waveform
-    if ipt.lclick_in(11, 10, 15, 10) and not ipt.lheld then
+    if ipt.lclick_in(12, 10, 15, 10) and not ipt.lheld then
+        local waves = {"sqr", "sin", "saw", "noz"}
         sound_tab.waveform = mx - 12
+        editor.tooltip = "preview: " .. waves[mx - 11]
     end
 
     -- Play sound
@@ -141,6 +143,29 @@ function sound_tab.update(editor)
     -- Switch volume and note mode
     if sound_tab.tab and not sound_tab.oldtab then
         sound_tab.volume_mode = not sound_tab.volume_mode
+    end
+    if ipt.lclick_in(0, 10, 3, 10) and not ipt.lheld then
+        sound_tab.volume_mode = not sound_tab.volume_mode
+    end
+
+    -- Set base note
+    if mx == 5 and my == 10 and ipt.lclick and not ipt.lheld then
+        local note = 0
+        if ipt.ctrl then
+            note = sound_tab.up_base(-12)
+        else
+            note = sound_tab.up_base(-1)
+        end
+        editor.tooltip = "base: " .. sound_tab.to_key(note) .. " ("..note..")"
+    end
+    if mx == 9 and my == 10 and ipt.lclick and not ipt.lheld then
+        local note = 0
+        if ipt.ctrl then
+            note = sound_tab.up_base(12)
+        else
+            note = sound_tab.up_base(1)
+        end
+        editor.tooltip = "base: " .. sound_tab.to_key(note) .. " ("..note..")"
     end
 
     -- Hotkeys
@@ -203,6 +228,16 @@ function sound_tab.update(editor)
     -- Draw scrollbar
     draw.irect(0, 9, 16, 1, 0, 2)
     draw.char(sound_tab.scroll, 9, 6) -- char 6 is dot
+
+    -- Draw note/volume toggle
+    if vol_mode then
+        draw.text(0, 10, "\30vol", highlight, 0)
+    else
+        draw.text(0, 10, "\29vol", highlight, 0)
+    end
+
+    -- Draw base note
+    draw.text(5, 10, "<" .. sound_tab.to_key(basenote) .. ">", highlight)
 
     -- Draw selection numbers
     for x = 0, 7 do
@@ -292,11 +327,25 @@ end
 
 
 function sound_tab.to_key(note)
-    local sequence = {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"}
+    local sequence = {"A ", "A#", "B ", "C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", "G#"}
     local octavenote = note % 12 + 1
     local octave = math.floor(note / 12)
     local key = sequence[octavenote] .. octave
     return tostring(key)
+end
+
+
+function sound_tab.up_base(value)
+    print("up base by " .. value)
+    local toadd = value
+    local adr = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32
+    local byte = sound_tab.memapi.peek(adr)
+    local base = byte % 128
+    byte = bit.band(byte, 0b10000000)
+    local val = math.max(0, math.min(base + toadd, 92))
+    byte = bit.bor(byte, val) -- range A0 to F7 base note
+    sound_tab.memapi.poke(adr, byte)
+    return val
 end
 
 
