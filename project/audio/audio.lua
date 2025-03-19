@@ -116,7 +116,6 @@ function audio.chirp(sound, wav, base, len, at)
     local basenote = head_a % 128
 
     for idx = 0, 30 * length, length do
-        print(idx)
         local byte = mem.peek(start + 1 + math.floor(idx/length))
         -- Header is 1 byte long, instructions are one (hence the idx/length, which scales)
         local vol = bit.band(byte, 0x0F)

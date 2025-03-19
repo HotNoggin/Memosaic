@@ -5,6 +5,7 @@
 -- end
 
 local memo = require("engine.memo")
+local jjrle = require("engine.jjrle")
 
 local esc_old = false
 local tick_audio = false
@@ -17,6 +18,10 @@ function love.load()
     math.randomseed(os.time())
     memo.init({win_scale = 4, vsync = true})
     memo.audio.start()
+    local str = "ABC001111222222223333333333333333444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444445555A"
+    print(str)
+    print(jjrle.pack(str))
+    print(jjrle.unpack(jjrle.pack(str)))
 end
 
 
