@@ -52,7 +52,7 @@ function jjrle.unpack(packed)
             local index = jjrle.getval(c)
             local runlen = index + jjrle.minrun
             -- add the previously read character n times
-            for count = 1, runlen do
+            for j = 1, runlen do
                 raw = raw .. pre
             end
         elseif pre ~= "" and jjrle.ishex(pre) then
@@ -62,7 +62,6 @@ function jjrle.unpack(packed)
             --return error("JJRLE ERROR: character is not code or hexadecimal")
         end
     end
-
     return raw
 end
 

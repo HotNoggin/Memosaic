@@ -1,12 +1,12 @@
 -- Prepare a table for the module
 local editor = {}
+local jjrle = require("engine.jjrle")
 
 editor.console = require("editor.console")
 editor.font_tab = require("editor.font_tab")
 editor.code_tab = require("editor.code_tab")
 editor.sound_tab = require("editor.sound_tab")
 editor.data_tab = require("editor.data_tab")
-
 
 function editor.init(memo)
     print("Initializing editor")
@@ -264,10 +264,11 @@ function editor.get_save()
     local cdata = ""
     cdata = cdata .. editor.cart.get_script()
     local font = editor.font_tab.get_font(editor)
+    local packedfont = jjrle.pack(font)
     if editor.cart.use_mimosa then
-        cdata = cdata .. "(!font!)\n(" .. font .. ")"
+        cdata = cdata .. "(!font!)\n(" .. packedfont .. ")"
     else
-        cdata = cdata .. "--!:font\n--" .. font
+        cdata = cdata .. "--!:font\n--" .. packedfont
     end
     return cdata
 end
