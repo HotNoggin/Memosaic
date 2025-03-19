@@ -160,12 +160,11 @@ function audio.blip(wav, note, vol, at)
 
     local chan = a.channels[math.floor(wav)]
     local adr = (a.idx + (where * 2)) % a.chansize
-
-    if where > 0 then -- ignore negatives
+    if where >= 0 then -- ignore negatives
         if vol > 0 then -- ignore silence
             audio.memo.memapi.poke(adr + chan.ptr, vol)
+            audio.memo.memapi.poke(adr + chan.ptr + 1, note)
         end
-        audio.memo.memapi.poke(adr + chan.ptr + 1, note)
     end
     return true
 end

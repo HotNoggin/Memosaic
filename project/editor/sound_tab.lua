@@ -141,6 +141,14 @@ function sound_tab.update(editor)
         sound_tab.audio.chirp(sound_tab.selected, sound_tab.waveform, 0, sound_tab.len, 0)
         -- sound, wav, base, len, at
     end
+    draw.tile(1, 10, 21, highlight) -- button up
+    if mx == 1 and my == 10 then
+        draw.char(1, 10, 22) -- button down
+        editor.tooltip = "play (SPACE)"
+        if ipt.lclick and not ipt.lheld then
+            sound_tab.audio.chirp(sound_tab.selected, sound_tab.waveform, 0, sound_tab.len, 0)
+        end
+    end
 
     -- Switch volume and note mode
     if (sound_tab.tab and not sound_tab.oldtab)
