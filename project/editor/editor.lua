@@ -158,7 +158,7 @@ function editor.update_bar()
     if mx == 14 and my == 0 then
         draw.tile(14, 0, 22, editor.bar_lit)
         if not click then
-            editor.tooltip = "run (CTRL+S)"
+            editor.tooltip = "run (CTRL+r)"
         end
         if click and not held then
             editor.ranfrom = editor.tab
@@ -171,7 +171,7 @@ function editor.update_bar()
     if mx == 15 and my == 0 then
         draw.ink(15, 0, editor.bar_lit)
         if not click then
-            editor.tooltip = "save (CTRL+S)"
+            editor.tooltip = "save (CTRL+s)"
         end
         if click and not held then
             editor.sendcmd("save")

@@ -156,11 +156,11 @@ function sound_tab.update(editor)
     -- Preview speeds
     if mx == 3 and my == 10 and ipt.lclick and not ipt.lheld then
         sound_tab.len = math.max(sound_tab.len - 1, 0)
-        editor.tooltip = "length: ".. sound_tab.len .. " (" .. sound_tab.len + 1 .. "x)"
+        editor.tooltip = "length: " .. sound_tab.len + 1 .. "x"
     end
     if mx == 5 and my == 10 and ipt.lclick and not ipt.lheld then
         sound_tab.len = math.min(sound_tab.len + 1, 7)
-        editor.tooltip = "length: ".. sound_tab.len .. " (" .. sound_tab.len + 1 .. "x)"
+        editor.tooltip = "length: " .. sound_tab.len + 1 .. "x"
     end
 
     -- Set base note
@@ -252,7 +252,7 @@ function sound_tab.update(editor)
     end
 
     -- Draw length
-    draw.text(3, 10, "<" .. sound_tab.len .. ">", highlight)
+    draw.text(3, 10, "<" .. sound_tab.len + 1 .. ">", highlight)
 
     -- Draw base note
     draw.text(6, 10, "<" .. sound_tab.to_key(basenote) .. ">", highlight)
@@ -302,7 +302,7 @@ function sound_tab.update_bar(editor)
     draw.char(8, 0, 24)
     if mx == 8 and my == 0 then
         draw.ink(8, 0, editor.bar_lit)
-        editor.tooltip = "copy (ctrl+c)"
+        editor.tooltip = "copy (CTRL+c)"
         if ipt.lclick and not ipt.lheld then
             sound_tab.copy()
         end
@@ -312,7 +312,7 @@ function sound_tab.update_bar(editor)
     draw.char(9, 0, 25)
     if mx == 9 and my == 0 then
         draw.ink(9, 0, editor.bar_lit)
-        editor.tooltip = "paste (ctrl+v)"
+        editor.tooltip = "paste (CTRL+v)"
         if ipt.lclick and not ipt.lheld then
             sound_tab.paste()
         end

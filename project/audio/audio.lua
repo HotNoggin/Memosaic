@@ -106,8 +106,8 @@ function audio.chirp(sound, wav, base, len, at)
 
     local toadd = base or 0
     local offset = at or 0
-    local length = len or 0
-    length = math.max(0, math.min(length, 7))
+    local length = len or 1
+    length = math.max(1, math.min(length, 8))
 
     local mem = audio.memo.memapi
     local start = sound * 32 + mem.map.sounds_start
@@ -115,11 +115,13 @@ function audio.chirp(sound, wav, base, len, at)
     local head_b = mem.peek(start + 1)
     local basenote = head_a % 128
 
-    for idx = 0, 30 do
-        local byte = mem.peek(start + 1 + idx) -- Header is 1 byte long
+    for idx = 0, 30 * length, length do
+        print(idx)
+        local byte = mem.peek(start + 1 + math.floor(idx/length))
+        -- Header is 1 byte long, instructions are one (hence the idx/length, which scales)
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
-        audio.beep(wav, basenote + toadd + note, vol, len + 1, idx * (len + 1) - len)
+        audio.beep(wav, basenote + toadd + note, vol, length, idx + offset)
     end
     return true
 end
