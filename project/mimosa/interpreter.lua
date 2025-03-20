@@ -20,14 +20,17 @@ local mint = {
 }
 
 
+local bit = require("bit")
+
+
 function mint.interpret(instructions, stack, pile, tags, from)
     mint.ok = true
     mint.line = 1
-    mint.idx = 1
+    mint.idx = from or mint.idx
+    mint.instructions = instructions or mint.instructions
     mint.sp = 0
     mint.callstack = {}
     mint.skipstack = {}
-    mint.instructions = instructions
 
     mint.say("interpreting")
     if stack then mint.stack = stack end
@@ -35,8 +38,8 @@ function mint.interpret(instructions, stack, pile, tags, from)
     if tags then mint.tags = tags end
     if from then mint.idx = from end
 
-    while mint.idx <= #instructions do
-        local inst = instructions[mint.idx]
+    while mint.idx <= #mint.instructions do
+        local inst = mint.instructions[mint.idx]
         mint.line = inst.line
 
         local func = mint.operations[inst.type]

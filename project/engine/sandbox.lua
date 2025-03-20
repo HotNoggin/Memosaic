@@ -22,6 +22,8 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
     sandbox.func = function () end
     sandbox.cart = cart
 
+    local bit = require("bit")
+
     -- The Memosaic API (safe lua default functions and custom functions)
     sandbox.env = {
         -- Standard
@@ -134,7 +136,6 @@ end
 
 
 -- select - SAFE
--- unpack - SAFE
 -- xpcall - SAFE
 
 -- Export the module as a table

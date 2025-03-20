@@ -70,7 +70,7 @@ function cart.load(path, hardtxt, is_export)
         end
         file:close()
         cart.name = "Loaded cart"
-        lines:insert("") -- required newline at end of file
+        table.insert(lines, "") -- required newline at end of file
         cart.load_lines(lines, is_export)
         return true
     end
@@ -161,7 +161,10 @@ function cart.run()
 
     local ok, err
     if cart.use_mimosa then
-        ok = xpcall(cart.memo.mimosa.run, cart.handle_err, cart.get_script(), {}, {})
+        cart.memo.mimosa.script = cart.get_script()
+        cart.memo.mimosa.stack = {}
+        cart.memo.mimosa.pile = {}
+        ok = xpcall(cart.memo.mimosa.run, cart.handle_err)
     else
         cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
         ok, err = cart.sandbox.run(cart.get_script(), cart.name)
@@ -204,8 +207,8 @@ function cart.boot()
         local idx = mint.tags["boot"]
         if idx ~= nil then
             -- Interpret the boot region, using the old stack, pile, and tags
-            local ok, err = xpcall(mint.interpret, cart.handle_err,
-            mint.instructions, nil, nil, nil, idx + 1)
+            mint.idx = idx + 1
+            local ok, err = xpcall(mint.interpret, cart.handle_err)
             if not ok then
                 if err then cart.cli.error(err) end
                 cart.stop()
@@ -227,8 +230,8 @@ function cart.tick()
         local idx = mint.tags["tick"]
         if idx ~= nil then
             -- Interpret the tick region, using the old stack, pile, and tags
-            local ok, err = xpcall(mint.interpret, cart.handle_err,
-            mint.instructions, nil, nil, nil, idx + 1)
+            mint.idx = idx + 1
+            local ok, err = xpcall(mint.interpret, cart.handle_err)
             if not ok then
                 if err then cart.cli.error(err) end
                 cart.stop()

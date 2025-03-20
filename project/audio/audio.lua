@@ -5,6 +5,8 @@ local audio = {
     idx = 0,
 }
 
+local bit = require("bit")
+
 audio.denver = require("audio.denver")
 
 

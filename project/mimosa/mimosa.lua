@@ -4,6 +4,10 @@ local mimosa = {
     interpreter = require("mimosa.interpreter"),
     library = require("mimosa.library"),
     had_err = false,
+
+    script = "",
+    stack = {},
+    pile = {},
 }
 
 
@@ -20,13 +24,17 @@ function mimosa.init(memo)
 end
 
 
-function mimosa.run(script, stack, pile)
+function mimosa.run(pscript, pstack, ppile)
+    local script = pscript or mimosa.script
+    local stack = pstack or mimosa.stack
+    local pile = ppile or mimosa.pile
+
     mimosa.had_err = false
-    local oka, tokens = xpcall(
-        mimosa.lexer.scan, mimosa.memo.cart.handle_err, script)
+    mimosa.lexer.code = script
+    local oka, tokens = xpcall(mimosa.lexer.scan, mimosa.memo.cart.handle_err)
     if mimosa.had_err then return false end
-    local okb, instructions, tags = xpcall(
-        mimosa.parser.get_instructions, mimosa.memo.cart.handle_err, tokens)
+    mimosa.parser.tokens = tokens
+    local okb, instructions, tags = xpcall(mimosa.parser.get_instructions, mimosa.memo.cart.handle_err)
     if mimosa.had_err then return false end
     mimosa.interpreter.interpret(instructions, stack, pile, tags, 1)
     if not mimosa.interpreter.ok then return false end

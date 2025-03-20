@@ -1,6 +1,8 @@
 -- Prepare a table for the module
 local sound_tab = {}
 
+local bit = require("bit")
+
 
 function sound_tab.init(memo)
     sound_tab.memo = memo
@@ -223,8 +225,8 @@ function sound_tab.update(editor)
         local byte = sound_tab.memapi.peek(adr + x + sound_tab.scroll)
         local vol = bit.band(byte, 0x0F)
         local note = bit.rshift(bit.band(byte, 0xF0), 4)
-        local halftile = 0b10010010
-        local fulltile = 0b10011010
+        local halftile = tonumber("10010010", 2)
+        local fulltile = tonumber("10011010", 2)
 
         -- Volume mode switch
         local val = note
@@ -338,7 +340,7 @@ function sound_tab.update_bar(editor)
     end
 
     -- Max volume
-    draw.char(11, 0, 0b10011010)
+    draw.char(11, 0, tonumber("10011010", 2))
     if mx == 11 and my == 0 then
         draw.ink(11, 0, editor.bar_lit)
         editor.tooltip = "max vol (CTRL+n)"
@@ -348,7 +350,7 @@ function sound_tab.update_bar(editor)
     end
 
     -- Min volume
-    draw.char(12, 0, 0b10010010)
+    draw.char(12, 0, tonumber("10010010", 2))
     if mx == 12 and my == 0 then
         draw.ink(12, 0, editor.bar_lit)
         editor.tooltip = "min vol (CTRL+m)"
@@ -373,7 +375,7 @@ function sound_tab.up_base(value)
     local adr = sound_tab.memapi.map.sounds_start + sound_tab.selected * 32
     local byte = sound_tab.memapi.peek(adr)
     local base = byte % 128
-    byte = bit.band(byte, 0b10000000)
+    byte = bit.band(byte, tonumber("10000000", 2))
     local val = math.max(0, math.min(base + toadd, 92))
     byte = bit.bor(byte, val) -- range A0 to F7 base note
     sound_tab.memapi.poke(adr, byte)
