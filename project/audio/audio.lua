@@ -42,16 +42,10 @@ function audio.start()
     audio.vol(1, 0, 1)
     audio.vol(2, 0, 1)
     audio.vol(3, 0, 1)
-
-    love.audio.play(
-        audio.sqr,
-        audio.tri,
-        audio.saw,
-        audio.noz
-    )
-
-    local a = audio
-    local map = audio.memo.memapi.map
+    audio.sqr:play()
+    audio.tri:play()
+    audio.saw:play()
+    audio.noz:play()
 end
 
 
