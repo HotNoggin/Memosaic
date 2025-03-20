@@ -14,6 +14,7 @@ function cart.init(memo)
     cart.memo = memo
     cart.memapi = memo.memapi
 
+    cart.is_export = false
     cart.running = false
     cart.use_mimosa = false
     cart.cli = memo.editor.console
@@ -23,7 +24,8 @@ function cart.init(memo)
 end
 
 
-function cart.load(path, hardtxt)
+function cart.load(path, hardtxt, is_export)
+    cart.is_export = is_export
     if hardtxt then
         print("Loading built-in cart")
         local lines = {}
@@ -38,7 +40,7 @@ function cart.load(path, hardtxt)
             end
         end
         cart.name = "Built-in cart"
-        cart.load_lines(lines)
+        cart.load_lines(lines, is_export)
         return true
     end
 
@@ -68,7 +70,8 @@ function cart.load(path, hardtxt)
         end
         file:close()
         cart.name = "Loaded cart"
-        cart.load_lines(lines)
+        lines:insert("") -- required newline at end of file
+        cart.load_lines(lines, is_export)
         return true
     end
     return false
@@ -76,7 +79,7 @@ end
 
 
 
-function cart.load_lines(lines)
+function cart.load_lines(lines, is_export)
     cart.code = {}
     cart.sfx = ""
 
@@ -116,7 +119,11 @@ function cart.load_lines(lines)
         elseif cart.tag("name", flag) then
             cart.name = line:sub(3)
             if cart.use_mimosa then cart.name = line:sub(2, -2) end
-            love.window.setTitle("Memosaic - " .. cart.name)
+            if is_export then
+                love.window.setTitle(cart.name)
+            else
+                love.window.setTitle("Memosaic - " .. cart.name)
+            end
             table.insert(cart.code, line)
 
         elseif cart.tag("defaultfont", flag) then
@@ -137,12 +144,16 @@ function cart.run()
     if not cart.memo.editor.check_save() then return end
     local memo = cart.memo
     print("Starting cart")
-    love.window.setTitle("Memosaic - " .. cart.name)
+    if cart.is_export then
+        love.window.setTitle(cart.name)
+    else
+        love.window.setTitle("Memosaic - " .. cart.name)
+    end
     cart.running = true
 
     -- Backup editor memory for retrieval
     cart.memapi.backup()
-    
+
     -- Reset all row flags
     for i = cart.memapi.map.rflags_start, cart.memapi.map.rflags_end do
         cart.memapi.poke(i, 0x00)

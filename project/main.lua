@@ -8,8 +8,33 @@ local memo = require("engine.memo")
 
 local esc_old = false
 local tick_audio = false
+local running_export = false
 
 io.stdout:setvbuf("no")
+
+
+local function auto_boot()
+    local globalpath = love.filesystem.getSourceBaseDirectory()
+    local file = io.open(globalpath .. "/memo.memo")
+    if file then
+        local contents = file:read("*a")
+        local success = memo.cart.load("", contents, true)
+        if success then
+            running_export = true
+            local icon = io.open(globalpath .. "/memo.png", "rb")
+            if icon then
+                local iconcontents = icon:read("*a")
+                icon:close()
+                local data = love.filesystem.newFileData(iconcontents, "memo.png")
+                local image = love.image.newImageData(data)
+                love.window.setIcon(image)
+                memo.cart.run()
+            end
+        else
+            error("Invalid memo.memo file")
+        end
+    end
+end
 
 
 -- Called once at the start of the game
@@ -17,6 +42,9 @@ function love.load()
     math.randomseed(os.time())
     memo.init({win_scale = 4, vsync = true})
     memo.audio.start()
+
+    -- Automatically load and run memo.memo and disable editor
+    auto_boot()
 end
 
 
@@ -25,8 +53,8 @@ function love.update(dt)
     if memo.tick.update(dt) then
         memo.input.update()
 
-        -- Run game (temporary hard path used)
-        if love.keyboard.isDown("escape") and not esc_old then
+        -- Stop cart and open editor
+        if not running_export and love.keyboard.isDown("escape") and not esc_old then
             if memo.cart.running then
                 memo.cart.stop()
                 -- Prevents the esc from being read by both editor and this
