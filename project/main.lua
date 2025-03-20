@@ -54,6 +54,7 @@ function love.update(dt)
         memo.input.update()
 
         -- Stop cart and open editor
+---@diagnostic disable-next-line: param-type-mismatch
         if not running_export and love.keyboard.isDown("escape") and not esc_old then
             if memo.cart.running then
                 memo.cart.stop()
@@ -82,6 +83,7 @@ function love.update(dt)
         -- Refresh the canvas image with the new image data
         memo.canvas.update()
         -- Historic input
+---@diagnostic disable-next-line: param-type-mismatch
         esc_old = love.keyboard.isDown("escape")
         memo.input.poptext()
     end
