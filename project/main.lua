@@ -13,6 +13,13 @@ local running_export = false
 io.stdout:setvbuf("no")
 
 
+local function splash()
+    memo.cart.running_splash = true
+    memo.cart.load("", memo.demos["splash.memo"])
+    memo.cart.run()
+end
+
+
 local function auto_boot()
     local globalpath = love.filesystem.getSourceBaseDirectory()
     local file = io.open(globalpath .. "/memo.memo")
@@ -42,20 +49,24 @@ function love.load()
     math.randomseed(os.time())
     memo.init({win_scale = 4, vsync = true})
     memo.audio.start()
-
-    -- Automatically load and run memo.memo and disable editor
-    auto_boot()
+    splash()
 end
 
 
 -- Called each frame, continuously
 function love.update(dt)
     if memo.tick.update(dt) then
+        if memo.cart.ended_splash then
+            memo.cart.ended_splash = false
+            memo.cart.load("", memo.demos["new_cart.memo"])
+            auto_boot()
+        end
         memo.input.update()
 
         -- Stop cart and open editor
+        if not running_export and not memo.cart.running_splash and
 ---@diagnostic disable-next-line: param-type-mismatch
-        if not running_export and love.keyboard.isDown("escape") and not esc_old then
+        love.keyboard.isDown("escape") and not esc_old then
             if memo.cart.running then
                 memo.cart.stop()
                 -- Prevents the esc from being read by both editor and this

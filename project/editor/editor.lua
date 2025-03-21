@@ -163,6 +163,7 @@ function editor.update_bar()
         if click and not held then
             editor.ranfrom = editor.tab
             editor.sendcmd("run")
+            return
         end
     end
 

@@ -1,5 +1,8 @@
 -- Prepare a table for the module
-local cart = {}
+local cart = {
+    running_splash = false,
+    ended_splash = false,
+}
 
 cart.sandbox = require("engine.sandbox")
 
@@ -192,12 +195,12 @@ end
 
 function cart.stop()
     print("Cart stopped\n")
-    cart.memo.drawing.setoffset(0, 0)
-    -- Reset individual line scroll
-    for i = 0, 15 do
-        cart.memapi.poke(cart.memapi.map.scroll_start + i, 0)
-    end
+    cart.memapi.retrieve()
     cart.running = false
+    if cart.running_splash then
+        cart.running_splash = false
+        cart.ended_splash = true
+    end
 end
 
 

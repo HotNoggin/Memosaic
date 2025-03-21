@@ -139,6 +139,7 @@ function console.update()
         for i, command in ipairs(commands) do
             c.cmd.command(command)
         end
+        if console.editor.cart.running then return end
         c.fgc[#c.entries] = 8
         c.autoscroll = true
     end

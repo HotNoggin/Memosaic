@@ -32,7 +32,6 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         num = tonumber,
         str = tostring,
         trace = debug.traceback,
-        -- time = os.clock()
 
         -- Callbacks
         boot = function() end,
@@ -42,9 +41,10 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         peek = memapi.peek,
         poke = memapi.poke,
 
-        -- Input
+        -- System
         stat = cart.memo.stat,
         btn = input.btn,
+        stop = cart.stop,
 
         -- Graphics
         clrs = drawing.clrs,
