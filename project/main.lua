@@ -84,10 +84,11 @@ function love.update(dt)
         end
 
         -- Play the instructions in the audio buffer
-        tick_audio = not tick_audio
-        if tick_audio then
-            memo.audio.tick()
-        end
+        -- tick_audio = not tick_audio
+        -- if tick_audio then
+        --     memo.audio.tick()
+        -- end
+        memo.audio.tick()
 
         -- Draw the ASCII + color buffers to the screen
         memo.drawing.draw_buffer()

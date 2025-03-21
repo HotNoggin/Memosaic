@@ -56,7 +56,7 @@ function cart.load(path, hardtxt, is_export)
         if not file then return false end
 
         if cart.getfilesize(file) > 0x8000 then --32KiB
-            cart.cli.print("Cart is " .. cart.getfilesize(file) - 0x8000 .. " bytes too big!")
+            cart.cli.print("Cart is " .. cart.getfilesize(file) - 0x8000 .. " bytes too big!", 14)
             return false
         end
 
