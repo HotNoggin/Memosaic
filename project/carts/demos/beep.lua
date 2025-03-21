@@ -10,12 +10,6 @@ i = 0
 wav = 0
 note = 50
 
-function boot()
- print("use \14 to play waves")
- print("press \12/\13 to set pitch")
-end
-
-
 function tick()
  local t = false
  if btn(0) then wav = 0 t = true end
@@ -29,5 +23,6 @@ function tick()
  i=(i+1)%32
 end
 
---!:defaultfont
+--!:font
+--
 ]]

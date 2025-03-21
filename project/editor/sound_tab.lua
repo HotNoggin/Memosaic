@@ -375,8 +375,8 @@ function sound_tab.get_sounds()
             local byte = mem.peek(adr)
             local vol = bit.band(byte, 0x0F)
             local note = bit.rshift(bit.band(byte, 0xF0), 4)
-            volumes = volumes .. mem.hex(vol)
-            notes = notes .. mem.hex(note)
+            volumes = volumes .. mem.hexchar(vol)
+            notes = notes .. mem.hexchar(note)
         end
         table.insert(sounds, volumes .. notes)
     end

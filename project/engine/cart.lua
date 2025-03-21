@@ -73,7 +73,7 @@ function cart.load(path, hardtxt, is_export)
         end
         file:close()
         cart.name = "Loaded cart"
-        table.insert(lines, "")
+        table.insert(lines, "") -- required newline at end of file
         cart.load_lines(lines, is_export)
         return true
     end
@@ -140,10 +140,6 @@ function cart.load_lines(lines, is_export)
             else
                 love.window.setTitle("Memosaic - " .. cart.name)
             end
-            cart.code = cart.code .. line .. split
-
-        elseif cart.tag("defaultfont", flag) then
-            cart.memapi.load_font(cart.memapi.default_font)
             cart.code = cart.code .. line .. split
 
         -- Add line to code (exclude font or sfx flags and data)
