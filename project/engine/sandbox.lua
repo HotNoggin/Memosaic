@@ -75,6 +75,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         ceil = math.ceil,
         cos = math.cos,
         deg = math.deg,
+        floor = math.floor,
         flr = math.floor,
         fmod = math.fmod,
         log = math.log,
@@ -83,6 +84,8 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         rad = math.rad,
         sin =  math.sin,
         sqrt = math.sqrt,
+        random = love.math.random,
+        rand = love.math.random,
         rnd = love.math.random,
 
         -- Bitops
@@ -105,6 +108,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         pairs = pairs,
         ipairs = ipairs,
         insert = table.insert,
+        remove = table.remove,
         rmv = table.remove,
         sort = table.sort,
         unpack = unpack,
