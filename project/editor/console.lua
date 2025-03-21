@@ -50,7 +50,7 @@ end
 
 function console.reset()
     console.clear()
-    console.print("\1 \1 Memosaic \1 \1", 11)
+    console.print("\1 \1 memosaic \1 \1", 11)
     console.print("An ASCII console", 12)
     console.print("Try HELP or EDIT")
     local messages = {

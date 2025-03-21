@@ -265,11 +265,25 @@ function editor.get_save()
     local cdata = ""
     cdata = cdata .. editor.cart.get_script()
     local font = editor.font_tab.get_font(editor)
-    local packedfont = jjrle.pack(font)
+    local packedfont = ""
+    if font ~= editor.memapi.default_font then
+        packedfont = jjrle.pack(font)
+    end
     if editor.cart.use_mimosa then
         cdata = cdata .. "(!font!)\n(" .. packedfont .. ")"
     else
         cdata = cdata .. "--!:font\n--" .. packedfont
+    end
+    local sounds = editor.sound_tab.get_sounds()
+    for index, sound in ipairs(sounds) do
+        local packedsound = jjrle.pack(sound)
+        if packedsound ~= editor.sound_tab.default_packed_sound then
+            if editor.cart.use_mimosa then
+                cdata = cdata .. "\n(!sfx!)\n(" .. packedsound .. ")"
+            else
+                cdata = cdata .. "\n--!:sfx\n--" .. packedsound
+            end
+        end
     end
     return cdata
 end

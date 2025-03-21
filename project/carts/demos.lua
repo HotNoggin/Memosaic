@@ -88,7 +88,7 @@ end
 
 --- GRAPHICS ---
 function wordmark()
- text(4, 12, "MEMOSAIC", 13, 0)
+ text(4, 12, "memosaic", 13, 0)
 end
 
 function fill(start)

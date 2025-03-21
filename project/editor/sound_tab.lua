@@ -1,5 +1,8 @@
 -- Prepare a table for the module
-local sound_tab = {}
+local sound_tab = {
+    default_sound = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
+    default_packed_sound = "0Z0M0"
+}
 
 local bit = require("bit")
 
@@ -21,7 +24,7 @@ function sound_tab.init(memo)
     sound_tab.oldspace = false
     sound_tab.oldtab = false
 
-    sound_tab.stashed = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    sound_tab.stashed = sound_tab.default_sound
 
     sound_tab.selected = 0
     sound_tab.len = 0
@@ -205,7 +208,7 @@ function sound_tab.update(editor)
         end
         if ipt.key("x") and not ipt.oldkey("x") then
             sound_tab.copy()
-            sound_tab.paste("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")
+            sound_tab.paste(sound_tab.default_sound)
             editor.tooltip = "cut sound"
         end
         if ipt.key("n") and not ipt.oldkey("n") then
@@ -358,6 +361,23 @@ function sound_tab.update_bar(editor)
             sound_tab.silence()
         end
     end
+end
+
+
+function sound_tab.get_sounds()
+    local sounds = {}
+    local mem = sound_tab.memapi
+    for soundidx = 0, 31 do
+        local sound = ""
+        for sample = 0, 31 do
+            local adr = soundidx * 32 + sample + mem.map.sounds_start
+            local byte = mem.peek(adr)
+            local char = mem.hex(byte)
+            sound = sound .. char
+        end
+        table.insert(sounds, sound)
+    end
+    return sounds
 end
 
 

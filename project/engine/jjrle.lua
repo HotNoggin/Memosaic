@@ -13,7 +13,8 @@ function jjrle.pack(raw)
     for i = 1, #raw + 1 do
         local c = raw:sub(i, i)
         if pre ~= "" and not jjrle.ishex(pre) then
-            return error("JJRLE ERROR: non-hexadecimal character found in string")
+            error("JJRLE ERROR: non-hexadecimal character found in string")
+            return ""
         end
 
         if c ~= pre and pre ~= "" or i >= #raw then -- new character found or reached end

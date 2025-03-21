@@ -105,7 +105,12 @@ end
 -- Loads font from a hexadecimal string
 function memapi.load_font(packedfont, editor)
     print("Loading font")
-    local font = jjrle.unpack(packedfont)
+    local font
+    if packedfont == "" then
+        font = memapi.default_font
+    else
+        font = jjrle.unpack(packedfont)
+    end
     local font_size = memapi.map.font_end - memapi.map.font_start
     local font_start = memapi.map.font_start
     if editor then font_start = memapi.map.efont_start end
