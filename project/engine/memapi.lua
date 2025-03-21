@@ -114,11 +114,28 @@ function memapi.load_font(packedfont, editor)
     local font_size = memapi.map.font_end - memapi.map.font_start
     local font_start = memapi.map.font_start
     if editor then font_start = memapi.map.efont_start end
-    if not font then return end
+    if not font then return false end
     for i = 0, font_size do
         if #font <= 2*i then return false end
-        local byte = tonumber(string.sub(font, 2*i + 1, 2*i + 2), 16)
+        local byte = memapi.hex(string.sub(font, 2*i + 1, 2*i + 2))
         memapi.poke(i + font_start, byte)
+    end
+    return true
+end
+
+
+-- Loads a single sound from a hexadecimal string
+-- The volumes come first, then the notes,
+-- as that is the most space-saving for jjrle.
+-- Do note that the header is also split like that!
+function memapi.load_sound(idx, packedsound)
+    local sound = jjrle.unpack(packedsound)
+    if #sound < 64 then return false end
+    for i = 0, 31 do
+        local vol = sound:sub(i + 1, i + 1)
+        local note = sound:sub(i + 33, i + 33)
+        local byte = memapi.hex(note .. vol)
+        memapi.poke(idx * 32 + i + memapi.map.sounds_start, byte)
     end
     return true
 end

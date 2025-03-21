@@ -1,7 +1,7 @@
 -- Prepare a table for the module
 local sound_tab = {
     default_sound = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
-    default_packed_sound = "0Z0M0"
+    default_packed_sound = "0Z0Z0W0"
 }
 
 local bit = require("bit")
@@ -368,14 +368,17 @@ function sound_tab.get_sounds()
     local sounds = {}
     local mem = sound_tab.memapi
     for soundidx = 0, 31 do
-        local sound = ""
+        local volumes = ""
+        local notes = ""
         for sample = 0, 31 do
             local adr = soundidx * 32 + sample + mem.map.sounds_start
             local byte = mem.peek(adr)
-            local char = mem.hex(byte)
-            sound = sound .. char
+            local vol = bit.band(byte, 0x0F)
+            local note = bit.rshift(bit.band(byte, 0xF0), 4)
+            volumes = volumes .. mem.hex(vol)
+            notes = notes .. mem.hex(note)
         end
-        table.insert(sounds, sound)
+        table.insert(sounds, volumes .. notes)
     end
     return sounds
 end

@@ -10,7 +10,7 @@ cart.sandbox = require("engine.sandbox")
 function cart.init(memo)
     print("Creating cart sandbox")
     cart.name = "New cart"
-    cart.code = {}
+    cart.code = ""
     cart.size = 0
     cart.font = ""
     cart.sfx = ""
@@ -73,7 +73,7 @@ function cart.load(path, hardtxt, is_export)
         end
         file:close()
         cart.name = "Loaded cart"
-        table.insert(lines, "") -- required newline at end of file
+        table.insert(lines, "")
         cart.load_lines(lines, is_export)
         return true
     end
@@ -83,13 +83,16 @@ end
 
 
 function cart.load_lines(lines, is_export)
-    cart.code = {}
-    cart.sfx = ""
+    cart.code = ""
+    local sfxcount = 0
 
     local next_flag = ""
     local flag = ""
+    local split = "\n"
 
     for k, line in ipairs(lines) do
+        if k == #lines then split = "" end
+
         -- Keep track of special flags
         flag = next_flag
         if line:sub(1, 4) == "--!:" or (line:sub(1, 2) == "(!" and line:sub(-2, -1) == "!)") then
@@ -119,6 +122,16 @@ function cart.load_lines(lines, is_export)
                 cart.font = fontstr
             end
 
+        -- Load sound to memory
+        elseif cart.tag("sfx", flag) then
+            local soundstr = line:sub(3)
+            if cart.use_mimosa then soundstr = line:sub(2, -2) end
+            local success = cart.memapi.load_sound(sfxcount, soundstr)
+            if not success then
+                cart.cli.error("Bad sound (#" .. sfxcount .. ")")
+            end
+            sfxcount = sfxcount + 1
+
         elseif cart.tag("name", flag) then
             cart.name = line:sub(3)
             if cart.use_mimosa then cart.name = line:sub(2, -2) end
@@ -127,15 +140,15 @@ function cart.load_lines(lines, is_export)
             else
                 love.window.setTitle("Memosaic - " .. cart.name)
             end
-            table.insert(cart.code, line)
+            cart.code = cart.code .. line .. split
 
         elseif cart.tag("defaultfont", flag) then
             cart.memapi.load_font(cart.memapi.default_font)
-            table.insert(cart.code, line)
+            cart.code = cart.code .. line .. split
 
         -- Add line to code (exclude font or sfx flags and data)
         elseif not cart.tag("font", next_flag) and not cart.tag("sfx", next_flag) then
-            table.insert(cart.code, line)
+            cart.code = cart.code .. line .. split
         end
     end
 
@@ -251,11 +264,7 @@ end
 
 
 function cart.get_script()
-    local script = ""
-    for line = 1, #cart.code do
-        script = script .. cart.code[line] .. '\n'
-    end
-    return script
+    return cart.code
 end
 
 
