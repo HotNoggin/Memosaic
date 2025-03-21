@@ -14,5 +14,6 @@ function tick()
         rnd(0, 15), rnd(0, 15)) -- Random colors
 end
 
---!:defaultfont
+--!:font
+--
 ]]

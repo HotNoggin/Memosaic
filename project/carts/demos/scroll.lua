@@ -29,5 +29,6 @@ function tick()
  pan(i % 128, i % 128)
 end
 
---!:defaultfont
+--!:font
+--
 ]]
