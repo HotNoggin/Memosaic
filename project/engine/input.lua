@@ -36,27 +36,30 @@ end
 
 
 function input.update()
+    input.ctrl = love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")
+    input.shift = love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")
+    input.enter = love.keyboard.isDown("return")
+    input.back = love.keyboard.isDown("backspace")
+    input.del = love.keyboard.isDown("delete")
+
     input.old_buttons = {
-        input.buttons[1], input.buttons[2], input.buttons[3],
-        input.buttons[4], input.buttons[5], input.buttons[6]
+        input.buttons[1], input.buttons[2], input.buttons[3], input.buttons[4],
+        input.buttons[5], input.buttons[6], input.buttons[7], input.buttons[8]
     }
+
     input.buttons[1] = love.keyboard.isScancodeDown("a") or love.keyboard.isScancodeDown("left")
     input.buttons[2] = love.keyboard.isScancodeDown("d") or love.keyboard.isScancodeDown("right")
     input.buttons[3] = love.keyboard.isScancodeDown("w") or love.keyboard.isScancodeDown("up")
     input.buttons[4] = love.keyboard.isScancodeDown("s") or love.keyboard.isScancodeDown("down")
     input.buttons[5] = love.keyboard.isScancodeDown("x") or love.keyboard.isScancodeDown("j")
     input.buttons[6] = love.keyboard.isScancodeDown("c") or love.keyboard.isScancodeDown("k")
-    
+    input.buttons[7] = input.enter
+    input.buttons[8] = input.shift
+
     input.lheld = input.lclick
     input.rheld = input.rheld
     input.lclick = love.mouse.isDown(1)
     input.rclick = love.mouse.isDown(2)
-
-    input.ctrl = love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")
-    input.shift = love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")
-    input.enter = love.keyboard.isDown("return")
-    input.back = love.keyboard.isDown("backspace")
-    input.dl = love.keyboard.isDown("delete")
 
     input.old_alpha = {}
     for i = 1, #input.alpha_keys do
@@ -76,6 +79,9 @@ function input.update()
     local mouse_x = (love.mouse.getX() - offset_x) / scale
     local mouse_y = (love.mouse.getY() - offset_y) / scale
 
+    input.mouse.px = math.max(0, math.min(math.floor(mouse_x), 127))
+    input.mouse.py = math.max(0, math.min(math.floor(mouse_y), 127))
+
     input.mouse.x = math.max(0, math.min(math.floor(mouse_x / 8), 15))
     input.mouse.y = math.max(0, math.min(math.floor(mouse_y / 8), 15))
 end
@@ -92,9 +98,25 @@ function input.lclick_in(x, y, a, b)
 end
 
 
+function input.rclick_in(x, y, a, b)
+    if input.rclick then
+        if input.mouse.x >= x and input.mouse.x <= a and
+            input.mouse.y >= y and input.mouse.y <= b then
+            return true
+        end
+    end
+    return false
+end
+
+
 function input.btn(num)
-    if num < 0 or num > 5 then return false end
+    if num < 0 or num > 7 then return false end
     return input.buttons[num + 1]
+end
+
+
+function input.btnp(num)
+    return input.btn(num) and not input.old(num)
 end
 
 
@@ -115,7 +137,7 @@ function input.poptext()
 end
 
 function input.old(num)
-    if num < 0 or num > 5 then return false end
+    if num < 0 or num > 7 then return false end
     return input.old_buttons[num + 1]
 end
 

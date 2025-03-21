@@ -3,48 +3,321 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
     <title>Memosaic User Manual</title>
     <link rel="icon" type="image/x-icon" href="images/icon.png">
+
     <link rel="stylesheet" href="css/style.css" type="text/css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href=
-    "https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-    rel="stylesheet">
     <meta property="og:title" content="Memosaic User Manual">
     <meta property="og:locale" content="en">
-    <meta property="og:image" content="images/icon.png">
-    <meta property="og:url" content="jjgame.dev/memo/">
-    <meta name="og:description" content="The portfolio of a teenage indie game developer.">
-    <meta name="description" content="The portfolio of a teenage indie game developer.">
+    <meta property="og:image" content="/memo/images/hello_world_short.png">
+    <meta property="og:url" content="https://jjgame.dev/memo/manual.html">
+    <meta name="og:description" content="A tiny ASCII fantasy console.">
+    <meta name="description" content="A tiny ASCII fantasy console.">
     <meta name="author" content="JJ">
-    <script>
-        function myFunction() {
-            var element = document.body;
-            element.classList.toggle("light-mode");
-        }
-    </script>
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="jjgame.dev">
+    <meta property="twitter:url" content="https://jjgame.dev/memo/manual.html">
+    <meta name="twitter:title" content="Memosaic User Manual">
+    <meta name="twitter:description" content="A tiny ASCII fantasy console.">
+    <meta name="twitter:image" content="https://jjgame.dev/memo/images/hello_world_short.png">
+
+    <script src="light_toggle.js"></script>
 </head>
 
 
 <body>
 <div id="main">
 
-<button onclick="myFunction()" style="font-size:32px; float:right;"> ◐ </button>
-<h1 id="manual"><a href="#manual">Memosaic User Manual</a></h1>
+<button onclick="lightToggle()" style="font-size:32px; float:right;"> ◐ </button>
+<a href="index.html" width="16" height="16"><img src="images/icon.png" alt="Go home"></a>
 
+<!------------------------------->
+<!-- Section 0: About Memosaic -->
+<!------------------------------->
+<h1 id="manual"><a href="#manual">Memosaic User Manual</a></h1>
 <p>
-Example text!
+Memosaic v0.2.1-alpha (Cookie)<br>
+(c) Copyright 2025 JJ, Hot Noggin Studios, and contributors<br>
+https://jjgame.dev/memo<br>
+<br>
+Made using:
 <ul>
-    <li>item a</li>
-    <li>item b</li>
-    <li>item c</li>
+<li>Love2D (see license.txt*)</li>
+<li>Denver (see license.txt*)</li>
+</ul>
+Unimplemented features are marked with an asterisk (*).
+</p>
+
+<h2 id="TOC"><a href="#TOC">Contents</a></h2>
+<ul>
+<li>Introduction
+    <ul>
+    <li><a href="#introduction">Introducing Memosaic</a></li>
+    <li><a href="#specifications">Specifications</a></li>
+    </ul>
+</li>
+<li><a href="#get-started">1 Getting Started</a>
+    <ul>
+    <li><a href="#hello-memo">1.1 Hello Memo</a></li>
+    <li><a href="#first-cart">1.2 Your First Cart</a></li>
+    <li><a href="#external-editors">1.3 Using External Editors</a></li>
+    </ul>
+</li>
+<li><a href="#editor">2 The Editor</a>
+    <ul>
+    <li><a href="#editor-hotkeys">2.1 Editor Hotkeys</a></li>
+    <li><a href="#toolbar">2.2 The Toolbar</a></li>
+    <li><a href="#the-cli">2.3 The CLI</a></li>
+    <li><a href="#editor-tabs">2.4 Editor Tabs</a></li>
+    <li><a href="#font-editor">2.5 The Font Editor</a></li>
+    </ul>
+</li>
+<li><a href="#cart-structure">3 Cart Structure</a></li>
+</ul>
+
+<h2 id="introduction"><a href="#introduction">Introducing Memosaic</a></h2>
+<p>
+Memosaic is a tiny, ASCII fantasy console. It feels and acts like a physical console,
+but runs on your device! Memosaic has limitations that are fun and cozy to work within
+and challenging to work around. Carts made with it all have that signature feel.
+</p>
+
+<h2 id="specifications"><a href="#specifications">Specifications</a></h2>
+<pre>
+Display
+ - 16x16 tiles, 128x128 pixels
+ - 16-color palette
+ - 2 colors/tile
+
+Audio
+ - 4 channels (square, sine, sawtooth, noise)
+ - 256 samples/channel
+ - 30 samples/second
+
+Input
+ - D-pad (WASD on QWERTY, ZQSD on AZERTY)
+ - X (X or J) and O (C or K) buttons
+ - START and SELECT (ENTER and SHIFT)*
+
+Cart Data
+ - Up to 32KiB cart*
+ - Up to 2KiB of font data
+ - Up to 2KiB of sound data*
+ - Up to 8KiB of ROM*
+
+CPU
+ - ~1 million vm instructions/second*
+</pre>
+
+<!-------------------------------->
+<!-- Section 1: Getting Started -->
+<!-------------------------------->
+<h1 id="get-started"><a href="#get-started">1 Getting Started</a></h1>
+<h2 id="hello-memo"><a href="#hello-memo">1.1 Hello Memo</a></h2>
+<p>
+When you first boot Memosaic, you'll be met with the command line interface
+(or CLI for short). Input commands or Lua code to interact with it.
+Try some of these commands to test it out:
+</p>
+<pre>
+> print("hello")
+> beep(0, 30, 7, 20)
+> for i=0,16 do print(i) end
+</pre>
+<p>
+Install some demo carts using these commands:
+</p>
+<pre>
+> demos
+> cd demos
+> ls
+</pre>
+Try a cart out using <code>> load</code> and <code>> run</code>. For example:
+<pre>
+> load spincube
+> run
+</pre>
+<p>
+Stop the running cart by pressing ESC.
+</p>
+
+<h2 id="first-cart"><a href="#first-cart">1.2 Your First Cart</a></h2>
+<p>
+You can create Memosaic carts using Lua (or Mimosa) scripts.
+To make a new cart, use these commands:
+</p>
+<pre>
+> new
+> save mycart
+</pre>
+<p>
+You can save your new Lua cart with the .memo or .lua extension (or as .mosa for a Mimosa cart).
+Use <code>> edit</code> or press ESC to switch to the editor.
+Navigate to the code tab* using the toolbar at the top of the editor and try this code:
+</p>
+<pre>
+x = 7
+y = 7
+
+function tick()
+ clrs()
+ text(2, 5, "move with \14", 9, 0)
+ if btn(0) then x = x - 0.2 end
+ if btn(1) then x = x + 0.2 end
+ if btn(2) then y = y - 0.2 end
+ if btn(3) then y = y + 0.2 end
+ tile(flr(x), flr(y), "@", 8, 0)
+end
+</pre>
+<p>
+Navigate back to the CLI using the toolbar or ESC, then run the cart.
+</p>
+
+<h2 id="external-editors"><a href="#external-editors">1.3 Using External Editors</a></h2>
+<p>
+Memosaic supports external editors. Simply open your cart elsewhere to make changes to it.
+Use <code>> folder</code> to open the cart folder in your file explorer.
+You can also write .lua scripts in an external editor, then use #include* in your cart to copy
+the scripts' contents into the cart at the desired location. This allows carts like this:
+</p>
+<pre>
+#include code
+
+function boot()
+ reset()
+end
+
+function tick()
+ run()
+end
+</pre>
+<p>
+In this example, the file named code.lua can be safely edited externally,
+without affecting the loaded cart.
+It is as if the text from code.lua was written where <code>#include code</code> was placed.
+</p>
+
+<!--------------------------->
+<!-- Section 2: The Editor -->
+<!--------------------------->
+<h1 id="editor"><a href="#editor">2 The Editor</a></h1>
+<h2 id="editor-hotkeys"><a href="#editor-hotkeys">2.1 Editor Hotkeys</a></h2>
+<pre>
+CTRL + s            save loaded cart
+CTRL + r            run loaded cart (without saving)
+CTRL + SHIFT + r    reload loaded cart (without saving)
+ESC                 stop running cart (while running)
+ESC                 switch to CLI (from editor)
+ESC                 switch to editor (from CLI)
+</pre>
+
+<h2 id="toolbar"><a href="#toolbar">2.2 The Toolbar</a></h2>
+<p>
+The toolbar is the bar at the top of the editor. You can use it to navigate to different
+editor tabs, and to run* and save* the cart. The editor tabs may add tab-specific tools*
+to the toolbar.<br>
+<br>
+The tooltip appears at the bottom of the editor and shows extra information about your most
+recent editor interaction.
+</p>
+
+<h2 id="the-cli"><a href="#the-cli">2.3 The CLI</a></h2>
+<p>
+The core means of interacting with the file system is with the CLI (command line interface).
+Interact with it using commands. You can scroll the console output using the arrow keys, or
+using the mousewheel for vertical scrolling and SHIFT + mousewheel for horizontal scrolling*.
+The CLI also has various helpful commands unrelated to the file system.
+Some of the most important commands are:
+</p>
+<pre>
+> help [topic?]     (Lists commands or info on a topic)
+> load [cart]       (Loads a cart from the filesystem)
+> run               (Runs the loaded cart)
+> reload            (Reloads the loaded cart)
+
+(Arguments are in square brackets)
+(Optional arguments are marked with a question mark)
+</pre>
+<p>
+You can give multiple commands in one line by separating them with a semicolon.
+</p>
+<pre>
+> demos;cd demos
+> load snek; run
+</pre>
+<p>
+The CLI supports interactive mode. You can type Lua code instead of a command to execute it.
+The CLI code has access to the loaded cart's Lua state, including variables and functions.
+For example, if you <code>> load</code> and <code>> run</code> a cart with the code below,
+then stop the cart and use the command below, the message from the cart will be printed.
+</p>
+<pre>
+-- In cart.lua --
+msg = "hello world"
+
+-- In the CLI --
+> load cart.lua
+> run
+> print(msg)
+</pre>
+<p>
+The CLI's interactive mode is not limited to Lua. You can switch to Mimosa mode using
+<code>> mimosa</code> and input Mimosa code while in Mimosa mode. To switch back to Lua mode,
+use <code>> lua</code>. The following is the same as the Lua example above, but using Mimosa:
+</p>
+<pre>
+(In cart.mosa)
+"hello world" msg =
+
+(In the CLI)
+> load cart.mosa
+> run
+> mimosa
+> msg out
+</pre>
+<p>
+Mimosa is a programing language made for Memosaic. You can choose to make your carts in Mimosa
+instead of Lua, but this is optional. You won't encounter problems from choosing Lua over Mimosa.<br>
+<br>
+A comprehensive list* of commands can be found below.
+</p>
+
+<h2 id="editor-tabs"><a href="#editor-tabs">2.4 Editor Tabs</a></h2>
+<p>
+The cart editor is divided into multiple tabs. Each tab has tooling that allows you to easily edit
+a part of your cart. The Editor tabs are:
+<ul>
+    <li><a href="#font-editor">The Font Editor</a></li>
+    <li><a href="#sfx-editor">The Sound Editor*</a></li>
+    <li><a href="#code-editor">The Code Editor*</a></li>
+    <li><a href="#rom-editor">The ROM Editor*</a></li>
 </ul>
 </p>
 
-<pre class="codebox">
--- This is a codebox
+<h2 id="font-editor"><a href="#font-editor">2.5 The Font Editor</a></h2>
+<p>
+The font editor allows you to edit the ASCII font your cart uses to draw characters.
+Select a character on the right side of the font editor by clicking it, or use WASD* or 
+the arrow keys* to select a character near the currently selected character.
+Paint pixels on the selected character using the 1-bit canvas. There is no pen or erase
+tool; simply click a set pixel to clear it and click an unset pixel to set it.
+Click and drag to draw multiple pixels.<br>
+<br>
+Preview how the selected character looks in different colors using the two palettes
+below the character canvas. Copy*, paste*, and delete* characters using the top bar.<br>
+<br>
+The font editor's hotkeys are:
+</p>
+<pre>
+CTRL + c            copy character*
+CTRL + v            paste character*
+CTRL + x            cut character*
+DEL                 delete character*
 </pre>
+
+<h1 id="cart-structure"><a hrfe="#cart-structure">3 Cart Structure</a></h1>
 
 </div>
 </body>

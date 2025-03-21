@@ -1,4 +1,4 @@
-local parser = {}
+local parser = {tokens = {}} -- Backup tokens to use if no argument passed
 
 parser.reserved = {
     -- Console
@@ -18,10 +18,11 @@ parser.reserved = {
 }
 
 
-function parser.get_instructions(tokens)
+function parser.get_instructions(ptokens)
     local unclosedskips = {}
     local instructions = {}
     local tags = {}
+    local tokens = ptokens or parser.tokens
     for i, token in ipairs(tokens) do
         local inst = token
 

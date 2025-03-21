@@ -1,5 +1,8 @@
 -- Prepare a table for the module
-local cart = {}
+local cart = {
+    running_splash = false,
+    ended_splash = false,
+}
 
 cart.sandbox = require("engine.sandbox")
 
@@ -7,13 +10,15 @@ cart.sandbox = require("engine.sandbox")
 function cart.init(memo)
     print("Creating cart sandbox")
     cart.name = "New cart"
-    cart.code = {}
+    cart.path = "memo/"
+    cart.code = ""
     cart.size = 0
     cart.font = ""
     cart.sfx = ""
     cart.memo = memo
     cart.memapi = memo.memapi
 
+    cart.is_export = false
     cart.running = false
     cart.use_mimosa = false
     cart.cli = memo.editor.console
@@ -23,7 +28,8 @@ function cart.init(memo)
 end
 
 
-function cart.load(path, hardtxt)
+function cart.load(path, hardtxt, is_export)
+    cart.is_export = is_export
     if hardtxt then
         print("Loading built-in cart")
         local lines = {}
@@ -38,7 +44,7 @@ function cart.load(path, hardtxt)
             end
         end
         cart.name = "Built-in cart"
-        cart.load_lines(lines)
+        cart.load_lines(lines, is_export)
         return true
     end
 
@@ -51,7 +57,7 @@ function cart.load(path, hardtxt)
         if not file then return false end
 
         if cart.getfilesize(file) > 0x8000 then --32KiB
-            cart.cli.print("Cart is " .. cart.getfilesize(file) - 0x8000 .. " bytes too big!")
+            cart.cli.print("Cart is " .. cart.getfilesize(file) - 0x8000 .. " bytes too big!", 14)
             return false
         end
 
@@ -68,7 +74,9 @@ function cart.load(path, hardtxt)
         end
         file:close()
         cart.name = "Loaded cart"
-        cart.load_lines(lines)
+        table.insert(lines, "") -- required newline at end of file
+        cart.load_lines(lines, is_export)
+        cart.path = path
         return true
     end
     return false
@@ -76,14 +84,17 @@ end
 
 
 
-function cart.load_lines(lines)
-    cart.code = {}
-    cart.sfx = ""
+function cart.load_lines(lines, is_export)
+    cart.code = ""
+    local sfxcount = 0
 
     local next_flag = ""
     local flag = ""
+    local split = "\n"
 
     for k, line in ipairs(lines) do
+        if k == #lines then split = "" end
+
         -- Keep track of special flags
         flag = next_flag
         if line:sub(1, 4) == "--!:" or (line:sub(1, 2) == "(!" and line:sub(-2, -1) == "!)") then
@@ -113,19 +124,29 @@ function cart.load_lines(lines)
                 cart.font = fontstr
             end
 
+        -- Load sound to memory
+        elseif cart.tag("sfx", flag) then
+            local soundstr = line:sub(3)
+            if cart.use_mimosa then soundstr = line:sub(2, -2) end
+            local success = cart.memapi.load_sound(sfxcount, soundstr)
+            if not success then
+                cart.cli.error("Bad sound (#" .. sfxcount .. ")")
+            end
+            sfxcount = sfxcount + 1
+
         elseif cart.tag("name", flag) then
             cart.name = line:sub(3)
             if cart.use_mimosa then cart.name = line:sub(2, -2) end
-            love.window.setTitle("Memosaic - " .. cart.name)
-            table.insert(cart.code, line)
-
-        elseif cart.tag("defaultfont", flag) then
-            cart.memapi.load_font(cart.memapi.default_font)
-            table.insert(cart.code, line)
+            if is_export then
+                love.window.setTitle(cart.name)
+            else
+                love.window.setTitle("Memosaic - " .. cart.name)
+            end
+            cart.code = cart.code .. line .. split
 
         -- Add line to code (exclude font or sfx flags and data)
         elseif not cart.tag("font", next_flag) and not cart.tag("sfx", next_flag) then
-            table.insert(cart.code, line)
+            cart.code = cart.code .. line .. split
         end
     end
 
@@ -133,19 +154,78 @@ function cart.load_lines(lines)
 end
 
 
+function cart.get_combined(script, scriptpath)
+    local combined = ""
+    local line = ""
+    local c = ""
+    local queue_include = false
+    for i = 1, #script do
+        c = script:sub(i, i)
+        if c == "\n" or i == #script then
+            if i == #script then line = line .. c end -- include last char
+            if queue_include then
+                local code = cart.include(line, scriptpath)
+                combined = combined .. code .. "\n"
+                queue_include = false
+            else
+                combined = combined .. line .. "\n"
+            end
+            line = ""
+        else
+            line = line .. c
+        end
+        if line == "#include " then
+            queue_include = true
+            line = ""
+        end
+    end
+    print(combined)
+    return combined
+end
+
+
+function cart.include(relativepath, fromfile)
+    local filedata = ""
+    print("Include " .. relativepath)
+    local frompath = fromfile:match("(.*[/\\])")
+    local includepath = frompath .. relativepath
+    filedata = love.filesystem.read(includepath)
+    return filedata or ""
+end
+
+
 function cart.run()
+    local script = cart.get_combined(cart.get_script(), cart.path)
+    if #script >= 0x8000 then
+        cart.cli.print("Cart is " .. #script - 0x8000 .. " bytes too big!", 14)
+    end
     if not cart.memo.editor.check_save() then return end
     local memo = cart.memo
     print("Starting cart")
-    love.window.setTitle("Memosaic - " .. cart.name)
+    if cart.is_export then
+        love.window.setTitle(cart.name)
+    else
+        love.window.setTitle("Memosaic - " .. cart.name)
+    end
     cart.running = true
+
+    -- Backup editor memory for retrieval
+    cart.memapi.backup()
+
+    -- Reset all row flags
+    for i = cart.memapi.map.rflags_start, cart.memapi.map.rflags_end do
+        cart.memapi.poke(i, 0x00)
+    end
 
     local ok, err
     if cart.use_mimosa then
-        ok = xpcall(cart.memo.mimosa.run, cart.handle_err, cart.get_script(), {}, {})
+        cart.memo.mimosa.script = script
+        cart.memo.mimosa.stack = {}
+        cart.memo.mimosa.pile = {}
+        ok = xpcall(cart.memo.mimosa.run, cart.handle_err)
     else
         cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
-        ok, err = cart.sandbox.run(cart.get_script(), cart.name)
+        ok, err = cart.sandbox.run(script, cart.name)
     end
 
     if not ok then
@@ -170,12 +250,12 @@ end
 
 function cart.stop()
     print("Cart stopped\n")
-    cart.memo.drawing.setoffset(0, 0)
-    -- Reset individual line scroll
-    for i = 0, 15 do
-        cart.memapi.poke(cart.memapi.map.scroll_start + i, 0)
-    end
+    cart.memapi.retrieve()
     cart.running = false
+    if cart.running_splash then
+        cart.running_splash = false
+        cart.ended_splash = true
+    end
 end
 
 
@@ -185,8 +265,8 @@ function cart.boot()
         local idx = mint.tags["boot"]
         if idx ~= nil then
             -- Interpret the boot region, using the old stack, pile, and tags
-            local ok, err = xpcall(mint.interpret, cart.handle_err,
-            mint.instructions, nil, nil, nil, idx + 1)
+            mint.idx = idx + 1
+            local ok, err = xpcall(mint.interpret, cart.handle_err)
             if not ok then
                 if err then cart.cli.error(err) end
                 cart.stop()
@@ -208,8 +288,8 @@ function cart.tick()
         local idx = mint.tags["tick"]
         if idx ~= nil then
             -- Interpret the tick region, using the old stack, pile, and tags
-            local ok, err = xpcall(mint.interpret, cart.handle_err,
-            mint.instructions, nil, nil, nil, idx + 1)
+            mint.idx = idx + 1
+            local ok, err = xpcall(mint.interpret, cart.handle_err)
             if not ok then
                 if err then cart.cli.error(err) end
                 cart.stop()
@@ -226,11 +306,7 @@ end
 
 
 function cart.get_script()
-    local script = ""
-    for line = 1, #cart.code do
-        script = script .. cart.code[line] .. '\n'
-    end
-    return script
+    return cart.code
 end
 
 

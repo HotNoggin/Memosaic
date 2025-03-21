@@ -1,7 +1,8 @@
 -- Prepare a table for the module
 local drawing = {}
 
-local b = require("bit")
+local bit = require("bit")
+local b = bit
 
 -- The width and height of THE CANVAS in tiles
 -- NOT the width and height of a tile!
@@ -143,7 +144,7 @@ function drawing.iget(tx,ty)
     if con.bad_type(tx, "number", "iget:x") or con.bad_type(ty, "number", "iget:y") then
         return
     end
-    local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
+    local idx = drawing.memapi.map.color_start + ((tx + ty*16) % 0x100)
     local byte = drawing.memapi.peek(idx)
     local fg = math.floor(byte / 16)
     local bg = math.floor(byte) % 16
@@ -219,6 +220,8 @@ function drawing.draw_buffer()
     for tx = 0, drawing.TILE_WIDTH - 1 do
         for ty = 0, drawing.TILE_HEIGHT - 1 do
             local tile = ty * drawing.TILE_WIDTH + tx -- which tile this is
+            local row_flag = drawing.memapi.peek(drawing.memapi.map.rflags_start + ty)
+            local use_efont = bit.band(row_flag, 1) > 0 -- font mode
             local char = drawing.memapi.peek(tile + drawing.memapi.map.ascii_start)
             local color = drawing.memapi.peek(tile + drawing.memapi.map.color_start)
             local fg = b.rshift(b.band(color, 0xf0), 4) -- Get left color
@@ -226,11 +229,15 @@ function drawing.draw_buffer()
             -- Draw the character
             for px = 0, 7 do
                 for py = 0, 7 do
-                    local draw_pixel
+                    local draw_pixel = false
                     if char >= 0x80 then
                         draw_pixel = drawing.dither_pixel(px, py, char)
                     else
-                        draw_pixel = drawing.font_pixel(px, py, char)
+                        if use_efont then
+                            draw_pixel = drawing.font_pixel(px, py, char, true)
+                        else
+                            draw_pixel = drawing.font_pixel(px, py, char, false)
+                        end
                     end
                     local off_x = drawing.memapi.peek(drawing.memapi.map.pan_x) % 128
                     local off_y = drawing.memapi.peek(drawing.memapi.map.pan_y) % 128
@@ -250,26 +257,27 @@ end
 
 
 function drawing.dither_pixel(px, py, byte)
-    local pattern = bit.band(bit.rshift(byte, 4), 0b0111)
+    local pattern = bit.band(bit.rshift(byte, 4), 7) -- 7 is 111
     local quadidx = math.floor(py / 4) * 2 + math.floor(px / 4)
     local quadmask = bit.lshift(1, 3 - quadidx)
     local drawquad = bit.band(byte, quadmask) > 0
     if drawquad then
-        if pattern == 0b000 then
+        -- Pattern ranges from 000 (0) to 111 (7)
+        if pattern == 0 then
             return px % 2 == 0 -- Vertical stripes
-        elseif pattern == 0b001 then
+        elseif pattern == 1 then
             return py % 2 == 0 -- Horizontal stripes
-        elseif pattern == 0b010 then
+        elseif pattern == 2 then
             return px % 2 == 0 or py % 2 == 0 -- Grid
-        elseif pattern == 0b011 then
+        elseif pattern == 3 then
             return not(px % 2 == 1 or py % 2 == 1) -- Dots
-        elseif pattern == 0b100 then
+        elseif pattern == 4 then
             return (px + py) % 2 == 0 -- Checkerboard
-        elseif pattern == 0b101 then
+        elseif pattern == 5 then
             return (px + py) % 4 == 0 -- Upward slope diagonals
-        elseif pattern == 0b110 then
+        elseif pattern == 6 then
             return (px - py) % 4 == 0 -- Downward slope diagonals
-        else -- 0b111
+        else -- 7
             return drawquad -- Fill
         end
     else
@@ -278,8 +286,10 @@ function drawing.dither_pixel(px, py, byte)
 end
 
 
-function drawing.font_pixel(px, py, idx)
-    local byte = drawing.memapi.peek(idx * 8 + px + drawing.memapi.map.font_start)
+function drawing.font_pixel(px, py, idx, editor)
+    local font_start = drawing.memapi.map.font_start
+    if editor then font_start = drawing.memapi.map.efont_start end
+    local byte = drawing.memapi.peek(idx * 8 + px + font_start)
     local pixel = bit.rshift(bit.band(byte, bit.lshift(1, py)), py)
     return pixel == 1
 end

@@ -9,7 +9,7 @@ local lexer = {
 
 -- Scans a string of code and returns a table of tokens
 function lexer.scan(code)
-    lexer.code = code
+    lexer.code = code or lexer.code
     lexer.tokens = {}
     lexer.current = 1
     lexer.line = 1

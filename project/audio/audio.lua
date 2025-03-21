@@ -5,6 +5,8 @@ local audio = {
     idx = 0,
 }
 
+local bit = require("bit")
+
 audio.denver = require("audio.denver")
 
 
@@ -40,16 +42,10 @@ function audio.start()
     audio.vol(1, 0, 1)
     audio.vol(2, 0, 1)
     audio.vol(3, 0, 1)
-
-    love.audio.play(
-        audio.sqr,
-        audio.tri,
-        audio.saw,
-        audio.noz
-    )
-
-    local a = audio
-    local map = audio.memo.memapi.map
+    audio.sqr:play()
+    audio.tri:play()
+    audio.saw:play()
+    audio.noz:play()
 end
 
 
@@ -99,42 +95,73 @@ function audio.note(idx, note)
 end
 
 
-function audio.beepat(wav, note, vol, len, at)
-    for idx = audio.idx + at, audio.idx + at + (len - 1) do
-        local success = audio.blipat(wav, note, vol, idx)
+function audio.chirp(sound, wav, base, len, at)
+    local con = audio.console
+    if con.bad_type(sound, "number", "beep:sound") or con.bad_type(wav, "number", "beep:wave")
+    then return false end
+
+    local toadd = base or 0
+    local offset = at or 0
+    local length = len or 1
+    length = math.max(1, math.min(length, 8))
+
+    local mem = audio.memo.memapi
+    local start = sound * 32 + mem.map.sounds_start
+    local head_a = mem.peek(start)
+    local head_b = mem.peek(start + 1)
+    local basenote = head_a % 128
+
+    for idx = 0, 30 * length, length do
+        local byte = mem.peek(start + 1 + math.floor(idx/length))
+        -- Header is 1 byte long, instructions are one (hence the idx/length, which scales)
+        local vol = bit.band(byte, 0x0F)
+        local note = bit.rshift(bit.band(byte, 0xF0), 4)
+        audio.beep(wav, basenote + toadd + note, vol, length, idx + offset)
+    end
+    return true
+end
+
+
+function audio.beep(wav, note, vol, len, at)
+    local con = audio.console
+
+    if con.bad_type(wav, "number", "beep:wave") or con.bad_type(note, "number", "beep:note")
+    or con.bad_type(vol, "number", "beep:volume") or con.bad_type(len, "number", "beep:length")
+    then return false end
+
+    local offset = at or 0
+
+    for idx = 0, len - 1 do
+        local success = audio.blip(wav, note, vol, idx + offset)
         if not success then return false end
     end
     return true
 end
 
-function audio.beep(wav, note, vol, len)
-    return audio.beepat(wav, note, vol, len, 0)
-end
 
-
-function audio.blipat(wav, note, vol, at)
+function audio.blip(wav, note, vol, at)
     local con = audio.console
     local a = audio
-    if con.bad_type(wav, "number", "blipat") or con.bad_type(note, "number", "blipat")
-    or con.bad_type(vol, "number", "blipat") or con.bad_type(at, "number", "blipat")
-    then error("blipat only takes numbers") return false end
+    if con.bad_type(wav, "number", "blip:wave") or con.bad_type(note, "number", "blip:note")
+    or con.bad_type(vol, "number", "blip:volume")
+    then return false end
 
     if math.floor(wav) > 3 or math.floor(wav) < 0 then
         con.error("invalid audio channel index (" .. wav .. ")")
         return false
     end
 
+    local where = at or 0
+
     local chan = a.channels[math.floor(wav)]
-    local adr = (a.idx + (at * 2)) % a.chansize
-
-    audio.memo.memapi.poke(adr + chan.ptr, vol)
-    audio.memo.memapi.poke(adr + chan.ptr + 1, note)
+    local adr = (a.idx + (where * 2)) % a.chansize
+    if where >= 0 then -- ignore negatives
+        if vol > 0 then -- ignore silence
+            audio.memo.memapi.poke(adr + chan.ptr, vol)
+            audio.memo.memapi.poke(adr + chan.ptr + 1, note)
+        end
+    end
     return true
-end
-
-
-function audio.blip(wav, note, vol)
-    return audio.blipat(wav, note, vol, 0)
 end
 
 
@@ -148,8 +175,9 @@ end
 -- Returns the pitch of the given note
 -- note: number of semitones above the base pitch 0 the note is
 -- return: number that is doubled from 1 for every octave increased
+-- Accepts notes from 0 to 127 and clamps outliers
 function audio.to_pitch(note)
-    return 2^(note/12 - 1)
+    return 2^ ( math.max( 0, math.min(note, 127) ) /12 - 1)
 end
 
 

@@ -1,6 +1,6 @@
 -- Prepare a table for the module
 local memo = {
-    info = {version = "0.2.0-alpha", version_name = "Buddy", is_win = package.config:sub(1, 1) == "\\"},
+    info = {version = "0.2.1-alpha", version_name = "Cookie", is_win = package.config:sub(1, 1) == "\\"},
 
     window = require("graphics.window"),
     input = require("engine.input"),
@@ -59,6 +59,10 @@ function memo.stat(code)
         return memo.input.mouse.x
     elseif code == 0x27 then
         return memo.input.mouse.y
+    elseif code == 0x28 then
+        return memo.input.mouse.px
+    elseif code == 0x29 then
+        return memo.input.mouse.py
     else
         return false
     end

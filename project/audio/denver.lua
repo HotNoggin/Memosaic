@@ -58,8 +58,9 @@ denver.get = function (args, ...)
     local osc = oscillators[waveform](frequency, ...)
 
     -- filling the sample with values
-    local amplitude = 0.2
+    local amplitude = 1.0
     for i = 0, length * denver.rate - 1 do
+---@diagnostic disable-next-line: undefined-global
         local sample = osc(freq, denver.rate) * amplitude
         sound_data:setSample(i, sample)
     end

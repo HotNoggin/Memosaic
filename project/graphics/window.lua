@@ -14,7 +14,7 @@ function window.init(scale, use_vsync)
     if not success then return false end
 
     love.graphics.setDefaultFilter("nearest")
-    love.window.setTitle("Memosaic - New cart")
+    love.window.setTitle("Memosaic")
 
     local small_logo = love.image.newImageData("img/logo.png")
     local large_logo = love.image.newImageData("img/logo_big.png")

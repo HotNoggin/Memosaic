@@ -22,6 +22,8 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
     sandbox.func = function () end
     sandbox.cart = cart
 
+    local bit = require("bit")
+
     -- The Memosaic API (safe lua default functions and custom functions)
     sandbox.env = {
         -- Standard
@@ -30,7 +32,6 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         num = tonumber,
         str = tostring,
         trace = debug.traceback,
-        -- time = os.clock()
 
         -- Callbacks
         boot = function() end,
@@ -40,9 +41,10 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         peek = memapi.peek,
         poke = memapi.poke,
 
-        -- Input
+        -- System
         stat = cart.memo.stat,
         btn = input.btn,
+        stop = cart.stop,
 
         -- Graphics
         clrs = drawing.clrs,
@@ -60,8 +62,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         -- Audio
         blip = audio.blip,
         beep = audio.beep,
-        blipat = audio.blipat,
-        beepat = audio.beepat,
+        chirp = audio.chirp,
 
         -- Console
         echo = console.print,
@@ -74,6 +75,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         ceil = math.ceil,
         cos = math.cos,
         deg = math.deg,
+        floor = math.floor,
         flr = math.floor,
         fmod = math.fmod,
         log = math.log,
@@ -82,6 +84,8 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         rad = math.rad,
         sin =  math.sin,
         sqrt = math.sqrt,
+        random = love.math.random,
+        rand = love.math.random,
         rnd = love.math.random,
 
         -- Bitops
@@ -104,8 +108,10 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         pairs = pairs,
         ipairs = ipairs,
         insert = table.insert,
+        remove = table.remove,
         rmv = table.remove,
         sort = table.sort,
+        unpack = unpack,
 
         -- Metatable
         setmeta = setmetatable,
@@ -134,7 +140,6 @@ end
 
 
 -- select - SAFE
--- unpack - SAFE
 -- xpcall - SAFE
 
 -- Export the module as a table

@@ -1,3 +1,7 @@
 {
-    "Lua.completion.autoRequire": false
+    "Lua.completion.autoRequire": false,
+    "Lua.diagnostics.globals": [
+        "love",
+        "freq"
+    ]
 }

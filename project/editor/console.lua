@@ -50,7 +50,7 @@ end
 
 function console.reset()
     console.clear()
-    console.print("\1 \1 Memosaic \1 \1", 11)
+    console.print("\1 \1 memosaic \1 \1", 11)
     console.print("An ASCII console", 12)
     console.print("Try HELP or EDIT")
     local messages = {
@@ -139,6 +139,7 @@ function console.update()
         for i, command in ipairs(commands) do
             c.cmd.command(command)
         end
+        if console.editor.cart.running then return end
         c.fgc[#c.entries] = 8
         c.autoscroll = true
     end
@@ -211,7 +212,6 @@ function console.update()
         c.scroll_time = c.scroll_time + 1
     end
 
-    
     c.sy = math.max(0, math.min(c.sy, #to_write - 1))
 
     -- Display the formatted text to the console
@@ -312,6 +312,21 @@ function console.print(text, fg, bg)
     console.fgc[#console.fgc] = fore
     console.bgc[#console.bgc] = back
     console.take_input()
+end
+
+
+function console.str_insert(str1, str2, pos)
+    return str1:sub(1, pos) .. str2 .. str1:sub(pos + 1)
+end
+
+
+function console.str_remove(str, idx)
+    local length = #str
+    if (idx < 1 or idx > length) then
+        return str
+    else
+        return string.sub(str, 1, idx - 1) .. string.sub(str, idx + 1, length)
+    end
 end
 
 
