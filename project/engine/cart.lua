@@ -10,6 +10,7 @@ cart.sandbox = require("engine.sandbox")
 function cart.init(memo)
     print("Creating cart sandbox")
     cart.name = "New cart"
+    cart.path = "memo/"
     cart.code = ""
     cart.size = 0
     cart.font = ""
@@ -75,6 +76,7 @@ function cart.load(path, hardtxt, is_export)
         cart.name = "Loaded cart"
         table.insert(lines, "") -- required newline at end of file
         cart.load_lines(lines, is_export)
+        cart.path = path
         return true
     end
     return false
@@ -152,7 +154,51 @@ function cart.load_lines(lines, is_export)
 end
 
 
+function cart.get_combined(script, scriptpath)
+    local combined = ""
+    local line = ""
+    local c = ""
+    local queue_include = false
+    for i = 1, #script do
+        c = script:sub(i, i)
+        if c == "\n" or i == #script then
+            if i == #script then line = line .. c end -- include last char
+            if queue_include then
+                local code = cart.include(line, scriptpath)
+                combined = combined .. code .. "\n"
+                queue_include = false
+            else
+                combined = combined .. line .. "\n"
+            end
+            line = ""
+        else
+            line = line .. c
+        end
+        if line == "#include " then
+            queue_include = true
+            line = ""
+        end
+    end
+    print(combined)
+    return combined
+end
+
+
+function cart.include(relativepath, fromfile)
+    local filedata = ""
+    print("Include " .. relativepath)
+    local frompath = fromfile:match("(.*[/\\])")
+    local includepath = frompath .. relativepath
+    filedata = love.filesystem.read(includepath)
+    return filedata or ""
+end
+
+
 function cart.run()
+    local script = cart.get_combined(cart.get_script(), cart.path)
+    if #script >= 0x8000 then
+        cart.cli.print("Cart is " .. #script - 0x8000 .. " bytes too big!", 14)
+    end
     if not cart.memo.editor.check_save() then return end
     local memo = cart.memo
     print("Starting cart")
@@ -173,13 +219,13 @@ function cart.run()
 
     local ok, err
     if cart.use_mimosa then
-        cart.memo.mimosa.script = cart.get_script()
+        cart.memo.mimosa.script = script
         cart.memo.mimosa.stack = {}
         cart.memo.mimosa.pile = {}
         ok = xpcall(cart.memo.mimosa.run, cart.handle_err)
     else
         cart.sandbox.init(cart, memo.input, memo.memapi, memo.drawing, memo.audio, memo.editor.console)
-        ok, err = cart.sandbox.run(cart.get_script(), cart.name)
+        ok, err = cart.sandbox.run(script, cart.name)
     end
 
     if not ok then

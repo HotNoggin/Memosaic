@@ -18,6 +18,7 @@ demos["new_cart.memo"] =
 
 demos["splash.memo"] =
 [[
+--- MAIN ---
 --!:name
 --Booting
 
