@@ -194,11 +194,11 @@ end
 
 
 function cart.run()
+    if not cart.memo.editor.check_save() then return end
     local script = cart.get_combined(cart.get_script(), cart.path)
     if #script >= 0x8000 then
         cart.cli.print("Cart is " .. #script - 0x8000 .. " bytes too big!", 14)
     end
-    if not cart.memo.editor.check_save() then return end
     local memo = cart.memo
     print("Starting cart")
     if cart.is_export then
