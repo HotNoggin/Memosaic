@@ -11,26 +11,8 @@ drawing.TILE_HEIGHT = 16
 
 -- Ranges from 0 to 15, allows smooth scrolling + other effects
 drawing.offset = {x = 0, y = 0}
-
-drawing.palette = {
-    -- KIBI 16 (by me, made for KIBIBOY)
-    -- {r = 0.035, g = 0.008, b = 0.133}, -- 0 black
-    -- {r = 0.227, g = 0.208, b = 0.196}, -- 1 silver
-    -- {r = 0.290, g = 0.020, b = 0.302}, -- 2 purple
-    -- {r = 0.447, g = 0.106, b = 0.188}, -- 3 red
-    -- {r = 0.490, g = 0.200, b = 0.024}, -- 4 brown
-    -- {r = 0.976, g = 0.588, b = 0.086}, -- 5 orange
-    -- {r = 0.965, g = 0.753, b = 0.471}, -- 6 peach
-    -- {r = 1.000, g = 0.855, b = 0.078}, -- 7 yellow
-    -- {r = 0.659, g = 1.000, b = 0.318}, -- 8 lime
-    -- {r = 0.090, g = 0.318, b = 0.145}, -- 9 green
-    -- {r = 0.267, g = 0.259, b = 0.745}, -- a/10 blue
-    -- {r = 0.141, g = 0.698, b = 0.729}, -- b/11 teal
-    -- {r = 0.647, g = 0.816, b = 0.824}, -- c/12 gray
-    -- {r = 0.965, g = 0.953, b = 0.816}, -- d/13 white
-    -- {r = 0.973, g = 0.420, b = 0.537}, -- e/14 pink
-    -- {r = 0.663, g = 0.204, b = 0.678}, -- f/15 magenta
-}
+-- 16 colors loaded from image
+drawing.palette = {}
 
 
 function drawing.init(memo)
@@ -38,7 +20,7 @@ function drawing.init(memo)
     drawing.canvas = memo.canvas
     drawing.memapi = memo.memapi
     drawing.console = memo.editor.console
-    local img = love.image.newImageData("img/memo_16.png")
+    local img = love.image.newImageData("img/memo16.png")
     for i = 0, 15 do
         local pr, pg, pb = img:getPixel(i, 0)
         drawing.palette[i + 1] = {r = pr, g = pg, b = pb}
