@@ -179,7 +179,6 @@ function cart.get_combined(script, scriptpath)
             line = ""
         end
     end
-    print(combined)
     return combined
 end
 

@@ -80,17 +80,21 @@ function drawing.fill(str)
 end
 
 
+function drawing.write(x, y, str, fg, bg, w)
+    drawing.text(x, y, str, fg, bg, w, true)
+end
+
+
 -- Draw a line of text onto the screen
 -- If w > 1, this wraps to keep width w
-function drawing.text(x, y, str, fg, bg, w)
+function drawing.text(x, y, str, fg, bg, w, format)
     local c = drawing.console
     if c.bad_type(x, "number", "text:x") then return end
     if c.bad_type(y, "number", "text:y") then return end
     local dx = x
     local dy = y
-    local width = 0
+    local width = w or 0
     local s = tostring(str)
-    if w then width = w end
     if c.bad_type(width, "number", "text:width") then return end
     local dowrap = width > 0
     for i = 1, #s do
@@ -99,8 +103,25 @@ function drawing.text(x, y, str, fg, bg, w)
             dx = x
             dy = dy + 1
         end
-        drawing.tile(dx, dy, char, fg, bg)
-        dx = dx + 1
+        if format then
+            if char == '\n' then
+                dx = x
+                dy = dy + 1
+            elseif char == '\r' then
+                dx = x
+            elseif char == '\t' then
+                dx = x + 1
+            elseif char:byte() > 0x1f then
+                drawing.tile(dx, dy, char, fg, bg)
+                dx = dx + 1
+            elseif char:byte() > 0 then
+                drawing.tile(dx, dy, 0, fg, bg)
+                dx = dx + 1
+            end
+        else
+            drawing.tile(dx, dy, char, fg, bg)
+            dx = dx + 1
+        end
     end
 end
 
@@ -149,9 +170,7 @@ function drawing.char(x, y, c)
         drawing.console.error("etch:char: expected char or number, got " .. type(char))
         return
     end
-    if char > 0 then
-        drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, char)
-    end
+    drawing.memapi.poke(idx + drawing.memapi.map.ascii_start, char)
 end
 
 

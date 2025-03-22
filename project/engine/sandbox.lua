@@ -57,6 +57,7 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         cget = drawing.cget,
         iget = drawing.iget,
         text = drawing.text,
+        write = drawing.write,
         pan = drawing.setoffset,
 
         -- Audio
