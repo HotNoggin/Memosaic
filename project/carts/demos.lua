@@ -7,15 +7,6 @@ for i, name in ipairs(paths) do
 end
 
 
-demos["new_cart.memo"] =
-[[
---!:name
---New cart
---!:font
---
-]]
-
-
 demos["splash.memo"] =
 [[
 --- MAIN ---

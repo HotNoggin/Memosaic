@@ -1,14 +1,15 @@
 local parser = {tokens = {}} -- Backup tokens to use if no argument passed
 
 parser.reserved = {
+    -- Literals
+    "true", "false",
     -- Console
     "out", "O", "err", "outcolr",
     -- Stack and pile
-    "push", "P", "snap", "crackle", "pop", "stack",
-    "del",
-    "true", "false",
+    "push", "P", "snap", "crackle", "pop", "stack", "del",
     -- Control flow
     "hop", "do", "jump", "end",
+
     -- Input
     "stat", "btn", "btnp", "btnr",
     -- Drawing

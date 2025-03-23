@@ -298,9 +298,13 @@ end
 
 
 function cmd.new()
-    cmd.memo.cart.load("", cmd.memo.demos["new_cart.memo"])
-    cmd.memo.memapi.load_font(cmd.memo.memapi.default_font)
+    cmd.memo.cart.load("", "")
+    cmd.memo.memapi.load_font("")
+    for i = 0, 31 do
+        cmd.memo.memapi.load_sound(i, "0Z0Z0W0")
+    end
     cmd.cli.cartfile = ""
+    cmd.memo.cart.name = "New cart"
     cmd.cli.print("New cart loaded")
 end
 
