@@ -109,7 +109,7 @@ function lexer.scantoken()
         while not l.atend() and l.isdec(l.peek()) do
             num = num .. l.advance()
         end
-        l.addtoken("int", num)
+        l.addtoken("integer", num)
     elseif c == "*" then
         if l.match("*") then l.addtoken("**")
         else l.addtoken("*")

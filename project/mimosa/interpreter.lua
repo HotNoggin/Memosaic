@@ -611,6 +611,50 @@ function mint.closelist()
 end
 
 
+function mint.type()
+    local val = mint.pop()
+    if val ~= nil then
+        local types = {
+            ["number"] = "int",
+            ["string"] = "str",
+            ["table"] = "list",
+            ["boolean"] = "bool",
+        }
+        mint.push(types[type(val)])
+    else
+        mint.err(" type", "missing operand")
+    end
+end
+
+
+function mint.tostr()
+    local val = mint.pop()
+    if val ~= nil then
+        mint.push(tostring(val))
+    else
+        mint.err(" str", "missing operand")
+    end
+end
+
+
+function mint.toint()
+    local val = mint.pop()
+    if val ~= nil then
+        if type(val) == "boolean" then
+            if val then mint.push(1) else mint.push(0) end
+        elseif type(val) == "string" then
+            mint.push(mint.int(tonumber(val)))
+        elseif type(val) == "number" then
+            mint.push(mint.int(val))
+        else
+            mint.err(" int", "cannot convert " .. type(val) .. " to int")
+        end
+    else
+        mint.err(" int", "missing operand")
+    end
+end
+
+
 function mint.push(value)
     table.insert(mint.stack, value)
 end
@@ -680,9 +724,8 @@ function mint.error()
 end
 
 
-function mint.int(num)
-    local x = math.floor(num)
-    return (x + 0x8000) % (0x7FFF + 0x8000 + 1) - 0x8000
+function mint.int(x)
+    return (math.floor(x) + 0x8000) % (0x7FFF + 0x8000 + 1) - 0x8000
 end
 
 
@@ -715,7 +758,7 @@ function mint.init()
     mint.operations = {
         -- Literals
         string = mint.push,
-        int = function (value) mint.push(mint.int(value)) end,
+        integer = function (value) mint.push(mint.int(value)) end,
         identifier = mint.push,
         ["true"] = mint.bool,
         ["false"] = mint.bool,
@@ -785,6 +828,11 @@ function mint.init()
         O = mint.out,
         err = mint.error,
         outcolr = mint.outcolr,
+
+        -- Types
+        ["type"] = mint.type,
+        str = mint.tostr,
+        int = mint.toint,
 
         -- Input
         ["?"] = mint.lib.stat,

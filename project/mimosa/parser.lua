@@ -10,6 +10,8 @@ parser.reserved = {
     -- Control flow
     "hop", "do", "jump", "end",
 
+    -- Standard
+    "type", "str", "int",
     -- Input
     "stat", "btn", "btnp", "btnr",
     -- Drawing
@@ -37,12 +39,12 @@ function parser.get_instructions(ptokens)
             end
 
         -- NUMBERS --
-        elseif inst.type == "int" then
+        elseif inst.type == "integer" then
             local int = math.floor(tonumber(inst.value, 10))
-            inst = {line = inst.line, type = "int", value = int}
+            inst = {line = inst.line, type = "integer", value = int}
         elseif inst.type == "hex" then
             local int = math.floor(tonumber(inst.value, 16))
-            inst = {line = inst.line, type = "int", value = int}
+            inst = {line = inst.line, type = "integer", value = int}
 
         -- LISTS --
         elseif inst.type == "[" then
