@@ -44,6 +44,8 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         -- System
         stat = cart.memo.stat,
         btn = input.btn,
+        -- btnp below
+        -- btnr below
         stop = cart.stop,
 
         -- Graphics
@@ -122,10 +124,6 @@ function sandbox.init(cart, input, memapi, drawing, audio, console)
         rset = rawset,
         slct = select,
     }
-
-    function sandbox.env.istr(str, i)
-        return string.sub(str, i, i)
-    end
 
     function sandbox.btnp(i)
         return input.btn(i) and not input.old(i)

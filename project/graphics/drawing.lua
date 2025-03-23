@@ -50,7 +50,6 @@ function drawing.rect(x, y, w, h, c, fg, bg)
 end
 
 
--- Set the 
 function drawing.crect(x, y, w, h, c)
     for tx = x, x + (w - 1) do
         for ty = y, y + (h - 1) do

@@ -12,8 +12,8 @@ parser.reserved = {
 
     -- Standard
     "type", "str", "int",
-    -- Input
-    "stat", "btn", "btnp", "btnr",
+    -- System
+    "stat", "btn", "btnp", "btnr", "stop",
     -- Drawing
     "fill", "tile", "T", "etch", "E", "ink", "I",
     "rect", "R", "crect", "irect", "text",

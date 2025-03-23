@@ -834,12 +834,13 @@ function mint.init()
         str = mint.tostr,
         int = mint.toint,
 
-        -- Input
+        -- System
         ["?"] = mint.lib.stat,
         stat = mint.lib.stat,
         btn = mint.lib.btn,
         btnp = mint.lib.btnp,
         btnr = mint.lib.btnr,
+        stop = mint.memo.cart.stop,
 
         -- Drawing
         fill = mint.lib.fill,
