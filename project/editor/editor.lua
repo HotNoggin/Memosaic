@@ -42,8 +42,6 @@ end
 
 
 function editor.opened()
-    -- Retrieve editor memory from backup
-    editor.memapi.retrieve()
 end
 
 

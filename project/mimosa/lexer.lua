@@ -25,7 +25,7 @@ function lexer.scantoken()
     local l = lexer
     local c = lexer.advance()
 
-    local symbols = {".", ",", "%", "/", "\\", "{", "}", ":", "?", "@",}
+    local symbols = {".", ",", "'", "%", "/", "\\", "{", "}", "[", "]", "?"}
 
     if l.isin(c, symbols) then
         l.addtoken(c)
@@ -98,13 +98,6 @@ function lexer.scantoken()
         end
         l.addtoken("string", string)
         l.advance()
-    elseif c == "'" then
-        local next = l.peek()
-        if l.isbetween(next, "!", "~") then
-            l.addtoken("char", next)
-            l.advance()
-        else l.err(l.line, " char", "invalid character")
-        end
     elseif l.islow(c) or l.iscaps(c) then
         local identifier = c
         while not l.atend() and (l.islow(l.peek()) or l.iscaps(l.peek())) do
@@ -162,6 +155,15 @@ function lexer.scantoken()
     elseif c == "^" then
         if l.match("^") then l.addtoken("^^")
         else l.addtoken("^")
+        end
+    elseif c == "@" then
+        if l.match("=") then l.addtoken("@=")
+        elseif l.match("+") then l.addtoken("@+")
+        elseif l.match("-") then l.addtoken("@-")
+        elseif l.match(">") then l.addtoken("@>")
+        elseif l.match("<") then l.addtoken("@<")
+        elseif l.match("#") then l.addtoken("@#")
+        else l.addtoken("@")
         end
     elseif l.isin(c, {" ", "\t", "\r"}) then -- pass
     elseif c == "\n" then l.line = l.line + 1

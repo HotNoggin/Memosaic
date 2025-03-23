@@ -4,7 +4,8 @@ parser.reserved = {
     -- Console
     "out", "O", "err", "outcolr",
     -- Stack and pile
-    "push", "P", "pop", "del",
+    "push", "P", "snap", "crackle", "pop", "stack",
+    "del",
     "true", "false",
     -- Control flow
     "hop", "do", "jump", "end",
@@ -13,7 +14,7 @@ parser.reserved = {
     -- Drawing
     "fill", "tile", "T", "etch", "E", "ink", "I",
     "rect", "R", "crect", "irect", "text",
-    --Audio
+    -- Audio
     "blipat"
 }
 
@@ -41,6 +42,21 @@ function parser.get_instructions(ptokens)
         elseif inst.type == "hex" then
             local int = math.floor(tonumber(inst.value, 16))
             inst = {line = inst.line, type = "int", value = int}
+
+        -- LISTS --
+        elseif inst.type == "[" then
+            table.insert(unclosedskips, i)
+        elseif inst.type == "]" then
+            if #unclosedskips <= 0 then
+                parser.err(token.line, "", "unmatched ']'")
+            else
+                local idx = unclosedskips[#unclosedskips]
+                if instructions[idx].type == "[" then
+                    table.remove(unclosedskips, #unclosedskips)
+                else
+                    parser.err(token.line, "", "unmatched ']'")
+                end
+            end
 
         -- CONDITIONAL BLOCKS --
         elseif inst.type == "{" then

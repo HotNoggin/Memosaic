@@ -5,6 +5,8 @@ local mint = {
     lib = {},
 
     stack = {},
+    truestack = {},
+    lists = {},
     callstack = {},
     skipstack = {},
     pile = {},
@@ -13,13 +15,10 @@ local mint = {
 
     line = 1,
     idx = 1,
-    sp = 0,
-
-    verbose = false,
     outcolor = 12,
 }
 
-
+mint.truestack = mint.stack
 local bit = require("bit")
 
 
@@ -28,15 +27,16 @@ function mint.interpret(instructions, stack, pile, tags, from)
     mint.line = 1
     mint.idx = from or mint.idx
     mint.instructions = instructions or mint.instructions
-    mint.sp = 0
     mint.callstack = {}
     mint.skipstack = {}
 
-    mint.say("interpreting")
     if stack then mint.stack = stack end
     if pile then mint.pile = pile end
     if tags then mint.tags = tags end
     if from then mint.idx = from end
+
+    mint.truestack = mint.stack
+    mint.lists = {}
 
     while mint.idx <= #mint.instructions do
         local inst = mint.instructions[mint.idx]
@@ -59,10 +59,8 @@ function mint.skip(skipstop)
     local bool = mint.pop()
     if bool ~= nil then
         if mint.truth(bool) then
-            mint.say("no skip")
             table.insert(mint.skipstack, mint.idx)
         else
-            mint.say("skip to " .. skipstop)
             mint.idx = skipstop
         end
     else
@@ -72,8 +70,7 @@ end
 
 
 function mint.endskip()
-    mint.say("skip complete")
-    table.remove(mint.skipstack, #mint.skipstack)
+    table.remove(mint.skipstack)
 end
 
 
@@ -82,13 +79,10 @@ function mint.hop()
     if bool ~= nil then
         if mint.truth(bool) then
             if #mint.skipstack > 0 then
-                mint.say("hop back up to " .. mint.skipstack[#mint.skipstack])
                 mint.idx = mint.skipstack[#mint.skipstack]
             else
                 mint.err(" hop (^)", "not inside of skip")
             end
-        else
-            mint.say("no hop")
         end
     else
         mint.err(" hop (^)", "missing operand")
@@ -109,9 +103,7 @@ function mint.jump(canreturn)
         if type(funcname) == "string" then
             local pos = mint.tags[funcname]
             if pos ~= nil then
-                mint.say("jumping to " .. funcname .. " at " .. pos)
                 if canreturn then
-                    mint.say("can return to " .. mint.idx)
                     table.insert(mint.callstack,
                     {name = funcname, from = mint.idx, line = mint.line})
                     if #mint.callstack > 0xFFFF then
@@ -133,18 +125,15 @@ end
 
 function mint.goend()
     if #mint.callstack > 0 then
-        local origin = table.remove(mint.callstack, #mint.callstack)
+        local origin = table.remove(mint.callstack)
         mint.idx = origin.from
-        mint.say("return to " .. origin.name)
     else
-        mint.say("go to end")
         mint.idx = #mint.instructions
     end
 end
 
 
 function mint.skipregion(skipstop)
-    mint.say("skip over tag to " .. skipstop)
     mint.idx = skipstop
 end
 
@@ -166,7 +155,6 @@ function mint.set()
         else
             mint.err(" set", "expected identifier or address, got " .. type(name))
         end
-        mint.say("set " .. name .. " to " .. tostring(val))
     else
         mint.err(" set", "missing operand")
     end
@@ -179,7 +167,6 @@ function mint.get()
         if type(name) == "string" then
             local val = mint.pile[name]
             if val ~= nil then
-                mint.say("get " .. name)
                 mint.push(val)
             else
                 mint.err(" get", name .. " is undefined")
@@ -191,6 +178,12 @@ function mint.get()
             else
                 mint.err(" peek", "could not read memory")
             end
+        elseif type(name) == "table" then
+            local copy = {}
+            for i, v in ipairs(name) do
+                copy[i] = v
+            end
+            mint.push(copy)
         else
             mint.err(" get", "expected identifier or address, got " .. type(name))
         end
@@ -205,7 +198,6 @@ function mint.increment(amount)
     local toadd = 1
     if amount then toadd = amount end
     if name ~= nil then
-        mint.say("incrementing " .. name)
         if type(name) == "string" then
             if mint.pile[name] ~= nil then
                 mint.pile[name] = mint.int(mint.pile[name] + amount)
@@ -225,6 +217,8 @@ function mint.increment(amount)
         else
             mint.err(" increment", "expected identifier or address, got ".. type(name))
         end
+    else
+        mint.err(" increment", "missing operand")
     end
 end
 
@@ -232,7 +226,6 @@ end
 function mint.out()
     local txt = mint.pop()
     if txt ~= nil then
-        mint.say("out")
         mint.memo.editor.console.print(txt, mint.outcolor)
     else
         mint.err(" out", "missing operand")
@@ -261,7 +254,6 @@ end
 function mint.add()
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
-        mint.say("add " .. tostring(a) .." to " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
             mint.push(mint.int(a + b))
         elseif type(a) == "string" or type(b) == "string" then
@@ -278,7 +270,6 @@ end
 function mint.sub()
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
-        mint.say("subtract " .. tostring(b) .." from " .. tostring(a))
         if type(a) == "number" and type(b) == "number" then
             mint.push(mint.int(a - b))
         else
@@ -293,7 +284,6 @@ end
 function mint.mult()
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
-        mint.say("multiply " .. tostring(a) .." by " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
             mint.push(mint.int(a * b))
         else
@@ -308,7 +298,6 @@ end
 function mint.div()
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
-        mint.say("divide " .. tostring(a) .." by " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
             if b == 0 then
                 mint.err(" divide", "division by 0")
@@ -327,7 +316,6 @@ end
 function mint.pow()
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
-        mint.say("pow " .. tostring(a) .." to " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
             mint.push(mint.int(a ^ b))
         else
@@ -342,7 +330,6 @@ end
 function mint.mod()
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
-        mint.say("mod " .. tostring(a) .." by " .. tostring(b))
         if type(a) == "number" and type(b) == "number" then
             if b == 0 then
                 mint.err(" modulo", "division by 0")
@@ -361,7 +348,6 @@ end
 function mint.compare(mode)
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
-        mint.say("compare " .. tostring(a) .. " " .. mode .. " " .. tostring(b))
         if mode == "equals" then
             mint.push(a == b)
         elseif (type(a) == type(b)) then
@@ -387,7 +373,6 @@ function mint.logic(mode)
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
         a, b = mint.truth(a), mint.truth(b)
-        mint.say("logic " .. tostring(a) .. " " .. mode .. " " .. tostring(b))
         if mode == "and" then
             mint.push(a and b)
         elseif mode == "or" then
@@ -403,7 +388,6 @@ function mint.negate()
     local value = mint.pop()
     if value ~= nil then
         if type(value) == "number" then
-            mint.say("numerical negate " .. tostring(value))
             mint.push(mint.int(-value))
         else
             mint.err(" negate", "cannot negate " .. type(value))
@@ -417,7 +401,6 @@ end
 function mint.isnot()
     local value = mint.pop()
     if value ~= nil then
-        mint.say("logical negate " .. tostring(value))
         mint.push(not mint.truth(value))
     else
         mint.err(" not (!)", "missing operand")
@@ -429,7 +412,6 @@ function mint.binot()
     local value = mint.pop()
     if value ~= nil then
         if type(value) == "number" then
-            mint.say("binot " .. value)
             mint.push(bit.bnot(value))
         else
             mint.err(" not (~)", "cannot negate " .. type(value))
@@ -446,33 +428,207 @@ function mint.bool(value)
 end
 
 
+function mint.tochar()
+    local char = mint.pop()
+    if char ~= nil then
+        if type(char) == "string" then
+            if #char == 1 then
+                mint.push(string.byte(char))
+            else
+                mint.err(" char(')", "invalid character (" .. char .. ")")
+            end
+        else
+            mint.err(" char (')", "cannot convert " .. type(char) .. " to int")
+        end
+    else
+        mint.err(" char (')", "missing operand")
+    end
+end
+
+
+function mint.listget()
+    local list, index = mint.pop(), mint.pop()
+    if list ~= nil and index ~= nil then
+        if type(index) == "number" then
+            index = mint.luaidx(index, list)
+            if type(list) == "table" then
+                if index > #list then
+                    mint.err(" index (@)", index .. " is out of bounds")
+                    return
+                end
+                mint.push(list[index])
+            elseif type(list) == "string" then
+                if index > #list then
+                    mint.err(" index (@)", index .. " is out of bounds")
+                    return
+                end
+                mint.push(string.sub(list, index, index))
+            else
+                mint.err(" index (@)", "cannot index " .. type(list))
+            end
+        else
+            mint.err(" index (@)", "index cannot be " .. type(index))
+        end
+    else
+        mint.err(" index (@)", "missing operand")
+    end
+end
+
+
+function mint.listset()
+    local list, index, value = mint.pop(), mint.pop(), mint.pop()
+    if list ~= nil and index ~= nil and value ~= nil then
+        if type(index) == "number" then
+            if type(list) == "table" then
+                index = mint.luaidx(index, list)
+                if index > #list then
+                    mint.err(" mutate (@=)", index .. " is out of bounds")
+                    return
+                end
+                list[index] = value
+            else
+                mint.err(" mutate (@=)", "cannot mutate " .. type(list))
+            end
+        else
+            mint.err(" mutate (@=)", "index cannot be " .. type(index))
+        end
+    else
+        mint.err(" mutate (@=)", "missing operand")
+    end
+end
+
+
+function mint.listinsert()
+    local list, index, value = mint.pop(), mint.pop(), mint.pop()
+    if list ~= nil and index ~= nil and value ~= nil then
+        if type(index) == "number" then
+            if type(list) == "table" then
+                index = mint.luaidx(index, list)
+                if index > #list then
+                    mint.err(" insert (@+)", index .. " is out of bounds")
+                    return
+                end
+                table.insert(list, index, value)
+            else
+                mint.err(" insert (@+)", "cannot mutate " .. type(list))
+            end
+        else
+            mint.err(" insert (@+)", "index cannot be " .. type(index))
+        end
+    else
+        mint.err(" insert (@+)", "missing operand")
+    end
+end
+
+
+function mint.listremove()
+    local list, index = mint.pop(), mint.pop()
+    if list ~= nil and index ~= nil then
+        if type(index) == "number" then
+            if type(list) == "table" then
+                index = mint.luaidx(index, list)
+                if index > #list then
+                    mint.err(" remove (@-)", index .. " is out of bounds")
+                    return
+                end
+                table.remove(list, index)
+            else
+                mint.err(" remove (@-)", "cannot mutate " .. type(list))
+            end
+        else
+            mint.err(" remove (@-)", "index cannot be " .. type(index))
+        end
+    else
+        mint.err(" remove (@-)", "missing operand")
+    end
+end
+
+
+function mint.listpush()
+    local list, value = mint.pop(), mint.pop()
+    if list ~= nil and value ~= nil then
+        if type(list) == "table" then
+            table.insert(list, value)
+        else
+            mint.err(" list push (@<)", "cannot mutate " .. type(list))
+        end
+    else
+        mint.err(" list push (@<)", "missing operand")
+    end
+end
+
+
+function mint.listpop()
+    local list = mint.pop()
+    if list ~= nil then
+        if type(list) == "table" then
+            if #list > 0 then
+                mint.push(table.remove(list))
+            else
+                mint.err(" list pop (@>)", "list underflow")
+            end
+        else
+            mint.err(" list pop (@>)", "cannot mutate " .. type(list))
+        end
+    else
+        mint.err(" list pop (@>)", "missing operand")
+    end
+end
+
+
+function mint.listlen()
+    local item = mint.pop()
+    if item ~= nil then
+        if type(item) == "string" or type(item) == "table" then
+            mint.push(#item)
+        else
+            mint.err(" length (@#)", "cannot get length of " .. type(item))
+        end
+    else
+        mint.err(" length (@#)", "missing operand")
+    end
+end
+
+
+function mint.openlist()
+    local list = {}
+    table.insert(mint.lists, list)
+    mint.stack = list
+end
+
+
+function mint.closelist()
+    -- Remove and push the last list
+    local list = mint.stack
+    -- Set stack to previous list or true stack if none
+    if #mint.lists > 0 then
+        mint.stack = mint.lists[#mint.lists]
+    else
+        mint.stack = mint.truestack
+    end
+    mint.push(list)
+    table.remove(mint.lists, #mint.lists)
+end
+
+
 function mint.push(value)
-    mint.say("push " .. tostring(value))
-    mint.sp = mint.sp + 1
-    mint.stack[mint.sp] = value
+    table.insert(mint.stack, value)
 end
 
 
 function mint.snap()
-    mint.say("snap")
-    mint.sp = 1
     mint.stack = {}
 end
 
 
 function mint.crackle()
-    local stack = mint.stack
-    -- mint.push(stack)
-    mint.err(" crackle", "not yet implemented")
-    return
+    mint.push(mint.stack)
 end
 
 
 function mint.pop()
-    if mint.sp > 0 then
-        local value = table.remove(mint.stack, mint.sp)
-        mint.sp = mint.sp - 1
-        mint.say("pop " .. tostring(value))
+    if #mint.stack > 0 then
+        local value = table.remove(mint.stack)
         if value == nil then
             mint.err(" pop", "fatal: is nil")
         end
@@ -484,7 +640,6 @@ end
 
 
 function mint.del()
-    mint.say("del")
     local name = mint.pop()
     if name ~= nil then
         if type(name) == "string" then
@@ -499,7 +654,6 @@ end
 
 
 function mint.pushpop()
-    mint.say("peeking")
     local val = mint.pop()
     if val ~= nil then
         mint.push(val)
@@ -526,16 +680,22 @@ function mint.error()
 end
 
 
-function mint.say(txt)
-    if mint.verbose then
-        print(txt)
-    end
+function mint.int(num)
+    local x = math.floor(num)
+    return (x + 0x8000) % (0x7FFF + 0x8000 + 1) - 0x8000
 end
 
 
-function mint.int(num)
-    local x = math.floor(num)
-    return (x + 0x8000) % (0x7FFF + 0x8000 + 1) + -0x8000
+function mint.luaidx(num, list)
+    if num >= 0 then
+        return num + 1
+    else
+        if type(list) == "string" or type(list) == "table" then
+            return #list + num + 1
+        else
+            return 1
+        end
+    end
 end
 
 
@@ -551,7 +711,6 @@ function mint.truth(value)
 end
 
 
-
 function mint.init()
     mint.operations = {
         -- Literals
@@ -560,6 +719,7 @@ function mint.init()
         identifier = mint.push,
         ["true"] = mint.bool,
         ["false"] = mint.bool,
+        ["'"] = mint.tochar,
 
         -- Stack and pile
         snap = mint.snap,
@@ -567,21 +727,34 @@ function mint.init()
         pop = mint.pop,
         push = mint.pushpop,
         P = mint.pushpop,
+        stack = mint.crackle,
         del = mint.del,
         ["="] = mint.set,
         ["."] = mint.get,
 
-        -- Code flow
-        hop = mint.hop,
+        -- Lists
+        ["["] = mint.openlist;
+        ["]"] = mint.closelist;
+        ["@"] = mint.listget;
+        ["@="] = mint.listset;
+        ["@+"] = mint.listinsert;
+        ["@-"] = mint.listremove;
+        ["@<"] = mint.listpush;
+        ["@>"] = mint.listpop;
+        ["@#"] = mint.listlen;
+
+        -- Control flow
         ["^"] = mint.hop,
         ["{"] = mint.skip,
+        ["$"] = mint.jump,
+        hop = mint.hop,
         jump = mint.jump,
         ["do"] = mint.godo,
-        ["$"] = mint.godo,
+        ["#"] = mint.godo,
         ["end"] = mint.goend,
         region = mint.skipregion,
         ["}"] = mint.endskip,
-        tag = function (value) mint.say("Passed tag " .. value) end,
+        tag = function () end,
 
         -- Logical binops
         [">"] = function () mint.compare("more") end,
