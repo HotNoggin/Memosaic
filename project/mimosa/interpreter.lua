@@ -875,6 +875,8 @@ function mint.init()
         crect = mint.lib.crect,
         irect = mint.lib.irect,
         text = mint.lib.text,
+        write = mint.lib.write,
+        pan = mint.lib.pan,
 
         -- Audio
         blipat = mint.lib.blipat,

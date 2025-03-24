@@ -17,7 +17,8 @@ parser.reserved = {
     -- Drawing
     "fill", "tile", "T", "etch", "E", "ink", "I",
     "cget", "iget",
-    "rect", "R", "crect", "irect", "text",
+    "rect", "R", "crect", "irect", "text", "write",
+    "pan",
     -- Audio
     "blip", "blipat"
 }

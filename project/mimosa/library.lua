@@ -78,7 +78,25 @@ function lib.text()
         str = tostring(str)
         local y, x = lib.split(from)
         local bg, fg = lib.split(colr)
-        lib.draw.text(x, y, str, fg, bg, width, false)
+        lib.draw.text(x, y, str, fg, bg, width)
+    else
+        m.err(" text", "missing operand")
+    end
+end
+
+
+function lib.write()
+    local m = lib.mint
+    local width, from, str, colr = m.pop(), m.pop(), m.pop(), m.pop()
+    if from ~= nil and str ~= nil and colr ~= nil and width ~= nil then
+        if lib.badtype(width, "number", " text:width") then return end
+        if lib.badtype(from, "number", " text:pos") then return end
+        if lib.badtype(colr, "number", " text:color") then return end
+
+        str = tostring(str)
+        local y, x = lib.split(from)
+        local bg, fg = lib.split(colr)
+        lib.draw.write(x, y, str, fg, bg, width)
     else
         m.err(" text", "missing operand")
     end
@@ -148,7 +166,6 @@ function lib.cget()
     local idx = m.pop()
     if m ~= nil then
         if lib.badtype(idx, "number", " cget") then return end
-
         local y, x = lib.split(idx)
         local char = lib.draw.cget(x, y)
         if char then
