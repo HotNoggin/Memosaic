@@ -88,13 +88,13 @@ end
 -- If w > 1, this wraps to keep width w
 function drawing.text(x, y, str, fg, bg, w, format)
     local c = drawing.console
-    if c.bad_type(x, "number", "text:x") then return end
-    if c.bad_type(y, "number", "text:y") then return end
+    if c.bad_type(x, "number", " text:x") then return end
+    if c.bad_type(y, "number", " text:y") then return end
     local dx = x
     local dy = y
     local width = w or 0
     local s = tostring(str)
-    if c.bad_type(width, "number", "text:width") then return end
+    if c.bad_type(width, "number", " text:width") then return end
     local dowrap = width > 0
     for i = 1, #s do
         local char = s:sub(i, i)
@@ -133,17 +133,22 @@ end
 
 function drawing.cget(tx, ty)
     local con = drawing.console
-    if con.bad_type(tx, "number", "cget:x") or con.bad_type(ty, "number", "cget:y") then
+    if con.bad_type(tx, "number", " cget:x") or con.bad_type(ty, "number", " cget:y") then
         return
     end
-    local idx = drawing.memapi.ascii_start + ((tx + ty*16) % 0x100)
-    return drawing.memapi.peek(idx)
+    local idx = drawing.memapi.map.ascii_start + ((tx + ty*16) % 0x100)
+    local char = drawing.memapi.peek(idx)
+    if char then
+        return string.char(char)
+    else
+        return
+    end
 end
 
 
-function drawing.iget(tx,ty)
+function drawing.iget(tx, ty)
     local con = drawing.console
-    if con.bad_type(tx, "number", "iget:x") or con.bad_type(ty, "number", "iget:y") then
+    if con.bad_type(tx, "number", " iget:x") or con.bad_type(ty, "number", " iget:y") then
         return
     end
     local idx = drawing.memapi.map.color_start + ((tx + ty*16) % 0x100)
@@ -177,14 +182,14 @@ function drawing.ink(x, y, fg, bg)
     local con = drawing.console
     local fore = -1
     local back = -1
-    if con.bad_type(x, "number", "ink:x") or con.bad_type(y, "number", "ink:y")
+    if con.bad_type(x, "number", " ink:x") or con.bad_type(y, "number", " ink:y")
     then return end
     if fg then
-        if con.bad_type(fore, "number", "ink") then return end
+        if con.bad_type(fore, "number", " ink:fg") then return end
         fore = math.floor(fg)
     end
     if bg then
-        if con.bad_type(back, "number", "ink") then return end
+        if con.bad_type(back, "number", " ink:bg") then return end
         back = math.floor(bg)
     end
     if x < 0 or x >= drawing.TILE_WIDTH then return end
@@ -207,8 +212,8 @@ end
 
 
 function drawing.setoffset(px, py)
-    if drawing.console.bad_type(px, "number", "offset") then return end
-    if drawing.console.bad_type(py, "number", "offset") then return end
+    if drawing.console.bad_type(px, "number", " offset:x") then return end
+    if drawing.console.bad_type(py, "number", " offset:y") then return end
     drawing.memapi.poke(drawing.memapi.map.pan_x, math.floor(px) % 128)
     drawing.memapi.poke(drawing.memapi.map.pan_y, math.floor(py) % 128)
 end

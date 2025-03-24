@@ -144,7 +144,21 @@ end
 
 
 function lib.cget()
+    local m = lib.mint
+    local idx = m.pop()
+    if m ~= nil then
+        if lib.badtype(idx, "number", " cget") then return end
 
+        local y, x = lib.split(idx)
+        local char = lib.draw.cget(x, y)
+        if char then
+            m.push(char)
+        else
+            m.err(" cget", "could not get")
+        end
+    else
+        m.err(" cget", "missing operand")
+    end
 end
 
 
@@ -152,7 +166,18 @@ function lib.iget()
     local m = lib.mint
     local idx = m.pop()
     if m ~= nil then
+        if lib.badtype(idx, "number", " iget") then return end
+
+        local y, x = lib.split(idx)
+        local fg, bg = lib.draw.iget(x, y)
+        if fg then
+            local colr = bg * 16 + fg
+            m.push(colr)
         else
+            m.err(" iget", "could not get")
+        end
+    else
+        m.err(" iget", "missing operand")
     end
 end
 
