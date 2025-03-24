@@ -263,6 +263,19 @@ function lib.irect(val, pfrom, pto, pcolr)
 end
 
 
+function lib.pan()
+    local m = lib.mint
+    local x, y = m.pop(), m.pop()
+    if x ~= nil and y ~= nil then
+        if lib.badtype(x, "number", " pan:x") then return end
+        if lib.badtype(x, "number", " pan:y") then return end
+        lib.draw.setoffset(x, y)
+    else
+        m.err(" pan", "missing operand")
+    end
+end
+
+
 ----------- AUDIO -----------
 function lib.blip(val, pwav, pnote, pvol)
     local m = lib.mint

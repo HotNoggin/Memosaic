@@ -195,8 +195,7 @@ end
 
 function mint.increment(amount)
     local name = mint.pop()
-    local toadd = 1
-    if amount then toadd = amount end
+    local toadd = amount or 1
     if name ~= nil then
         if type(name) == "string" then
             if mint.pile[name] ~= nil then
@@ -207,7 +206,7 @@ function mint.increment(amount)
         elseif type(name) == "number" then
             local val = mint.memo.memapi.peek(name)
             if val ~= nil then
-                mint.ok = mint.memo.memapi.poke((val+toadd)%0xFF)
+                mint.ok = mint.memo.memapi.poke(name, (val + toadd) % 0xFF)
                 if not mint.ok then
                     mint.err(" increment", "could not write memory")
                 end
@@ -341,6 +340,20 @@ function mint.mod()
         end
     else
         mint.err(" modulo", "missing operand")
+    end
+end
+
+
+function mint.merge()
+    local b, a = mint.pop(), mint.pop()
+    if a ~= nil and b ~= nil then
+        if type(a) == "number" and type(b) == "number" then
+            mint.push(mint.int(bit.lshift(a % 16, 4) + b % 16))
+        else
+            mint.err(" merge (:)", "cannot merge " .. type(a) .. " and " .. type(b))
+        end
+    else
+        mint.err(" merge (:)", "missing operand")
     end
 end
 
@@ -721,7 +734,7 @@ function mint.pushpop()
         mint.push(val)
         mint.push(val)
     else
-        mint.err("push", "missing operand")
+        mint.err(" push", "missing operand")
     end
 end
 
@@ -833,6 +846,7 @@ function mint.init()
         ["/"] = mint.div,
         ["**"] = mint.pow,
         ["\\"] = mint.mod,
+        [":"] = mint.merge,
 
         -- Unary operations
         ["!"] = mint.isnot,
