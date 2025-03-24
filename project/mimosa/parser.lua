@@ -20,7 +20,7 @@ parser.reserved = {
     "rect", "R", "crect", "irect", "text", "write",
     "pan",
     -- Audio
-    "blip", "blipat"
+    "blip", "beep", "chirp", "sfxset",
 }
 
 

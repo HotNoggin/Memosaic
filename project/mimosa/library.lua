@@ -3,7 +3,12 @@ local lib = {
     mint = {},
     mem = {},
     draw = {},
-    cart = {}
+    cart = {},
+
+    sfxptr = 0,
+    sfxlength = 1,
+    sfxvolume = 7,
+    sfxpitch = 0,
 }
 
 
@@ -52,7 +57,6 @@ end
 
 
 ----------- DRAWING -----------
-
 function lib.fill()
     local m = lib.mint
     local char, colr = m.pop(), m.pop()
@@ -277,45 +281,77 @@ end
 
 
 ----------- AUDIO -----------
-function lib.blip(val, pwav, pnote, pvol)
+function lib.sfxset()
     local m = lib.mint
-    local wav = pwav or m.pop()
-    local note = pnote() or m.pop()
-    local vol = pvol or m.pop()
-    local ok = lib.blipat(val, wav, note, vol, 0)
-    if not ok then
-        lib.mint.err(" blip", "could not blip")
-    end
-    return ok
-end
+    local at, note, len = m.pop(), m.pop(), m.pop()
+    if at ~= nil and note ~= nil and len ~= nil then
+        if lib.badtype(at, "number", " sfxset:offset") then return end
+        if lib.badtype(note, "number", " sfxset:note") then return end
+        if lib.badtype(len, "number", " sfxset:length") then return end
 
-
-function lib.blipat(val, pwav, pnote, pvol, pat)
-    local m = lib.mint
-    local wav = pwav or m.pop()
-    local note = pnote() or m.pop()
-    local vol = pvol or m.pop()
-    local at = pat or m.pop()
-    if wav ~= nil and note ~= nil and vol ~= nil and at ~= nil then
-        if lib.badtype(wav, "number", " blipat:wave") then return end
-        if lib.badtype(note, "number", " blipat:note") then return end
-        if lib.badtype(vol, "number", " blipat:volume") then return end
-        if lib.badtype(at, "number", " blipat:at") then return end
-
-        local ok = lib.memo.audio.blipat(wav, note, vol, at)
-        if not ok then
-            lib.mint.err(" blipat", "could not blip")
-        end
-        return ok
+        lib.sfxptr = at
+        lib.sfxpitch = note
+        lib.sfxlength = len
     else
-        m.err(" blipat", "missing operand")
+        m.err(" sfxset", "missing operand")
     end
 end
 
+
+function lib.chirp()
+    local m = lib.mint
+    local wav, sound = m.pop(), m.pop()
+    if wav ~= nil and sound ~= nil then
+        if lib.badtype(wav, "number", " chirp:wave") then return end
+        if lib.badtype(sound, "number", " chrip:sound") then return end
+
+        local ok = lib.memo.audio.chirp(sound, wav, lib.sfxpitch, lib.sfxlength, lib.sfxptr)
+        if not ok then
+            lib.mint.err(" chirp", "could not chirp")
+        end
+    else
+        m.err(" chirp", "missing operand")
+    end
+end
+
+
+function lib.beep()
+    local m = lib.mint
+    local wav, note, len = m.pop(), m.pop(), m.pop()
+    if wav ~= nil and note ~= nil and len ~= nil then
+        if lib.badtype(wav, "number", " beep:wave") then return end
+        if lib.badtype(note, "number", " beep:note") then return end
+        if lib.badtype(len, "number", " beep:length") then return end
+
+        local ok = lib.memo.audio.beep(wav,
+            note + lib.sfxpitch, lib.sfxvolume, len * lib.sfxlength, lib.sfxptr)
+        if not ok then
+            lib.mint.err(" beep", "could not beep")
+        end
+    else
+        m.err(" beep", "missing operand")
+    end
+end
+
+
+function lib.blip()
+    local m = lib.mint
+    local wav, note = m.pop(), m.pop()
+    if wav ~= nil and note ~= nil then
+        if lib.badtype(wav, "number", " blip:wave") then return end
+        if lib.badtype(note, "number", " blip:note") then return end
+
+        local ok = lib.memo.audio.blip(wav, note, lib.sfxvolume, lib.sfxptr)
+        if not ok then
+            lib.mint.err(" blip", "could not blip")
+        end
+    else
+        m.err(" blip", "missing operand")
+    end
+end
 
 
 ----------- HELPERS -----------
-
 -- Takes a value in the format #AB and returns A, B
 function lib.split(idx)
     return math.floor(idx / 16), idx % 16

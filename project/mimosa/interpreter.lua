@@ -893,10 +893,10 @@ function mint.init()
         pan = mint.lib.pan,
 
         -- Audio
-        blipat = mint.lib.blipat,
         blip = mint.lib.blip,
-        beepat = mint.lib.beepat,
         beep = mint.lib.beep,
+        chirp = mint.lib.chirp,
+        sfxset = mint.lib.sfxset,
     }
 end
 
