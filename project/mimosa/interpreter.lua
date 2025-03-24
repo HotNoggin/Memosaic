@@ -687,7 +687,7 @@ end
 
 function mint.stat(offset)
     local code = mint.pop()
-    if code then
+    if code ~= nil then
         if type(code) == "number" then
             mint.push(mint.memo.stat(code + offset))
         elseif type(code) == "string" then
@@ -868,6 +868,8 @@ function mint.init()
         E = mint.lib.etch,
         ink = mint.lib.ink,
         I = mint.lib.ink,
+        cget = mint.lib.cget,
+        iget = mint.lib.iget,
         rect = mint.lib.rect,
         R = mint.lib.rect,
         crect = mint.lib.crect,

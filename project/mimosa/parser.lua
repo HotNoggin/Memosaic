@@ -16,6 +16,7 @@ parser.reserved = {
     "stat", "btn", "btnp", "btnr", "stop",
     -- Drawing
     "fill", "tile", "T", "etch", "E", "ink", "I",
+    "cget", "iget",
     "rect", "R", "crect", "irect", "text",
     -- Audio
     "blip", "blipat"

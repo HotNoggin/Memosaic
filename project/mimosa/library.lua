@@ -20,7 +20,7 @@ end
 ----------- SYSTEM -----------
 function lib.btn()
     local code = lib.mint.pop()
-    if code then
+    if code ~= nil then
         if lib.badtype(code, "number", " btn") then return end
         lib.mint.push(lib.memo.input.btn(code))
     else
@@ -31,7 +31,7 @@ end
 
 function lib.btnp()
     local code = lib.mint.pop()
-    if code then
+    if code ~= nil then
         if lib.badtype(code, "number", " btnp") then return end
         lib.mint.push(lib.memo.input.btn(code) and not lib.memo.input.old(code))
     else
@@ -42,7 +42,7 @@ end
 
 function lib.btnr()
     local code = lib.mint.pop()
-    if code then
+    if code ~= nil then
         if lib.badtype(code, "number", " btnr") then return end
         lib.mint.push(lib.memo.input.old(code) and not lib.memo.input.btn(code))
     else
@@ -56,7 +56,7 @@ end
 function lib.fill()
     local m = lib.mint
     local char, colr = m.pop(), m.pop()
-    if char and colr then
+    if char ~= nil and colr ~= nil then
         for idx = 0, 0xFF do
             if not m.ok then return end
             lib.tile(nil, idx, char, colr)
@@ -70,7 +70,7 @@ end
 function lib.text()
     local m = lib.mint
     local width, from, str, colr = m.pop(), m.pop(), m.pop(), m.pop()
-    if from and str and colr and width then
+    if from ~= nil and str ~= nil and colr ~= nil and width ~= nil then
         if lib.badtype(width, "number", " text:width") then return end
         if lib.badtype(from, "number", " text:pos") then return end
         if lib.badtype(colr, "number", " text:color") then return end
@@ -93,7 +93,7 @@ function lib.tile(val, pidx, pchar, pcolr)
     if char == nil then char = m.pop() end
     if colr == nil then colr = m.pop() end
 
-    if char and idx and colr then
+    if char ~= nil and idx ~= nil and colr ~= nil then
         lib.etch(nil, idx, char)
         if m.ok then lib.ink(nil, idx, colr) end
     else
@@ -112,7 +112,7 @@ function lib.etch(val, pidx, pchar)
 
     char = lib.tobyte(char, " etch")
 
-    if char and idx then
+    if char ~= nil and idx ~= nil then
         if lib.badtype(idx, "number", " etch:idx") then return end
         local y, x = lib.split(idx)
         lib.draw.char(x, y, char)
@@ -130,7 +130,7 @@ function lib.ink(val, pidx, pcolr)
     if idx == nil then idx = m.pop() end
     if colr == nil then colr = m.pop() end
 
-    if colr and idx then
+    if colr ~= nil and idx ~= nil then
         if lib.badtype(idx, "number", " ink:idx") then return end
         if lib.badtype(colr, "number", " ink:color") then return end
 
@@ -143,6 +143,20 @@ function lib.ink(val, pidx, pcolr)
 end
 
 
+function lib.cget()
+
+end
+
+
+function lib.iget()
+    local m = lib.mint
+    local idx = m.pop()
+    if m ~= nil then
+        else
+    end
+end
+
+
 function lib.rect(val, pfrom, pto, pchar, pcolr)
     local m = lib.mint
     local to = pfrom or m.pop()
@@ -150,7 +164,7 @@ function lib.rect(val, pfrom, pto, pchar, pcolr)
     local char = pchar or m.pop()
     local colr = pcolr or m.pop()
     char = lib.tobyte(char, " crect:char")
-    if to and from and colr and char then
+    if to ~= nil and from ~= nil and colr ~= nil and char ~= nil then
         if lib.badtype(to, "number", " rect:to") then return end
         if lib.badtype(from, "number", " rect:from") then return end
         if lib.badtype(colr, "number", " rect:color") then return end
@@ -172,7 +186,7 @@ function lib.crect(val, pfrom, pto, pchar)
     local from = pto or m.pop()
     local char = pchar or m.pop()
     char = lib.tobyte(char, " crect:char")
-    if to and from and char then
+    if to ~= nil and from ~= nil and char ~= nil then
         if lib.badtype(to, "number", " crect:to") then return end
         if lib.badtype(from, "number", " crect:from") then return end
 
@@ -191,7 +205,7 @@ function lib.irect(val, pfrom, pto, pcolr)
     local to = pfrom or m.pop()
     local from = pto or m.pop()
     local colr = pcolr or m.pop()
-    if to and from and colr then
+    if to ~= nil and from ~= nil and colr ~= nil then
         if lib.badtype(to, "number", " irect:to") then return end
         if lib.badtype(from, "number", " irect:from") then return end
         if lib.badtype(colr, "number", " irect:color") then return end
@@ -227,7 +241,7 @@ function lib.blipat(val, pwav, pnote, pvol, pat)
     local note = pnote() or m.pop()
     local vol = pvol or m.pop()
     local at = pat or m.pop()
-    if wav and note and vol and at then
+    if wav ~= nil and note ~= nil and vol ~= nil and at ~= nil then
         if lib.badtype(wav, "number", " blipat:wave") then return end
         if lib.badtype(note, "number", " blipat:note") then return end
         if lib.badtype(vol, "number", " blipat:volume") then return end
