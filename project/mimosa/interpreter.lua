@@ -437,8 +437,10 @@ function mint.tochar()
             else
                 mint.err(" char(')", "invalid character (" .. char .. ")")
             end
+        elseif type(char) == "number" then
+            mint.push(char % 0x100)
         else
-            mint.err(" char (')", "cannot convert " .. type(char) .. " to int")
+            mint.err(" char (')", "cannot convert " .. type(char) .. " to byte (int)")
         end
     else
         mint.err(" char (')", "missing operand")
@@ -683,6 +685,22 @@ function mint.pop()
 end
 
 
+function mint.stat(offset)
+    local code = mint.pop()
+    if code then
+        if type(code) == "number" then
+            mint.push(mint.memo.stat(code + offset))
+        elseif type(code) == "string" then
+            mint.push(mint.pile[code] ~= nil)
+        else
+            mint.err(" stat (?)", "expected identifier or address, got " .. type(code))
+        end
+    else
+        mint.err(" stat (?)", "missing operand")
+    end
+end
+
+
 function mint.del()
     local name = mint.pop()
     if name ~= nil then
@@ -835,8 +853,8 @@ function mint.init()
         int = mint.toint,
 
         -- System
-        ["?"] = mint.lib.stat,
-        stat = mint.lib.stat,
+        ["?"] = mint.stat,
+        stat = mint.stat,
         btn = mint.lib.btn,
         btnp = mint.lib.btnp,
         btnr = mint.lib.btnr,

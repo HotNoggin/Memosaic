@@ -47,9 +47,8 @@ function tick()
   song()
  elseif i < 100 then
   wordmark()
- elseif i < 121 then
   plink(7-(i - 100)/3)
- elseif i < 180 then
+ elseif i < 130 then
   wordmark()
  else
   stop()

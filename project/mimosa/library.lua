@@ -18,18 +18,6 @@ end
 
 
 ----------- SYSTEM -----------
-
-function lib.stat(offset)
-    local code = lib.mint.pop()
-    if code then
-        if lib.badtype(code, "number", " stat") then return end
-        lib.mint.push(lib.memo.stat(code + offset))
-    else
-        lib.mint.err(" stat", "missing operand")
-    end
-end
-
-
 function lib.btn()
     local code = lib.mint.pop()
     if code then
@@ -73,6 +61,26 @@ function lib.fill()
             if not m.ok then return end
             lib.tile(nil, idx, char, colr)
         end
+    else
+        m.err(" fill", "missing operand")
+    end
+end
+
+
+function lib.text()
+    local m = lib.mint
+    local width, from, str, colr = m.pop(), m.pop(), m.pop(), m.pop()
+    if from and str and colr and width then
+        if lib.badtype(width, "number", " text:width") then return end
+        if lib.badtype(from, "number", " text:pos") then return end
+        if lib.badtype(colr, "number", " text:color") then return end
+
+        str = tostring(str)
+        local y, x = lib.split(from)
+        local bg, fg = lib.split(colr)
+        lib.draw.text(x, y, str, fg, bg, width, false)
+    else
+        m.err(" text", "missing operand")
     end
 end
 
@@ -102,19 +110,12 @@ function lib.etch(val, pidx, pchar)
     if idx == nil then idx = m.pop() end
     if char == nil then char = m.pop() end
 
+    char = lib.tobyte(char, " etch")
+
     if char and idx then
         if lib.badtype(idx, "number", " etch:idx") then return end
-
-        if type(char) == "string" then
-            char = lib.tobyte(char, " etch")
-        elseif lib.badtype(char, "number", " etch:char") then
-            return
-        end
-
-        if m.ok then
-            local y, x = lib.split(idx)
-            lib.draw.char(x, y, char)
-        end
+        local y, x = lib.split(idx)
+        lib.draw.char(x, y, char)
     else
        m.err(" etch", "missing operand")
     end
@@ -142,15 +143,25 @@ function lib.ink(val, pidx, pcolr)
 end
 
 
-function lib.rect()
-    print("rect")
+function lib.rect(val, pfrom, pto, pchar, pcolr)
     local m = lib.mint
-    local to, from, char, colr = m.pop(), m.pop(), m.pop(), m.pop()
-    if to and from and char and colr then
-        lib.crect(nil, from, to, char)
-        lib.irect(nil, from, to, colr)
+    local to = pfrom or m.pop()
+    local from = pto or m.pop()
+    local char = pchar or m.pop()
+    local colr = pcolr or m.pop()
+    char = lib.tobyte(char, " crect:char")
+    if to and from and colr and char then
+        if lib.badtype(to, "number", " rect:to") then return end
+        if lib.badtype(from, "number", " rect:from") then return end
+        if lib.badtype(colr, "number", " rect:color") then return end
+
+        local y, x = lib.split(from)
+        local b, a = lib.split(to)
+        local bg, fg = lib.split(colr)
+        local w, h = a - x + 1, b - y + 1
+        return lib.draw.rect(x, y, w, h, char, fg, bg)
     else
-        m.err(" rect", "missing operand")
+        m.err(" irect", "missing operand")
     end
 end
 
@@ -160,17 +171,38 @@ function lib.crect(val, pfrom, pto, pchar)
     local to = pfrom or m.pop()
     local from = pto or m.pop()
     local char = pchar or m.pop()
+    char = lib.tobyte(char, " crect:char")
     if to and from and char then
-        if lib.badtype(to, "number", "crect:to") then return end
-        if lib.badtype(from, "number", "crect:from") then return end
+        if lib.badtype(to, "number", " crect:to") then return end
+        if lib.badtype(from, "number", " crect:from") then return end
 
         local y, x = lib.split(from)
         local b, a = lib.split(to)
         local w, h = a - x + 1, b - y + 1
-        print(" crect " .. x .. " " .. y .. " " .. w .. " " .. h .. " " .. char)
         return lib.draw.crect(x, y, w, h, char)
     else
         m.err(" crect", "missing operand")
+    end
+end
+
+
+function lib.irect(val, pfrom, pto, pcolr)
+    local m = lib.mint
+    local to = pfrom or m.pop()
+    local from = pto or m.pop()
+    local colr = pcolr or m.pop()
+    if to and from and colr then
+        if lib.badtype(to, "number", " irect:to") then return end
+        if lib.badtype(from, "number", " irect:from") then return end
+        if lib.badtype(colr, "number", " irect:color") then return end
+
+        local y, x = lib.split(from)
+        local b, a = lib.split(to)
+        local bg, fg = lib.split(colr)
+        local w, h = a - x + 1, b - y + 1
+        return lib.draw.irect(x, y, w, h, fg, bg)
+    else
+        m.err(" irect", "missing operand")
     end
 end
 
@@ -215,7 +247,7 @@ end
 
 ----------- HELPERS -----------
 
--- Takes a value in the format 0xAB and returns A, B
+-- Takes a value in the format #AB and returns A, B
 function lib.split(idx)
     return math.floor(idx / 16), idx % 16
 end
@@ -228,7 +260,10 @@ function lib.tobyte(char, where)
         return char % 0xFF
     elseif type(char) == "string" then
         if #char == 1 then
-            return string.byte(string.sub(char, 1, 1))
+            return string.byte(char)
+        elseif #char > 1 then
+            lib.mint.err(wherestr, "cannot convert multi-char string to byte (int)")
+            return nil
         else
             lib.mint.err(wherestr, "cannot convert empty string to byte (int)")
             return nil
@@ -241,13 +276,15 @@ end
 
 
 function lib.badtype(val, ty, wherestr, should_err)
-    local toerr = should_err or true
-    if type(val) == ty then
-        return false
-    elseif should_err then
-        lib.mint.err(wherestr, "expected " .. ty .. ", got " .. type(val))
+    local toerr = should_err
+    if toerr == nil then toerr = true end
+    if type(val) ~= ty then
+        if toerr then
+            lib.mint.err(wherestr, "expected " .. ty .. ", got " .. type(val))
+        end
+        return true
     end
-    return true
+    return false
 end
 
 

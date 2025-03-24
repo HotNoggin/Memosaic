@@ -18,7 +18,7 @@ parser.reserved = {
     "fill", "tile", "T", "etch", "E", "ink", "I",
     "rect", "R", "crect", "irect", "text",
     -- Audio
-    "blipat"
+    "blip", "blipat"
 }
 
 
