@@ -250,6 +250,16 @@ function mint.outcolr()
 end
 
 
+function mint.apierr()
+    local txt = mint.pop()
+    if txt ~= nil then
+        mint.err("", tostring(txt))
+    else
+        mint.err(" err", "missing operand")
+    end
+end
+
+
 function mint.add()
     local b, a = mint.pop(), mint.pop()
     if a ~= nil and b ~= nil then
