@@ -88,16 +88,17 @@ function font_tab.update(editor)
             font_tab.paste("\0\0\0\0\0\0\0\0")
             editor.tooltip = "cut char"
         end
+    else
+        if ipt.btnp(0) then font_tab.char = font_tab.fontwrap(font_tab.char - 1) end
+        if ipt.btnp(1) then font_tab.char = font_tab.fontwrap(font_tab.char + 1) end
+        if ipt.btnp(2) then font_tab.char = font_tab.fontwrap(font_tab.char - 8) end
+        if ipt.btnp(3) then font_tab.char = font_tab.fontwrap(font_tab.char + 8) end
+        if ipt.btnp(0) or ipt.btnp(1) or ipt.btnp(2) or ipt.btnp(3) then
+            font_tab.tip_char(editor)
+        end
     end
     if love.keyboard.isDown("delete") then
         font_tab.paste("\0\0\0\0\0\0\0\0")
-    end
-    if ipt.btnp(0) then font_tab.char = font_tab.fontwrap(font_tab.char - 1) end
-    if ipt.btnp(1) then font_tab.char = font_tab.fontwrap(font_tab.char + 1) end
-    if ipt.btnp(2) then font_tab.char = font_tab.fontwrap(font_tab.char - 8) end
-    if ipt.btnp(3) then font_tab.char = font_tab.fontwrap(font_tab.char + 8) end
-    if ipt.btnp(0) or ipt.btnp(1) or ipt.btnp(2) or ipt.btnp(3) then
-        font_tab.tip_char(editor)
     end
 
     -- Current char drawing
