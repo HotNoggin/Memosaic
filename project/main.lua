@@ -58,7 +58,8 @@ function love.update(dt)
     if memo.tick.update(dt) then
         if memo.cart.ended_splash then
             memo.cart.ended_splash = false
-            memo.cart.load("", memo.demos["new_cart.memo"])
+            memo.editor.sendcmd("new")
+            memo.editor.sendcmd("welcome")
             auto_boot()
         end
         memo.input.update()
