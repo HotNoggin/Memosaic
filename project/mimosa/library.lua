@@ -366,7 +366,7 @@ function lib.sin()
     local num = m.pop()
     if num ~= nil then
         if lib.badtype(num, "number", " sin") then return end
-        m.push(m.int(math.sin(num) * 0xff))
+        m.push(m.int(math.sin(math.rad(num)) * 0xff))
     end
 end
 
@@ -376,7 +376,7 @@ function lib.cos()
     local num = m.pop()
     if num ~= nil then
         if lib.badtype(num, "number", " cos") then return end
-        m.push(m.int(math.cos(num) * 0xff))
+        m.push(m.int(math.cos(math.rad(num)) * 0xff))
     end
 end
 
