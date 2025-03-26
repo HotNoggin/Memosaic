@@ -21,6 +21,9 @@ parser.reserved = {
     "pan",
     -- Audio
     "blip", "beep", "chirp", "sfxset",
+
+    -- Math
+    "abs", "cos", "sin", "min", "max", "rnd"
 }
 
 

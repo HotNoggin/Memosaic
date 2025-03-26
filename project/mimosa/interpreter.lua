@@ -639,16 +639,21 @@ end
 function mint.type()
     local val = mint.pop()
     if val ~= nil then
-        local types = {
-            ["number"] = "int",
-            ["string"] = "str",
-            ["table"] = "list",
-            ["boolean"] = "bool",
-        }
-        mint.push(types[type(val)])
+        mint.push(mint.mosatype(type(val)))
     else
         mint.err(" type", "missing operand")
     end
+end
+
+
+function mint.mosatype(ty)
+    local types = {
+        ["number"] = "int",
+        ["string"] = "str",
+        ["table"] = "list",
+        ["boolean"] = "bool",
+    }
+    return types[ty]
 end
 
 
@@ -907,6 +912,14 @@ function mint.init()
         beep = mint.lib.beep,
         chirp = mint.lib.chirp,
         sfxset = mint.lib.sfxset,
+
+        -- Math
+        abs = mint.lib.abs,
+        cos = mint.lib.cos,
+        sin = mint.lib.sin,
+        min = mint.lib.min,
+        max = mint.lib.max,
+        rnd = mint.lib.rnd,
     }
 end
 

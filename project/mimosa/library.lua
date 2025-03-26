@@ -350,6 +350,69 @@ function lib.blip()
     end
 end
 
+----------- MATH -----------
+function lib.abs()
+    local m = lib.mint
+    local num = m.pop
+    if num ~= nil then
+        if lib.badtype(num, "number", " abs") then return end
+        m.push(math.abs(num))
+    end
+end
+
+
+function lib.sin()
+    local m = lib.mint
+    local num = m.pop()
+    if num ~= nil then
+        if lib.badtype(num, "number", " sin") then return end
+        m.push(m.int(math.sin(num) * 0xff))
+    end
+end
+
+
+function lib.cos()
+    local m = lib.mint
+    local num = m.pop()
+    if num ~= nil then
+        if lib.badtype(num, "number", " cos") then return end
+        m.push(m.int(math.cos(num) * 0xff))
+    end
+end
+
+
+function lib.min()
+    local m = lib.mint
+    local b, a = m.pop(), m.pop()
+    if a ~= nil and b ~= nil then
+        if lib.badtype(a, "number", " min:a") then return end
+        if lib.badtype(b, "number", " min:b") then return end
+        m.push(math.min(a, b))
+    end
+end
+
+
+function lib.max()
+    local m = lib.mint
+    local b, a = m.pop(), m.pop()
+    if a ~= nil and b ~= nil then
+        if lib.badtype(a, "number", " max:a") then return end
+        if lib.badtype(b, "number", " max:b") then return end
+        m.push(math.max(a, b))
+    end
+end
+
+
+function lib.rnd()
+    local m = lib.mint
+    local b, a = m.pop(), m.pop()
+    if a ~= nil and b ~= nil then
+        if lib.badtype(a, "number", " rnd:a") then return end
+        if lib.badtype(b, "number", " rnd:b") then return end
+        m.push(math.random(a, b))
+    end
+end
+
 
 ----------- HELPERS -----------
 -- Takes a value in the format #AB and returns A, B
@@ -374,7 +437,7 @@ function lib.tobyte(char, where)
             return nil
         end
     else
-        lib.mint.err(wherestr, "cannot convert " .. type(char) .. " to byte (int)")
+        lib.mint.err(wherestr, "cannot convert " .. lib.mint.mosatype(type(char)) .. " to byte (int)")
         return nil
     end
 end
@@ -385,7 +448,8 @@ function lib.badtype(val, ty, wherestr, should_err)
     if toerr == nil then toerr = true end
     if type(val) ~= ty then
         if toerr then
-            lib.mint.err(wherestr, "expected " .. ty .. ", got " .. type(val))
+            lib.mint.err(wherestr, "expected " .. lib.mint.mosatype(ty) ..
+            ", got " .. lib.mint.mosatype(type(val)))
         end
         return true
     end
