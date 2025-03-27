@@ -48,7 +48,9 @@ function memapi.init(memo)
         memapi.poke = memapi.web_poke -- slightly slower because of % 256
         memapi.backup = memapi.web_backup -- uses table instead of bytes
         memapi.retrieve = memapi.web_retrieve -- uses table instead of bytes
+        ---@type table
         memapi.bytes = {}
+        ---@type table
         memapi.stash = {}
         for i = 1, 0x2000 do
             memapi.bytes[i] = 0
