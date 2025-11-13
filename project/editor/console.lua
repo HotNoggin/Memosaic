@@ -26,6 +26,7 @@ function console.init(memo)
     console.wrap = true
     console.usemimosa = false
 
+    -- Frame for cursor flash
     console.frame = 0
     -- Cursor x and y
     console.cx = 0
@@ -40,6 +41,9 @@ function console.init(memo)
     -- Input
     console.enter_down = false
     console.scroll_time = 0
+    console.cursor_time = 0
+    console.cursor_wait_time = 12
+    console.cursor_skip_time = 5
     console.back_time = 0
     console.back_lim_a = 15
     console.back_lim_b = 60
@@ -55,29 +59,31 @@ function console.reset()
     console.print("Try HELP or EDIT")
     local messages = {
         "ready to create?",
-        "  byo hardware! ",
-        " it does things ",
-        " it has a lang! ",
-        "   so quirky!   ",
-        " i need a hobby ",
-        " hello... world ",
-        " anyone there?  ",
-        "  knock knock!  ",
-        "  Howdy there!  ",
-        " nice and tiny! ",
-        "  you got this  ",
-        "  time to code  ",
-        " play or make?  ",
+        "great for resume",
+        "100% open source",
+        "you can sell it!",
+        "made with 1 lang",
+        "contains 2 langs",
+        "contains 0 juice",
+        "100% gluten free",
+        "100% sugar free!",
+        "ianal, ndipootv.",
         "folder? I hardl-",
         "run, Forest, run",
-        "  no bugs here! ",
+        "same great taste",
+        "improved recipe!",
+        "i'm walkin' here",
+        "3.14159265358...",
+        "secret tunnel!!!",
+        "you're so clever",
         "16-char message!",
         "1024KiB is 1MiB!",
+        "i'm on line four",
         "memomemomemomemo",
         "MEMOSAIIIIIIIIIC",
-        " have a smile \7",
         "a kid made this!",
-        " ducky was here ",
+        "a ducky was here",
+        "[quirky message]",
     }
     local msg = messages[math.random(1, #messages)]
     console.print(msg, 10)
@@ -105,6 +111,25 @@ function console.update()
     local c = console
     local draw = c.draw
 
+    -- Move cursor with keyboard keys
+    if love.keyboard.isDown("left") then
+        if c.cursor_time == 0 or c.cursor_time == c.cursor_wait_time then
+            console.frame = 45
+            c.cx = c.cx - 1
+            if c.cursor_time == 0 then c.cursor_time = c.cursor_skip_time end
+        end
+        c.cursor_time = c.cursor_time - 1
+    elseif love.keyboard.isDown("right") then
+        if c.cursor_time == 0 or c.cursor_time == c.cursor_wait_time then
+            console.frame = 45
+            c.cx = c.cx + 1
+            if c.cursor_time == 0 then c.cursor_time = c.cursor_skip_time end
+        end
+        c.cursor_time = c.cursor_time - 1
+    else
+        c.cursor_time = c.cursor_wait_time
+    end
+
     -- Enter and backspace
     local enter = c.input.enter
     local back
@@ -121,16 +146,22 @@ function console.update()
     -- Add typed input text
     local text = c.input.poptext()
     if text ~= "" then
-        c.entries[#c.entries] = c.entries[#c.entries] .. text
+        local line = c.entries[#c.entries]
+        c.entries[#c.entries] = console.str_insert(line, text, console.cx)
+        console.cx = console.cx + #text
         c.autoscroll = true
         console.frame = 45
     end
 
     -- Remove char with backspace
     if back then
-        c.entries[#c.entries] = c.entries[#c.entries]:sub(1, -2)
+        c.entries[#c.entries] = c.str_remove(c.entries[#c.entries], c.cx)
+        c.cx = c.cx - 1
         console.frame = 45
     end
+
+    -- Cursor cannot go beyond text bounds
+    c.cx = math.max(0, math.min(c.cx, #(c.entries[#c.entries])))
 
     -- Take command and add new input line on enter
     if enter and not c.enter_down then
@@ -164,7 +195,8 @@ function console.update()
             if index == #c.entries then
                 txt = ">" .. txt
                 if console.frame % 60 >= 30 then
-                    txt = txt .. "_"
+                    txt = c.str_remove(txt, c.cx + 2)
+                    txt = c.str_insert(txt, "_", c.cx + 1)
                 end
             end
             local split = c.splitstr(txt, 16)
@@ -199,7 +231,7 @@ function console.update()
         console.sy = c.cy - 16
     end
 
-    -- Scroll with the mousewheel
+    -- Scroll with keyboard keys
     if love.keyboard.isDown("up") then
         if c.scroll_time % 2 == 0 then
             c.sy = c.sy - 1
